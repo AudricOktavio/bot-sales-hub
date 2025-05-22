@@ -9,14 +9,39 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from '@/hooks/use-toast';
 import AgentCard from '@/components/AgentCard';
 
+// Define agent status type to ensure consistency
+type AgentStatus = 'active' | 'inactive' | 'pending';
+
+// Define the agent interface
+interface Agent {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  status: AgentStatus;
+  leadsGenerated: number;
+  conversionRate: string;
+}
+
+// Define the new agent interface
+interface NewAgent {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  prompt: string;
+  personality: string;
+  status: AgentStatus;
+}
+
 // Demo data for agents
-const initialAgents = [
+const initialAgents: Agent[] = [
   {
     id: 1,
     name: 'Agent Alpha',
     description: 'Specialized in software sales with a focus on enterprise clients. Uses a consultative approach to identify client needs.',
     category: 'Software',
-    status: 'active' as const,
+    status: 'active',
     leadsGenerated: 42,
     conversionRate: '28.5%',
   },
@@ -25,7 +50,7 @@ const initialAgents = [
     name: 'Agent Beta',
     description: 'Focuses on hardware solutions for small and medium businesses. Takes a friendly, solutions-oriented approach.',
     category: 'Hardware',
-    status: 'active' as const,
+    status: 'active',
     leadsGenerated: 38,
     conversionRate: '23.7%',
   },
@@ -34,7 +59,7 @@ const initialAgents = [
     name: 'Agent Gamma',
     description: 'Specializes in cloud services and SaaS products. Technical expertise with a focus on ROI and scalability.',
     category: 'Cloud Services',
-    status: 'active' as const,
+    status: 'active',
     leadsGenerated: 27,
     conversionRate: '19.2%',
   },
@@ -43,27 +68,27 @@ const initialAgents = [
     name: 'Agent Delta',
     description: 'New agent configured for selling premium support packages. Trained to identify customer pain points.',
     category: 'Support',
-    status: 'pending' as const,
+    status: 'pending',
     leadsGenerated: 0,
     conversionRate: '0%',
   },
 ];
 
 const AgentManagement = () => {
-  const [agents, setAgents] = useState(initialAgents);
+  const [agents, setAgents] = useState<Agent[]>(initialAgents);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
   
-  const [newAgent, setNewAgent] = useState({
+  const [newAgent, setNewAgent] = useState<NewAgent>({
     id: 0,
     name: '',
     description: '',
     category: '',
     prompt: '',
     personality: '',
-    status: 'pending' as const,
+    status: 'pending',
   });
   
   const [isEditing, setIsEditing] = useState(false);
@@ -96,7 +121,11 @@ const AgentManagement = () => {
     if (agentToEdit) {
       setIsEditing(true);
       setNewAgent({
-        ...agentToEdit,
+        id: agentToEdit.id,
+        name: agentToEdit.name,
+        description: agentToEdit.description,
+        category: agentToEdit.category,
+        status: agentToEdit.status,
         prompt: 'Sell [product] to [customer type] by highlighting [key benefits]. Focus on [customer pain points].',
         personality: agentToEdit.category === 'Software' ? 'Technical Expert' : 'Friendly Consultant',
       });
@@ -123,14 +152,30 @@ const AgentManagement = () => {
     }
     
     if (isEditing) {
-      setAgents(agents.map(agent => agent.id === newAgent.id ? {...newAgent} : agent));
+      setAgents(agents.map(agent => agent.id === newAgent.id ? {
+        ...agent,
+        name: newAgent.name,
+        description: newAgent.description,
+        category: newAgent.category,
+        status: newAgent.status
+      } : agent));
+      
       toast({
         title: "Agent Updated",
         description: `${newAgent.name} has been updated successfully`,
       });
     } else {
       const newId = Math.max(...agents.map(a => a.id), 0) + 1;
-      setAgents([...agents, {...newAgent, id: newId, leadsGenerated: 0, conversionRate: '0%'}]);
+      setAgents([...agents, {
+        id: newId, 
+        name: newAgent.name, 
+        description: newAgent.description,
+        category: newAgent.category,
+        status: newAgent.status,
+        leadsGenerated: 0, 
+        conversionRate: '0%'
+      }]);
+      
       toast({
         title: "Agent Created",
         description: `${newAgent.name} has been created successfully`,
