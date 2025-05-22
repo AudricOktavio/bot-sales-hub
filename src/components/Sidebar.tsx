@@ -1,0 +1,104 @@
+
+import { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { ChevronLeft, ChevronRight, LayoutDashboard, Users, MessageSquare, List } from 'lucide-react';
+
+interface NavItemProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  collapsed: boolean;
+}
+
+const NavItem = ({ to, icon, label, collapsed }: NavItemProps) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) => 
+        cn(
+          "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 group",
+          isActive 
+            ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+            : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
+        )
+      }
+    >
+      <div className="flex min-w-[24px] items-center justify-center text-sidebar-foreground">
+        {icon}
+      </div>
+      {!collapsed && (
+        <span className="animate-slide-in">{label}</span>
+      )}
+    </NavLink>
+  );
+};
+
+const Sidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
+
+  const toggleCollapse = () => {
+    setCollapsed(!collapsed);
+  };
+
+  const navItems = [
+    { to: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
+    { to: '/agent-management', icon: <Users size={20} />, label: 'AI Agents' },
+    { to: '/customers', icon: <Users size={20} />, label: 'Customers' },
+    { to: '/products', icon: <List size={20} />, label: 'Products' },
+    { to: '/chat-logs', icon: <MessageSquare size={20} />, label: 'Chat Logs' },
+  ];
+
+  return (
+    <div
+      className={cn(
+        "h-screen flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        collapsed ? "w-16" : "w-64"
+      )}
+    >
+      <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
+        {!collapsed && (
+          <div className="text-lg font-bold text-sidebar-foreground">AI Sales CRM</div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleCollapse}
+          className={cn(
+            "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            collapsed ? "mx-auto" : ""
+          )}
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </Button>
+      </div>
+
+      <div className="flex-1 p-3 space-y-1 overflow-auto">
+        {navItems.map((item) => (
+          <NavItem
+            key={item.to}
+            to={item.to}
+            icon={item.icon}
+            label={item.label}
+            collapsed={collapsed}
+          />
+        ))}
+      </div>
+
+      <div className="p-3 border-t border-sidebar-border">
+        <NavItem
+          to="/settings"
+          icon={<Users size={20} />}
+          label="Settings"
+          collapsed={collapsed}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;

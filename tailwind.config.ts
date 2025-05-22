@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom CRM colors
+				crm: {
+					'primary': '#5046e4', // Primary brand color
+					'secondary': '#7e4ff3', // Secondary brand color
+					'accent': '#30c9c6', // Accent color for highlights
+					'success': '#22c55e', // Success states
+					'warning': '#fbbf24', // Warning states
+					'danger': '#ef4444', // Error/danger states
+					'new': '#22d3ee', // New leads
+					'contacted': '#a78bfa', // Contacted leads
+					'interested': '#fbbf24', // Interested leads
+					'closed': '#22c55e', // Closed deals
 				}
 			},
 			borderRadius: {
@@ -84,11 +98,21 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' }
+				},
+				'slide-in': {
+					'0%': { transform: 'translateX(-10px)', opacity: '0' },
+					'100%': { transform: 'translateX(0)', opacity: '1' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'slide-in': 'slide-in 0.3s ease-out'
 			}
 		}
 	},
