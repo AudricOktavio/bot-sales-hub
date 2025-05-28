@@ -25,13 +25,13 @@ const queryClient = new QueryClient();
 // Layout component for authenticated routes
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Navbar />
-        <div className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto p-4 md:p-6">
           {children}
-        </div>
+        </main>
       </div>
     </div>
   );

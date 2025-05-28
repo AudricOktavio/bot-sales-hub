@@ -29,18 +29,18 @@ const Navbar = () => {
   };
 
   return (
-    <header className="border-b bg-background">
-      <div className="flex h-16 items-center justify-between px-6">
-        <div className="flex items-center gap-x-4 lg:w-64">
-          <h1 className="text-xl font-bold md:block hidden">AI Sales CRM</h1>
+    <header className="border-b bg-background sticky top-0 z-40">
+      <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
+        <div className="flex items-center gap-x-4">
+          <h1 className="text-lg md:text-xl font-bold hidden sm:block">AI Sales CRM</h1>
         </div>
 
-        <form onSubmit={handleSearch} className="flex-1 md:ml-8 md:mr-8 hidden md:block">
+        <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4 hidden sm:block">
           <div className="relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search for customers, products, or agents..."
-              className="w-full pl-8 bg-muted/30"
+              placeholder="Search..."
+              className="w-full pl-10 bg-muted/30 border-0 focus-visible:ring-1"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -48,14 +48,19 @@ const Navbar = () => {
         </form>
 
         <div className="flex items-center gap-2">
+          {/* Mobile search */}
+          <Button variant="ghost" size="icon" className="sm:hidden">
+            <Search className="h-5 w-5" />
+          </Button>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-crm-primary"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary"></span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuContent align="end" className="w-80 max-w-[90vw]">
               <DropdownMenuLabel>Notifications</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <div className="max-h-[300px] overflow-auto">

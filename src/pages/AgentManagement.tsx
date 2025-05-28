@@ -187,37 +187,41 @@ const AgentManagement = () => {
   
   return (
     <div className="crm-container">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">AI Agent Management</h1>
-          <p className="text-muted-foreground mt-1">Configure and manage AI sales agents</p>
+      <div className="flex flex-col space-y-4 mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-responsive-xl font-bold">AI Agent Management</h1>
+            <p className="text-muted-foreground mt-1 text-sm md:text-base">Configure and manage AI sales agents</p>
+          </div>
+          <Button onClick={handleCreateAgent} className="w-full sm:w-auto">
+            Add New Agent
+          </Button>
         </div>
-        <Button onClick={handleCreateAgent}>Add New Agent</Button>
+        
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Search agents..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full"
+            />
+          </div>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {uniqueCategories.map(category => (
+                <SelectItem key={category} value={category}>{category}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <Input
-            placeholder="Search agents..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
-        </div>
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Select Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
-            {uniqueCategories.map(category => (
-              <SelectItem key={category} value={category}>{category}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="mobile-grid">
         {filteredAgents.map(agent => (
           <AgentCard
             key={agent.id}
@@ -227,25 +231,27 @@ const AgentManagement = () => {
           />
         ))}
         {filteredAgents.length === 0 && (
-          <div className="col-span-3 text-center py-12 bg-muted/30 rounded-md">
+          <div className="col-span-full text-center py-12 bg-muted/30 rounded-md">
             <p className="text-muted-foreground">No agents match your search criteria</p>
           </div>
         )}
       </div>
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="mobile-dialog max-w-4xl mx-4 md:mx-auto">
           <DialogHeader>
-            <DialogTitle>{isEditing ? 'Edit AI Agent' : 'Create New AI Agent'}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-responsive-lg">
+              {isEditing ? 'Edit AI Agent' : 'Create New AI Agent'}
+            </DialogTitle>
+            <DialogDescription className="text-sm md:text-base">
               Configure the AI agent's settings and personality to optimize sales performance.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 py-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Agent Name</Label>
+                <Label htmlFor="name" className="text-sm font-medium">Agent Name</Label>
                 <Input
                   id="name"
                   placeholder="e.g. Tech Sales Specialist"
@@ -255,7 +261,7 @@ const AgentManagement = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-sm font-medium">Category</Label>
                 <Input
                   id="category"
                   placeholder="e.g. Software, Hardware, Services"
@@ -265,11 +271,11 @@ const AgentManagement = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description" className="text-sm font-medium">Description</Label>
                 <Textarea
                   id="description"
                   placeholder="Describe what this agent specializes in..."
-                  className="resize-none"
+                  className="resize-none min-h-[100px]"
                   rows={4}
                   value={newAgent.description}
                   onChange={(e) => setNewAgent({...newAgent, description: e.target.value})}
@@ -279,11 +285,11 @@ const AgentManagement = () => {
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="prompt">Sales Prompt</Label>
+                <Label htmlFor="prompt" className="text-sm font-medium">Sales Prompt</Label>
                 <Textarea
                   id="prompt"
                   placeholder="Instructions for how the AI should sell..."
-                  className="resize-none"
+                  className="resize-none min-h-[100px]"
                   rows={4}
                   value={newAgent.prompt}
                   onChange={(e) => setNewAgent({...newAgent, prompt: e.target.value})}
@@ -294,7 +300,7 @@ const AgentManagement = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="personality">Personality Type</Label>
+                <Label htmlFor="personality" className="text-sm font-medium">Personality Type</Label>
                 <Select 
                   value={newAgent.personality} 
                   onValueChange={(value) => setNewAgent({...newAgent, personality: value})}
@@ -316,9 +322,13 @@ const AgentManagement = () => {
             </div>
           </div>
           
-          <div className="flex justify-end gap-3 mt-4">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveAgent}>{isEditing ? 'Update Agent' : 'Create Agent'}</Button>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4">
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAgent} className="w-full sm:w-auto">
+              {isEditing ? 'Update Agent' : 'Create Agent'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

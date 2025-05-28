@@ -2,37 +2,48 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { ChevronLeft, ChevronRight, LayoutDashboard, Users, MessageSquare, List } from 'lucide-react';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  LayoutDashboard, 
+  Users, 
+  MessageSquare, 
+  List,
+  Menu
+} from 'lucide-react';
 
 interface NavItemProps {
   to: string;
   icon: React.ReactNode;
   label: string;
-  collapsed: boolean;
+  collapsed?: boolean;
+  onClick?: () => void;
 }
 
-const NavItem = ({ to, icon, label, collapsed }: NavItemProps) => {
+const NavItem = ({ to, icon, label, collapsed, onClick }: NavItemProps) => {
   const location = useLocation();
   const isActive = location.pathname === to;
 
   return (
     <NavLink
       to={to}
+      onClick={onClick}
       className={({ isActive }) => 
         cn(
-          "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 group",
+          "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group text-sm",
           isActive 
             ? "bg-sidebar-accent text-sidebar-accent-foreground" 
             : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
         )
       }
     >
-      <div className="flex min-w-[24px] items-center justify-center text-sidebar-foreground">
+      <div className="flex min-w-[20px] items-center justify-center text-sidebar-foreground">
         {icon}
       </div>
       {!collapsed && (
-        <span className="animate-slide-in">{label}</span>
+        <span className="animate-slide-in font-medium">{label}</span>
       )}
     </NavLink>
   );
@@ -40,9 +51,14 @@ const NavItem = ({ to, icon, label, collapsed }: NavItemProps) => {
 
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
+  };
+
+  const closeMobile = () => {
+    setMobileOpen(false);
   };
 
   const navItems = [
@@ -53,10 +69,50 @@ const Sidebar = () => {
     { to: '/chat-logs', icon: <MessageSquare size={20} />, label: 'Chat Logs' },
   ];
 
-  return (
+  // Mobile sidebar
+  const MobileSidebar = () => (
+    <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="md:hidden">
+          <Menu size={20} />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-64 p-0 bg-sidebar border-sidebar-border">
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b border-sidebar-border">
+            <div className="text-lg font-bold text-sidebar-foreground">AI Sales CRM</div>
+          </div>
+          
+          <div className="flex-1 p-3 space-y-1 overflow-auto">
+            {navItems.map((item) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                onClick={closeMobile}
+              />
+            ))}
+          </div>
+          
+          <div className="p-3 border-t border-sidebar-border">
+            <NavItem
+              to="/settings"
+              icon={<Users size={20} />}
+              label="Settings"
+              onClick={closeMobile}
+            />
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+
+  // Desktop sidebar
+  const DesktopSidebar = () => (
     <div
       className={cn(
-        "h-screen flex flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
+        "hidden md:flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -98,6 +154,13 @@ const Sidebar = () => {
         />
       </div>
     </div>
+  );
+
+  return (
+    <>
+      <MobileSidebar />
+      <DesktopSidebar />
+    </>
   );
 };
 
