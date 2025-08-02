@@ -277,17 +277,51 @@ const Index = () => {
             ))}
           </div>
         </div>
-        
-        {/* Interactive Demo Section */}
-        <section id="use-cases" className="max-w-6xl mx-auto mb-20">
+
+        {/* Under the Hood: AI Logic Preview */}
+        <section className="max-w-6xl mx-auto mb-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              See AI Sales Agents in Action
+              Streamline Every Step of Your Sales Process from Inquiry to Closing
             </h2>
             <p className="text-muted-foreground text-lg">
-              Watch real conversations and see how AI agents convert leads across different industries
+              See how Valvia processes customer requests and generates intelligent responses
             </p>
           </div>
+
+          <Card className="p-8 bg-gradient-to-br from-background to-muted/50">
+            <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
+              {workflowSteps.map((step, index) => (
+                <div key={index} className="flex items-center">
+                  <div className={`flex flex-col items-center transition-all duration-500 ${
+                    activeStep === index ? 'scale-110' : 'scale-100'
+                  }`}>
+                    <div className={`h-16 w-16 rounded-full flex items-center justify-center mb-3 transition-all duration-500 ${
+                      activeStep === index 
+                        ? 'bg-crm-primary text-white shadow-lg shadow-crm-primary/30' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      <step.icon className="h-8 w-8" />
+                    </div>
+                    <p className={`text-sm font-medium text-center max-w-20 transition-colors duration-500 ${
+                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
+                    }`}>
+                      {step.step}
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center max-w-24 mt-1">
+                      {step.description}
+                    </p>
+                  </div>
+                  
+                  {index < workflowSteps.length - 1 && (
+                    <ArrowRight className={`h-6 w-6 mx-2 transition-colors duration-500 ${
+                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
+                    }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
 
           <div className="grid lg:grid-cols-2 gap-8 items-start">
             {/* Demo Selector */}
@@ -362,52 +396,6 @@ const Index = () => {
               </div>
             </Card>
           </div>
-        </section>
-
-        {/* Under the Hood: AI Logic Preview */}
-        <section className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Streamline Every Step of Your Sales Process from Inquiry to Closing
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              See how Valvia processes customer requests and generates intelligent responses
-            </p>
-          </div>
-
-          <Card className="p-8 bg-gradient-to-br from-background to-muted/50">
-            <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
-              {workflowSteps.map((step, index) => (
-                <div key={index} className="flex items-center">
-                  <div className={`flex flex-col items-center transition-all duration-500 ${
-                    activeStep === index ? 'scale-110' : 'scale-100'
-                  }`}>
-                    <div className={`h-16 w-16 rounded-full flex items-center justify-center mb-3 transition-all duration-500 ${
-                      activeStep === index 
-                        ? 'bg-crm-primary text-white shadow-lg shadow-crm-primary/30' 
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      <step.icon className="h-8 w-8" />
-                    </div>
-                    <p className={`text-sm font-medium text-center max-w-20 transition-colors duration-500 ${
-                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
-                    }`}>
-                      {step.step}
-                    </p>
-                    <p className="text-xs text-muted-foreground text-center max-w-24 mt-1">
-                      {step.description}
-                    </p>
-                  </div>
-                  
-                  {index < workflowSteps.length - 1 && (
-                    <ArrowRight className={`h-6 w-6 mx-2 transition-colors duration-500 ${
-                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
-                    }`} />
-                  )}
-                </div>
-              ))}
-            </div>
-          </Card>
         </section>
 
         {/* Features Showcase */}
