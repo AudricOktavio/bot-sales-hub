@@ -1,16 +1,47 @@
-
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Play, MessageCircle, TrendingUp, Clock, Users, CheckCircle } from 'lucide-react';
+import { 
+  Play, 
+  MessageCircle, 
+  TrendingUp, 
+  Clock, 
+  Users, 
+  CheckCircle,
+  Globe,
+  Database,
+  Cloud,
+  Smartphone,
+  CreditCard,
+  FileText,
+  Settings,
+  Workflow,
+  Brain,
+  Shield,
+  HeadphonesIcon,
+  ArrowRight,
+  Zap,
+  BarChart3,
+  Star
+} from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
   const [currentDemo, setCurrentDemo] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedTone, setSelectedTone] = useState('Professional');
+  const [activeStep, setActiveStep] = useState(0);
+
+  // Enhanced navbar items
+  const navItems = [
+    { name: 'Integration', href: '#integrations' },
+    { name: 'Pricing', href: '#pricing' },
+    { name: 'Use Cases', href: '#use-cases' },
+    { name: 'Book A Demo', href: '/signup', isButton: true }
+  ];
 
   // Demo conversation data
   const demos = [
@@ -51,6 +82,84 @@ const Index = () => {
 
   const [displayedMessages, setDisplayedMessages] = useState<any[]>([]);
 
+  // Integration logos and data
+  const integrations = [
+    { name: 'SAP', icon: Database, color: 'text-blue-600', delay: 0 },
+    { name: 'Odoo', icon: Settings, color: 'text-purple-600', delay: 200 },
+    { name: 'Midtrans', icon: CreditCard, color: 'text-blue-500', delay: 400 },
+    { name: 'WhatsApp', icon: MessageCircle, color: 'text-green-500', delay: 600 },
+    { name: 'OneDrive', icon: Cloud, color: 'text-blue-400', delay: 800 },
+    { name: 'Google Drive', icon: FileText, color: 'text-yellow-500', delay: 1000 }
+  ];
+
+  // AI Workflow steps
+  const workflowSteps = [
+    { step: "Customer Inquiry", icon: MessageCircle, description: "Customer reaches out via any channel" },
+    { step: "AI Processing", icon: Brain, description: "AI analyzes intent and context" },
+    { step: "CRM Query", icon: Database, description: "Checks SAP/Odoo for inventory & pricing" },
+    { step: "Response Generation", icon: Zap, description: "Crafts personalized response" },
+    { step: "Payment Link", icon: CreditCard, description: "Generates secure Midtrans payment" }
+  ];
+
+  // Pricing plans
+  const pricingPlans = [
+    {
+      name: 'Pro',
+      price: '1,799K',
+      period: '/month',
+      responses: '15,000',
+      channels: 'WA, Messenger',
+      integration: '-',
+      seats: '1',
+      reports: 'Basic',
+      support: 'Email Only',
+      popular: false
+    },
+    {
+      name: 'Business',
+      price: '3,599K',
+      period: '/month',
+      responses: '50,000',
+      channels: '+ Instagram',
+      integration: '+ SAP, Odoo',
+      seats: '3',
+      reports: 'Weekly',
+      support: 'Email + Chat',
+      popular: true
+    },
+    {
+      name: 'Enterprise',
+      price: '5,599K',
+      period: '/month',
+      responses: '150,000',
+      channels: '+ Email, Widget',
+      integration: '+ CRM Scoring, RAG',
+      seats: '10',
+      reports: 'Advanced',
+      support: 'Priority + Onboarding',
+      popular: false
+    },
+    {
+      name: 'Unlimited',
+      price: '15,599K',
+      period: '/month',
+      responses: '500,000',
+      channels: '+ Custom',
+      integration: '+ API & Fine-Tuning',
+      seats: 'Unlimited',
+      reports: 'Custom',
+      support: 'Dedicated Manager',
+      popular: false
+    }
+  ];
+
+  // Agent personality options
+  const agentTones = [
+    { name: 'Professional', description: 'Formal, business-focused approach', sample: 'Good day! I\'d be happy to assist you with finding the perfect solution for your business needs.' },
+    { name: 'Friendly', description: 'Warm, conversational tone', sample: 'Hey there! 😊 I\'m excited to help you find exactly what you\'re looking for today!' },
+    { name: 'Empathetic', description: 'Understanding, caring approach', sample: 'I understand this might be a big decision for you. Let me help guide you through the options at your own pace.' }
+  ];
+
   useEffect(() => {
     const currentDemoData = demos[currentDemo];
     setDisplayedMessages([]);
@@ -75,6 +184,14 @@ const Index = () => {
     showMessages();
   }, [currentDemo]);
 
+  // Auto-cycle through workflow steps
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % workflowSteps.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   const stats = [
     { label: "Increase in Sales", value: "340%", icon: TrendingUp },
     { label: "Response Time", value: "<30s", icon: Clock },
@@ -83,15 +200,43 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+      {/* Enhanced Navigation */}
+      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text">
+          Valvia
+        </div>
+        <div className="hidden md:flex items-center space-x-8">
+          {navItems.map((item) => (
+            item.isButton ? (
+              <Button 
+                key={item.name}
+                onClick={() => navigate(item.href)}
+                className="bg-crm-primary hover:bg-crm-primary/90"
+              >
+                {item.name}
+              </Button>
+            ) : (
+              <a 
+                key={item.name}
+                href={item.href}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {item.name}
+              </a>
+            )
+          ))}
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-12 md:py-24">
         <div className="text-center max-w-4xl mx-auto mb-16">
           <Badge className="mb-6 bg-crm-primary/10 text-crm-primary hover:bg-crm-primary/20">
-            Built by AI Experts for Sales Teams
+            Valvia - AI That Closes Deals
           </Badge>
           
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text animate-fade-in">
-            AI Sales Agents That Actually Close Deals
+            AI That Closes Deals — and Opens Up Your Time.
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
@@ -131,8 +276,174 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Easy Integrations Section */}
+        <section id="integrations" className="max-w-6xl mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              🔌 Easy Integrations
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Connect with your existing tools in minutes. No technical setup required.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Central CRM Hub */}
+            <div className="flex justify-center mb-8">
+              <Card className="p-6 bg-gradient-to-br from-crm-primary/10 to-crm-secondary/10 border-2 border-crm-primary/20">
+                <div className="text-center">
+                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-crm-primary flex items-center justify-center">
+                    <Brain className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg">Valvia AI Agent</h3>
+                  <p className="text-sm text-muted-foreground">Central Intelligence Hub</p>
+                </div>
+              </Card>
+            </div>
+
+            {/* Integration Icons */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+              {integrations.map((integration, index) => (
+                <Card 
+                  key={integration.name}
+                  className="p-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 group"
+                  style={{ animationDelay: `${integration.delay}ms` }}
+                >
+                  <div className={`h-12 w-12 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center group-hover:bg-background transition-colors`}>
+                    <integration.icon className={`h-6 w-6 ${integration.color}`} />
+                  </div>
+                  <p className="text-sm font-medium">{integration.name}</p>
+                  <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-crm-primary rounded-full transition-all duration-1000 ease-out"
+                      style={{ 
+                        width: '100%',
+                        animationDelay: `${integration.delay + 500}ms`
+                      }}
+                    />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Personalization Section */}
+        <section className="max-w-6xl mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              🌐 Personalization & Customization
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Customize your AI agent's personality and tone to match your brand
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Tone Selector */}
+            <div>
+              <h3 className="text-xl font-semibold mb-6">Agent Personality:</h3>
+              <div className="space-y-4">
+                {agentTones.map((tone) => (
+                  <Card 
+                    key={tone.name}
+                    className={`p-4 cursor-pointer transition-all border-2 ${
+                      selectedTone === tone.name 
+                        ? 'border-crm-primary bg-crm-primary/5' 
+                        : 'border-border hover:border-crm-primary/50'
+                    }`}
+                    onClick={() => setSelectedTone(tone.name)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold">{tone.name}</h4>
+                      <div className={`h-3 w-3 rounded-full transition-colors ${
+                        selectedTone === tone.name ? 'bg-crm-primary' : 'bg-muted'
+                      }`} />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{tone.description}</p>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview Chat */}
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+                <div className="h-8 w-8 rounded-full bg-crm-primary flex items-center justify-center">
+                  <MessageCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold">AI Agent Preview</h4>
+                  <p className="text-xs text-muted-foreground">{selectedTone} Mode</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-start">
+                  <div className="max-w-[80%] rounded-xl p-3 bg-muted text-foreground">
+                    <p className="text-sm">
+                      {agentTones.find(tone => tone.name === selectedTone)?.sample}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <div className="max-w-[80%] rounded-xl p-3 bg-crm-primary text-white">
+                    <p className="text-sm">That sounds perfect! Tell me more.</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </section>
+
+        {/* Under the Hood: AI Logic Preview */}
+        <section className="max-w-6xl mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              🧠 Under the Hood: AI Logic
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              See how Valvia processes customer requests and generates intelligent responses
+            </p>
+          </div>
+
+          <Card className="p-8 bg-gradient-to-br from-background to-muted/50">
+            <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
+              {workflowSteps.map((step, index) => (
+                <div key={index} className="flex items-center">
+                  <div className={`flex flex-col items-center transition-all duration-500 ${
+                    activeStep === index ? 'scale-110' : 'scale-100'
+                  }`}>
+                    <div className={`h-16 w-16 rounded-full flex items-center justify-center mb-3 transition-all duration-500 ${
+                      activeStep === index 
+                        ? 'bg-crm-primary text-white shadow-lg shadow-crm-primary/30' 
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      <step.icon className="h-8 w-8" />
+                    </div>
+                    <p className={`text-sm font-medium text-center max-w-20 transition-colors duration-500 ${
+                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
+                    }`}>
+                      {step.step}
+                    </p>
+                    <p className="text-xs text-muted-foreground text-center max-w-24 mt-1">
+                      {step.description}
+                    </p>
+                  </div>
+                  
+                  {index < workflowSteps.length - 1 && (
+                    <ArrowRight className={`h-6 w-6 mx-2 transition-colors duration-500 ${
+                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
+                    }`} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
+        </section>
+
         {/* Interactive Demo Section */}
-        <div className="max-w-6xl mx-auto mb-20">
+        <section id="use-cases" className="max-w-6xl mx-auto mb-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               See AI Sales Agents in Action
@@ -215,195 +526,110 @@ const Index = () => {
               </div>
             </Card>
           </div>
-        </div>
+        </section>
 
-        {/* Features Showcase */}
-        <div className="max-w-6xl mx-auto mb-20">
+        {/* Pricing Section */}
+        <section id="pricing" className="max-w-7xl mx-auto mb-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Complete Sales Automation Platform
+              🧾 Choose Your Plan
             </h2>
             <p className="text-muted-foreground text-lg">
-              Everything you need to manage, deploy, and optimize AI sales agents
+              Flexible pricing that scales with your business needs
             </p>
           </div>
 
-          <Tabs defaultValue="agents" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="agents">AI Agent Management</TabsTrigger>
-              <TabsTrigger value="pipeline">Sales Pipeline</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="agents" className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Create Custom AI Sales Agents</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium">Custom Personalities</p>
-                        <p className="text-sm text-muted-foreground">Train agents with your brand voice and sales approach</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium">Product Knowledge</p>
-                        <p className="text-sm text-muted-foreground">Upload catalogs and train on your specific offerings</p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
-                      <div>
-                        <p className="font-medium">Multi-Channel Deployment</p>
-                        <p className="text-sm text-muted-foreground">Deploy on website, WhatsApp, SMS, and email</p>
-                      </div>
+          <div className="overflow-x-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-w-[800px] lg:min-w-0">
+              {pricingPlans.map((plan) => (
+                <Card 
+                  key={plan.name}
+                  className={`relative p-6 ${
+                    plan.popular 
+                      ? 'border-2 border-crm-primary bg-crm-primary/5' 
+                      : 'border-border'
+                  }`}
+                >
+                  {plan.popular && (
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-crm-primary">
+                      Most Popular
+                    </Badge>
+                  )}
+                  
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                    <div className="mb-4">
+                      <span className="text-3xl font-bold">RP {plan.price}</span>
+                      <span className="text-muted-foreground">{plan.period}</span>
                     </div>
                   </div>
-                </div>
-                <Card className="p-6 bg-gradient-to-br from-crm-primary/5 to-crm-secondary/5">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-crm-primary flex items-center justify-center">
-                        <Users className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-semibold">Sales Agent: Sarah</p>
-                        <p className="text-sm text-muted-foreground">E-commerce Specialist</p>
-                      </div>
+
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Responses</span>
+                      <span className="font-medium">{plan.responses}</span>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Status: <span className="text-green-500 font-medium">Active</span> • 
-                      Conversations: <span className="font-medium">847 today</span> •
-                      Conversion: <span className="font-medium">23%</span>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Channels</span>
+                      <span className="font-medium">{plan.channels}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Integration</span>
+                      <span className="font-medium">{plan.integration}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Agent Seats</span>
+                      <span className="font-medium">{plan.seats}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Reports</span>
+                      <span className="font-medium">{plan.reports}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Support</span>
+                      <span className="font-medium">{plan.support}</span>
                     </div>
                   </div>
+
+                  <Button 
+                    className={`w-full ${
+                      plan.popular 
+                        ? 'bg-crm-primary hover:bg-crm-primary/90' 
+                        : 'variant-outline'
+                    }`}
+                    onClick={() => navigate('/signup')}
+                  >
+                    Get Started
+                  </Button>
                 </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="pipeline" className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <Card className="p-6">
-                  <h4 className="font-semibold mb-4">Live Pipeline Status</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">New Leads</span>
-                      <Badge variant="secondary">142</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Qualified</span>
-                      <Badge variant="secondary">89</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">In Negotiation</span>
-                      <Badge variant="secondary">34</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Closed Won</span>
-                      <Badge className="bg-green-500">67</Badge>
-                    </div>
-                  </div>
-                </Card>
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Visual Sales Pipeline</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Track every lead from first contact to closed deal. AI agents automatically 
-                    update lead status and schedule follow-ups.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Automatic lead scoring and qualification</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Real-time pipeline updates</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Intelligent follow-up scheduling</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="analytics" className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-8 items-center">
-                <div>
-                  <h3 className="text-2xl font-bold mb-4">Deep Conversation Analytics</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Get insights into every customer interaction. Understand what works, 
-                    optimize agent performance, and improve conversion rates.
-                  </p>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-crm-primary">340%</div>
-                      <div className="text-xs text-muted-foreground">Conversion Increase</div>
-                    </div>
-                    <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-crm-secondary">24/7</div>
-                      <div className="text-xs text-muted-foreground">Available</div>
-                    </div>
-                  </div>
-                </div>
-                <Card className="p-6 space-y-4">
-                  <h4 className="font-semibold">Today's Performance</h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Conversations</span>
-                      <span className="font-medium">1,247</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Qualified Leads</span>
-                      <span className="font-medium">312</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Conversion Rate</span>
-                      <span className="font-medium text-green-500">25.1%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Revenue Generated</span>
-                      <span className="font-medium text-crm-primary">$89,400</span>
-                    </div>
-                  </div>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* CTA Section */}
-        <div className="text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to 10x Your Sales with AI?
+        <div className="text-center max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Ready to Transform Your Sales?
           </h2>
           <p className="text-muted-foreground text-lg mb-8">
-            Join 500+ businesses already using AI sales agents to automate their sales process 
-            and increase revenue. Setup takes less than 5 minutes.
+            Join thousands of businesses using Valvia AI to close more deals and save time.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
-              size="lg"
+              size="lg" 
               className="bg-crm-primary hover:bg-crm-primary/90"
               onClick={() => navigate('/signup')}
             >
-              Start Free Trial - No Credit Card
+              Start Free Trial
             </Button>
             <Button 
               variant="outline" 
               size="lg"
-              onClick={() => navigate('/login')}
             >
-              Book a Demo
+              Schedule Demo
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-4">
-            Free 14-day trial • Cancel anytime • Setup in 5 minutes
-          </p>
         </div>
       </div>
     </div>
