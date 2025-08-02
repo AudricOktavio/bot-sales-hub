@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import ProductTable from '@/components/ProductTable';
+import sapLogo from '@/assets/sap-logo.png';
 
 // Demo data for products
 const initialProducts = [
@@ -279,6 +280,19 @@ const Products = () => {
         <div className="flex gap-2">
           <Button onClick={handleCreateProduct}>Add Product</Button>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>Import</Button>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              toast({
+                title: "SAP Sync Initiated",
+                description: "Syncing with SAP B1 for latest product data...",
+              });
+            }}
+            className="flex items-center gap-2"
+          >
+            <img src={sapLogo} alt="SAP" className="h-4 w-4" />
+            SAP Sync
+          </Button>
         </div>
       </div>
       

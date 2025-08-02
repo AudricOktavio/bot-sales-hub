@@ -11,7 +11,9 @@ import {
   Users, 
   MessageSquare, 
   List,
-  Menu
+  Menu,
+  Settings,
+  Plug
 } from 'lucide-react';
 
 interface NavItemProps {
@@ -69,6 +71,11 @@ const Sidebar = () => {
     { to: '/chat-logs', icon: <MessageSquare size={20} />, label: 'Chat Logs' },
   ];
 
+  const bottomNavItems = [
+    { to: '/integrations', icon: <Plug size={20} />, label: 'Integrations' },
+    { to: '/settings', icon: <Settings size={20} />, label: 'Settings' },
+  ];
+
   // Mobile sidebar
   const MobileSidebar = () => (
     <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -95,13 +102,16 @@ const Sidebar = () => {
             ))}
           </div>
           
-          <div className="p-3 border-t border-sidebar-border">
-            <NavItem
-              to="/settings"
-              icon={<Users size={20} />}
-              label="Settings"
-              onClick={closeMobile}
-            />
+          <div className="p-3 border-t border-sidebar-border space-y-1">
+            {bottomNavItems.map((item) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                icon={item.icon}
+                label={item.label}
+                onClick={closeMobile}
+              />
+            ))}
           </div>
         </div>
       </SheetContent>
@@ -145,13 +155,16 @@ const Sidebar = () => {
         ))}
       </div>
 
-      <div className="p-3 border-t border-sidebar-border">
-        <NavItem
-          to="/settings"
-          icon={<Users size={20} />}
-          label="Settings"
-          collapsed={collapsed}
-        />
+      <div className="p-3 border-t border-sidebar-border space-y-1">
+        {bottomNavItems.map((item) => (
+          <NavItem
+            key={item.to}
+            to={item.to}
+            icon={item.icon}
+            label={item.label}
+            collapsed={collapsed}
+          />
+        ))}
       </div>
     </div>
   );

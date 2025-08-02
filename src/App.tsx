@@ -14,6 +14,8 @@ import AgentManagement from "./pages/AgentManagement";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import ChatLogs from "./pages/ChatLogs";
+import Settings from "./pages/Settings";
+import Integrations from "./pages/Integrations";
 import NotFound from "./pages/NotFound";
 
 // Components
@@ -70,6 +72,8 @@ const App = () => (
           <Route path="/customers" element={<AuthenticatedRoute><Customers /></AuthenticatedRoute>} />
           <Route path="/products" element={<AuthenticatedRoute><Products /></AuthenticatedRoute>} />
           <Route path="/chat-logs" element={<AuthenticatedRoute><ChatLogs /></AuthenticatedRoute>} />
+          <Route path="/settings" element={<AuthenticatedRoute><Settings /></AuthenticatedRoute>} />
+          <Route path="/integrations" element={<AuthenticatedRoute><Integrations /></AuthenticatedRoute>} />
           
           {/* 404 Page */}
           <Route path="*" element={<NotFound />} />
