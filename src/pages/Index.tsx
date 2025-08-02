@@ -25,7 +25,9 @@ import {
   ArrowRight,
   Zap,
   BarChart3,
-  Star
+  Star,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 
 const Index = () => {
@@ -82,14 +84,14 @@ const Index = () => {
 
   const [displayedMessages, setDisplayedMessages] = useState<any[]>([]);
 
-  // Integration logos and data
+  // Integration logos and data with actual image sources
   const integrations = [
-    { name: 'SAP', icon: Database, color: 'text-blue-600', delay: 0 },
+    { name: 'SAP', imageSrc: '/lovable-uploads/c2d3129c-b7e5-4219-ac07-af0019719125.png', delay: 0 },
     { name: 'Odoo', icon: Settings, color: 'text-purple-600', delay: 200 },
-    { name: 'Midtrans', icon: CreditCard, color: 'text-blue-500', delay: 400 },
-    { name: 'WhatsApp', icon: MessageCircle, color: 'text-green-500', delay: 600 },
-    { name: 'OneDrive', icon: Cloud, color: 'text-blue-400', delay: 800 },
-    { name: 'Google Drive', icon: FileText, color: 'text-yellow-500', delay: 1000 }
+    { name: 'Midtrans', imageSrc: '/lovable-uploads/17134334-27db-490e-b585-8c7a003ceee5.png', delay: 400 },
+    { name: 'WhatsApp', imageSrc: '/lovable-uploads/e3a2e55e-12f2-448e-80ad-1ebd4004b319.png', delay: 600 },
+    { name: 'OneDrive', imageSrc: '/lovable-uploads/15679a59-be93-4738-8864-7e495dcb4d23.png', delay: 800 },
+    { name: 'Google Drive', imageSrc: '/lovable-uploads/23159d50-feaa-4804-a06a-57daed92fc25.png', delay: 1000 }
   ];
 
   // AI Workflow steps
@@ -301,94 +303,152 @@ const Index = () => {
               </Card>
             </div>
 
-            {/* Integration Icons */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {/* Integration Icons with connecting lines */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 relative">
               {integrations.map((integration, index) => (
-                <Card 
-                  key={integration.name}
-                  className="p-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 group"
-                  style={{ animationDelay: `${integration.delay}ms` }}
-                >
-                  <div className={`h-12 w-12 mx-auto mb-3 rounded-lg bg-muted flex items-center justify-center group-hover:bg-background transition-colors`}>
-                    <integration.icon className={`h-6 w-6 ${integration.color}`} />
-                  </div>
-                  <p className="text-sm font-medium">{integration.name}</p>
-                  <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-crm-primary rounded-full transition-all duration-1000 ease-out"
-                      style={{ 
-                        width: '100%',
-                        animationDelay: `${integration.delay + 500}ms`
-                      }}
-                    />
-                  </div>
-                </Card>
+                <div key={integration.name} className="relative">
+                  {/* Connecting line to center */}
+                  <div className={`absolute top-6 left-1/2 w-px h-20 bg-gradient-to-t from-crm-primary/30 to-transparent transform -translate-x-1/2 -translate-y-full animate-pulse`} 
+                       style={{ animationDelay: `${integration.delay}ms` }} />
+                  
+                  <Card 
+                    className="p-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 group relative z-10"
+                    style={{ animationDelay: `${integration.delay}ms` }}
+                  >
+                    <div className="h-12 w-12 mx-auto mb-3 rounded-lg bg-white shadow-sm flex items-center justify-center group-hover:shadow-md transition-all">
+                      {integration.imageSrc ? (
+                        <img 
+                          src={integration.imageSrc} 
+                          alt={integration.name}
+                          className="h-8 w-8 object-contain"
+                        />
+                      ) : (
+                        <integration.icon className={`h-6 w-6 ${integration.color}`} />
+                      )}
+                    </div>
+                    <p className="text-sm font-medium">{integration.name}</p>
+                    <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-crm-primary rounded-full transition-all duration-1000 ease-out"
+                        style={{ 
+                          width: '100%',
+                          animationDelay: `${integration.delay + 500}ms`
+                        }}
+                      />
+                    </div>
+                  </Card>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Personalization Section */}
+        {/* Complete Sales Automation Platform Section */}
         <section className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
+          <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              🌐 Personalization & Customization
+              Complete Sales Automation Platform
             </h2>
             <p className="text-muted-foreground text-lg">
-              Customize your AI agent's personality and tone to match your brand
+              Everything you need to manage, deploy, and optimize AI sales agents
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Tone Selector */}
-            <div>
-              <h3 className="text-xl font-semibold mb-6">Agent Personality:</h3>
-              <div className="space-y-4">
-                {agentTones.map((tone) => (
-                  <Card 
-                    key={tone.name}
-                    className={`p-4 cursor-pointer transition-all border-2 ${
-                      selectedTone === tone.name 
-                        ? 'border-crm-primary bg-crm-primary/5' 
-                        : 'border-border hover:border-crm-primary/50'
-                    }`}
-                    onClick={() => setSelectedTone(tone.name)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{tone.name}</h4>
-                      <div className={`h-3 w-3 rounded-full transition-colors ${
-                        selectedTone === tone.name ? 'bg-crm-primary' : 'bg-muted'
-                      }`} />
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-crm-primary/10 rounded-lg flex items-center justify-center">
+                  <Users className="w-6 h-6 text-crm-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">AI Agent Management</h3>
+              </div>
+              <p className="text-muted-foreground">Create, deploy, and monitor multiple AI sales agents across different channels and customer segments.</p>
+            </Card>
+
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-crm-secondary/10 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-crm-secondary" />
+                </div>
+                <h3 className="text-xl font-semibold">Sales Pipeline</h3>
+              </div>
+              <p className="text-muted-foreground">Visualize and manage your entire sales funnel with real-time updates and automated follow-ups.</p>
+            </Card>
+
+            <Card className="p-6 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-accent/50 rounded-lg flex items-center justify-center">
+                  <BarChart3 className="w-6 h-6 text-accent-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold">Analytics & Insights</h3>
+              </div>
+              <p className="text-muted-foreground">Deep dive into performance metrics, conversion rates, and customer behavior patterns.</p>
+            </Card>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-2xl font-bold mb-4">Create Custom AI Sales Agents</h3>
+                <div className="space-y-6">
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-crm-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <p className="text-sm text-muted-foreground">{tone.description}</p>
-                  </Card>
-                ))}
+                    <div>
+                      <h4 className="font-semibold mb-2">Custom Personalities</h4>
+                      <p className="text-muted-foreground">Train agents with your brand voice and sales approach</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-crm-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <Brain className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Product Knowledge</h4>
+                      <p className="text-muted-foreground">Upload catalogs and train on your specific offerings</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <Zap className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold mb-2">Multi-Channel Deployment</h4>
+                      <p className="text-muted-foreground">Deploy on website, WhatsApp, SMS, and email</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Preview Chat */}
-            <Card className="p-6">
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b">
-                <div className="h-8 w-8 rounded-full bg-crm-primary flex items-center justify-center">
-                  <MessageCircle className="h-4 w-4 text-white" />
+            <Card className="p-6 bg-gradient-to-br from-card to-accent/10">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-crm-primary to-crm-secondary rounded-full flex items-center justify-center">
+                  <Bot className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold">AI Agent Preview</h4>
-                  <p className="text-xs text-muted-foreground">{selectedTone} Mode</p>
+                  <h4 className="text-xl font-bold">Sales Agent: Sarah</h4>
+                  <p className="text-muted-foreground">E-commerce Specialist</p>
                 </div>
               </div>
-
+              
               <div className="space-y-4">
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-xl p-3 bg-muted text-foreground">
-                    <p className="text-sm">
-                      {agentTones.find(tone => tone.name === selectedTone)?.sample}
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="font-medium">Status: Active</span>
                 </div>
-                <div className="flex justify-end">
-                  <div className="max-w-[80%] rounded-xl p-3 bg-crm-primary text-white">
-                    <p className="text-sm">That sounds perfect! Tell me more.</p>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-background rounded-lg">
+                    <div className="text-2xl font-bold text-crm-primary">847</div>
+                    <div className="text-sm text-muted-foreground">Conversations today</div>
+                  </div>
+                  <div className="text-center p-3 bg-background rounded-lg">
+                    <div className="text-2xl font-bold text-crm-secondary">23%</div>
+                    <div className="text-sm text-muted-foreground">Conversion Rate</div>
                   </div>
                 </div>
               </div>
