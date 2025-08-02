@@ -122,11 +122,11 @@ const Index = () => {
       price: '3,599K',
       period: '/month',
       responses: '50,000',
-      channels: '+ Instagram',
-      integration: '+ SAP, Odoo',
+      channels: 'WA, Messenger, Instagram',
+      integration: 'SAP, Odoo',
       seats: '3',
       reports: 'Weekly',
-      support: 'Email + Chat',
+      support: 'Email and Chat',
       popular: true
     },
     {
@@ -138,7 +138,7 @@ const Index = () => {
       integration: '+ CRM Scoring, RAG',
       seats: '10',
       reports: 'Advanced',
-      support: 'Priority + Onboarding',
+      support: 'Priority',
       popular: false
     },
     {
@@ -277,69 +277,90 @@ const Index = () => {
             ))}
           </div>
         </div>
-
-        {/* Easy Integrations Section */}
-        <section id="integrations" className="max-w-6xl mx-auto mb-20">
+        
+        {/* Interactive Demo Section */}
+        <section id="use-cases" className="max-w-6xl mx-auto mb-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              🔌 Easy Integrations
+              See AI Sales Agents in Action
             </h2>
             <p className="text-muted-foreground text-lg">
-              Connect with your existing tools in minutes. No technical setup required.
+              Watch real conversations and see how AI agents convert leads across different industries
             </p>
           </div>
 
-          <div className="relative">
-            {/* Central CRM Hub */}
-            <div className="flex justify-center mb-8">
-              <Card className="p-6 bg-gradient-to-br from-crm-primary/10 to-crm-secondary/10 border-2 border-crm-primary/20">
-                <div className="text-center">
-                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-crm-primary flex items-center justify-center">
-                    <Brain className="h-8 w-8 text-white" />
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
+            {/* Demo Selector */}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold mb-4">Choose a Demo:</h3>
+              {demos.map((demo, index) => (
+                <Card 
+                  key={index}
+                  className={`p-4 cursor-pointer transition-all border-2 hover:shadow-md ${
+                    currentDemo === index 
+                      ? 'border-crm-primary bg-crm-primary/5' 
+                      : 'border-border hover:border-crm-primary/50'
+                  }`}
+                  onClick={() => setCurrentDemo(index)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold">{demo.title}</h4>
+                      <p className="text-sm text-muted-foreground">{demo.industry}</p>
+                    </div>
+                    <div className={`h-3 w-3 rounded-full transition-colors ${
+                      currentDemo === index ? 'bg-crm-primary' : 'bg-muted'
+                    }`} />
                   </div>
-                  <h3 className="font-bold text-lg">Valvia AI Agent</h3>
-                  <p className="text-sm text-muted-foreground">Central Intelligence Hub</p>
-                </div>
-              </Card>
-            </div>
-
-            {/* Integration Icons with connecting lines */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 relative">
-              {integrations.map((integration, index) => (
-                <div key={integration.name} className="relative">
-                  {/* Connecting line to center */}
-                  <div className={`absolute top-6 left-1/2 w-px h-20 bg-gradient-to-t from-crm-primary/30 to-transparent transform -translate-x-1/2 -translate-y-full animate-pulse`} 
-                       style={{ animationDelay: `${integration.delay}ms` }} />
-                  
-                  <Card 
-                    className="p-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 group relative z-10"
-                    style={{ animationDelay: `${integration.delay}ms` }}
-                  >
-                    <div className="h-12 w-12 mx-auto mb-3 rounded-lg bg-white shadow-sm flex items-center justify-center group-hover:shadow-md transition-all">
-                      {integration.imageSrc ? (
-                        <img 
-                          src={integration.imageSrc} 
-                          alt={integration.name}
-                          className="h-8 w-8 object-contain"
-                        />
-                      ) : (
-                        <integration.icon className={`h-6 w-6 ${integration.color}`} />
-                      )}
-                    </div>
-                    <p className="text-sm font-medium">{integration.name}</p>
-                    <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-crm-primary rounded-full transition-all duration-1000 ease-out"
-                        style={{ 
-                          width: '100%',
-                          animationDelay: `${integration.delay + 500}ms`
-                        }}
-                      />
-                    </div>
-                  </Card>
-                </div>
+                </Card>
               ))}
             </div>
+
+            {/* Chat Demo */}
+            <Card className="p-6 h-96 flex flex-col">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+                <div className="h-8 w-8 rounded-full bg-crm-primary flex items-center justify-center">
+                  <MessageCircle className="h-4 w-4 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-semibold">{demos[currentDemo].title}</h4>
+                  <p className="text-xs text-muted-foreground">Online now</p>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-4">
+                {displayedMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-xl p-3 ${
+                        message.sender === 'bot'
+                          ? 'bg-muted text-foreground'
+                          : message.isResult
+                          ? 'bg-green-500 text-white'
+                          : 'bg-crm-primary text-white'
+                      } ${message.isResult ? 'font-semibold' : ''}`}
+                    >
+                      <p className="text-sm">{message.text}</p>
+                    </div>
+                  </div>
+                ))}
+                
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-muted rounded-xl p-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"></div>
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card>
           </div>
         </section>
 
@@ -502,6 +523,71 @@ const Index = () => {
           </Tabs>
         </div>
 
+        {/* Easy Integrations Section */}
+        <section id="integrations" className="max-w-6xl mx-auto mb-20">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              🔌 Easy Integrations
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Connect with your existing tools in minutes. No technical setup required.
+            </p>
+          </div>
+
+          <div className="relative">
+            {/* Central CRM Hub */}
+            <div className="flex justify-center mb-8">
+              <Card className="p-6 bg-gradient-to-br from-crm-primary/10 to-crm-secondary/10 border-2 border-crm-primary/20">
+                <div className="text-center">
+                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-crm-primary flex items-center justify-center">
+                    <Brain className="h-8 w-8 text-white" />
+                  </div>
+                  <h3 className="font-bold text-lg">Valvia AI Agent</h3>
+                  <p className="text-sm text-muted-foreground">Central Intelligence Hub</p>
+                </div>
+              </Card>
+            </div>
+
+            {/* Integration Icons with connecting lines */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 relative">
+              {integrations.map((integration, index) => (
+                <div key={integration.name} className="relative">
+                  {/* Connecting line to center */}
+                  <div className={`absolute top-6 left-1/2 w-px h-20 bg-gradient-to-t from-crm-primary/30 to-transparent transform -translate-x-1/2 -translate-y-full animate-pulse`} 
+                       style={{ animationDelay: `${integration.delay}ms` }} />
+                  
+                  <Card 
+                    className="p-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 group relative z-10"
+                    style={{ animationDelay: `${integration.delay}ms` }}
+                  >
+                    <div className="h-12 w-12 mx-auto mb-3 rounded-lg bg-white shadow-sm flex items-center justify-center group-hover:shadow-md transition-all">
+                      {integration.imageSrc ? (
+                        <img 
+                          src={integration.imageSrc} 
+                          alt={integration.name}
+                          className="h-8 w-8 object-contain"
+                        />
+                      ) : (
+                        <integration.icon className={`h-6 w-6 ${integration.color}`} />
+                      )}
+                    </div>
+                    <p className="text-sm font-medium">{integration.name}</p>
+                    <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-crm-primary rounded-full transition-all duration-1000 ease-out"
+                        style={{ 
+                          width: '100%',
+                          animationDelay: `${integration.delay + 500}ms`
+                        }}
+                      />
+                    </div>
+                  </Card>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Under the Hood: AI Logic Preview */}
         <section className="max-w-6xl mx-auto mb-20">
           <div className="text-center mb-12">
@@ -546,92 +632,6 @@ const Index = () => {
               ))}
             </div>
           </Card>
-        </section>
-
-        {/* Interactive Demo Section */}
-        <section id="use-cases" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              See AI Sales Agents in Action
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              Watch real conversations and see how AI agents convert leads across different industries
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            {/* Demo Selector */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold mb-4">Choose a Demo:</h3>
-              {demos.map((demo, index) => (
-                <Card 
-                  key={index}
-                  className={`p-4 cursor-pointer transition-all border-2 hover:shadow-md ${
-                    currentDemo === index 
-                      ? 'border-crm-primary bg-crm-primary/5' 
-                      : 'border-border hover:border-crm-primary/50'
-                  }`}
-                  onClick={() => setCurrentDemo(index)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold">{demo.title}</h4>
-                      <p className="text-sm text-muted-foreground">{demo.industry}</p>
-                    </div>
-                    <div className={`h-3 w-3 rounded-full transition-colors ${
-                      currentDemo === index ? 'bg-crm-primary' : 'bg-muted'
-                    }`} />
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            {/* Chat Demo */}
-            <Card className="p-6 h-96 flex flex-col">
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b">
-                <div className="h-8 w-8 rounded-full bg-crm-primary flex items-center justify-center">
-                  <MessageCircle className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-semibold">{demos[currentDemo].title}</h4>
-                  <p className="text-xs text-muted-foreground">Online now</p>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto space-y-4">
-                {displayedMessages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={`flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-xl p-3 ${
-                        message.sender === 'bot'
-                          ? 'bg-muted text-foreground'
-                          : message.isResult
-                          ? 'bg-green-500 text-white'
-                          : 'bg-crm-primary text-white'
-                      } ${message.isResult ? 'font-semibold' : ''}`}
-                    >
-                      <p className="text-sm">{message.text}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted rounded-xl p-3">
-                      <div className="flex space-x-1">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"></div>
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
-          </div>
         </section>
 
         {/* Pricing Section */}
