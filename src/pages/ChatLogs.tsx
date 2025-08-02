@@ -3,6 +3,13 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Download, Plus, Search, Send, Bot, User } from 'lucide-react';
 import ChatLogViewer from '@/components/ChatLogViewer';
 
 // Demo chat log data
@@ -163,82 +170,248 @@ const initialChatLogs = [
   },
 ];
 
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'closed': return 'bg-green-500';
+    case 'interested': return 'bg-blue-500';
+    case 'new-lead': return 'bg-yellow-500';
+    case 'no-interest': return 'bg-red-500';
+    default: return 'bg-gray-500';
+  }
+};
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'closed': return 'Closed Won';
+    case 'interested': return 'Interested';
+    case 'new-lead': return 'New Lead';
+    case 'no-interest': return 'No Interest';
+    default: return status;
+  }
+};
+
 const ChatLogs = () => {
   const [chatLogs, setChatLogs] = useState(initialChatLogs);
+  const [selectedChat, setSelectedChat] = useState(initialChatLogs[0]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [agentFilter, setAgentFilter] = useState('all');
+  const [newMessage, setNewMessage] = useState('');
   
-  // Extract unique agents for filtering
-  const agents = ['all', ...new Set(chatLogs.map(log => log.agentName))];
-  
-  // Apply filters
-  const filteredLogs = chatLogs.filter(log => {
-    const matchesSearch = log.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         log.productDiscussed?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || log.status === statusFilter;
-    const matchesAgent = agentFilter === 'all' || log.agentName === agentFilter;
+  // Apply search filter
+  const filteredLogs = chatLogs.filter(log => 
+    log.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    log.productDiscussed?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleNewChat = () => {
+    const newChatId = Math.max(...chatLogs.map(c => c.id)) + 1;
+    const newChat = {
+      id: newChatId,
+      agentName: "Agent Alpha",
+      customerName: "New Customer",
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      status: "new-lead" as const,
+      productDiscussed: "",
+      messages: []
+    };
+    setChatLogs([newChat, ...chatLogs]);
+    setSelectedChat(newChat);
+  };
+
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedChat) return;
     
-    return matchesSearch && matchesStatus && matchesAgent;
-  });
-  
+    const newMsg = {
+      id: Math.max(...selectedChat.messages.map(m => m.id), 0) + 1,
+      sender: "bot" as const,
+      content: newMessage,
+      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const updatedChat = {
+      ...selectedChat,
+      messages: [...selectedChat.messages, newMsg]
+    };
+
+    const updatedChatLogs = chatLogs.map(log => 
+      log.id === selectedChat.id ? updatedChat : log
+    );
+
+    setChatLogs(updatedChatLogs);
+    setSelectedChat(updatedChat);
+    setNewMessage('');
+  };
+
   return (
-    <div className="crm-container">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div className="h-[calc(100vh-2rem)] flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-center p-4 border-b bg-background">
         <div>
-          <h1 className="text-3xl font-bold">Chat Logs</h1>
-          <p className="text-muted-foreground mt-1">Review conversations between AI agents and customers</p>
+          <h1 className="text-2xl font-bold">Chat Logs</h1>
+          <p className="text-sm text-muted-foreground">Review and manage conversations</p>
         </div>
-        <Button>Export Logs</Button>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div>
-          <Input
-            placeholder="Search by customer or product..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full"
-          />
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Button onClick={handleNewChat} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Chat
+          </Button>
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="new-lead">New Lead</SelectItem>
-            <SelectItem value="contacted">Contacted</SelectItem>
-            <SelectItem value="interested">Interested</SelectItem>
-            <SelectItem value="closed">Closed Won</SelectItem>
-            <SelectItem value="no-interest">No Interest</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={agentFilter} onValueChange={setAgentFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by agent" />
-          </SelectTrigger>
-          <SelectContent>
-            {agents.map(agent => (
-              <SelectItem key={agent} value={agent}>
-                {agent === 'all' ? 'All Agents' : agent}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
-      
-      <div className="space-y-6">
-        {filteredLogs.length > 0 ? (
-          filteredLogs.map(log => (
-            <ChatLogViewer key={log.id} chatLog={log} />
-          ))
-        ) : (
-          <div className="text-center py-16 bg-muted/30 rounded-lg">
-            <p className="text-muted-foreground">No chat logs match the current filters</p>
+
+      {/* Main Content */}
+      <ResizablePanelGroup direction="horizontal" className="flex-1">
+        {/* Chat List Panel */}
+        <ResizablePanel defaultSize={35} minSize={25}>
+          <div className="h-full flex flex-col">
+            {/* Search */}
+            <div className="p-4 border-b">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search conversations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+
+            {/* Chat List */}
+            <ScrollArea className="flex-1">
+              <div className="divide-y">
+                {filteredLogs.map((chat) => (
+                  <div
+                    key={chat.id}
+                    onClick={() => setSelectedChat(chat)}
+                    className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                      selectedChat?.id === chat.id ? 'bg-muted' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>
+                          {chat.customerName.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium truncate">{chat.customerName}</h3>
+                          <span className="text-xs text-muted-foreground">{chat.date}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {chat.messages[chat.messages.length - 1]?.content || 'No messages yet'}
+                        </p>
+                        <div className="flex items-center justify-between mt-2">
+                          <Badge variant="secondary" className={`${getStatusColor(chat.status)} text-white text-xs`}>
+                            {getStatusText(chat.status)}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">{chat.agentName}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
-        )}
-      </div>
+        </ResizablePanel>
+
+        <ResizableHandle withHandle />
+
+        {/* Chat Detail Panel */}
+        <ResizablePanel defaultSize={65}>
+          {selectedChat ? (
+            <div className="h-full flex flex-col">
+              {/* Chat Header */}
+              <div className="p-4 border-b bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>
+                      {selectedChat.customerName.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <h2 className="font-semibold">{selectedChat.customerName}</h2>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedChat.productDiscussed || 'Product not specified'} • {selectedChat.agentName}
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className={`${getStatusColor(selectedChat.status)} text-white`}>
+                    {getStatusText(selectedChat.status)}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <ScrollArea className="flex-1 p-4">
+                <div className="space-y-4">
+                  {selectedChat.messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}
+                    >
+                      <div className={`flex items-start gap-2 max-w-[70%] ${
+                        message.sender === 'customer' ? 'flex-row-reverse' : ''
+                      }`}>
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback>
+                            {message.sender === 'bot' ? (
+                              <Bot className="h-4 w-4" />
+                            ) : (
+                              <User className="h-4 w-4" />
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className={`rounded-lg p-3 ${
+                          message.sender === 'bot' 
+                            ? 'bg-muted text-foreground' 
+                            : 'bg-primary text-primary-foreground'
+                        }`}>
+                          <p className="text-sm">{message.content}</p>
+                          <span className="text-xs opacity-70 mt-1 block">
+                            {message.timestamp}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+
+              {/* Message Input */}
+              <div className="p-4 border-t">
+                <div className="flex gap-2">
+                  <Textarea
+                    placeholder="Type a message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="min-h-[60px] resize-none"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                  />
+                  <Button onClick={handleSendMessage} size="icon" className="self-end">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+                <p className="text-muted-foreground">Choose a chat from the list to view the conversation</p>
+              </div>
+            </div>
+          )}
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 };
