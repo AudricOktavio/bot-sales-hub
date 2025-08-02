@@ -343,9 +343,9 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Complete Sales Automation Platform Section */}
-        <section className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-16">
+        {/* Features Showcase */}
+        <div className="max-w-6xl mx-auto mb-20">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Complete Sales Automation Platform
             </h2>
@@ -354,107 +354,153 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-crm-primary/10 rounded-lg flex items-center justify-center">
-                  <Users className="w-6 h-6 text-crm-primary" />
-                </div>
-                <h3 className="text-xl font-semibold">AI Agent Management</h3>
-              </div>
-              <p className="text-muted-foreground">Create, deploy, and monitor multiple AI sales agents across different channels and customer segments.</p>
-            </Card>
-
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-crm-secondary/10 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-crm-secondary" />
-                </div>
-                <h3 className="text-xl font-semibold">Sales Pipeline</h3>
-              </div>
-              <p className="text-muted-foreground">Visualize and manage your entire sales funnel with real-time updates and automated follow-ups.</p>
-            </Card>
-
-            <Card className="p-6 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-accent/50 rounded-lg flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-accent-foreground" />
-                </div>
-                <h3 className="text-xl font-semibold">Analytics & Insights</h3>
-              </div>
-              <p className="text-muted-foreground">Deep dive into performance metrics, conversion rates, and customer behavior patterns.</p>
-            </Card>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-2xl font-bold mb-4">Create Custom AI Sales Agents</h3>
-                <div className="space-y-6">
-                  <div className="flex gap-4">
-                    <div className="w-8 h-8 bg-crm-primary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <Sparkles className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Custom Personalities</h4>
-                      <p className="text-muted-foreground">Train agents with your brand voice and sales approach</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="w-8 h-8 bg-crm-secondary rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <Brain className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Product Knowledge</h4>
-                      <p className="text-muted-foreground">Upload catalogs and train on your specific offerings</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4">
-                    <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <Zap className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">Multi-Channel Deployment</h4>
-                      <p className="text-muted-foreground">Deploy on website, WhatsApp, SMS, and email</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <Card className="p-6 bg-gradient-to-br from-card to-accent/10">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-crm-primary to-crm-secondary rounded-full flex items-center justify-center">
-                  <Bot className="w-8 h-8 text-white" />
-                </div>
+          <Tabs defaultValue="agents" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="agents">AI Agent Management</TabsTrigger>
+              <TabsTrigger value="pipeline">Sales Pipeline</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="agents" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h4 className="text-xl font-bold">Sales Agent: Sarah</h4>
-                  <p className="text-muted-foreground">E-commerce Specialist</p>
+                  <h3 className="text-2xl font-bold mb-4">Create Custom AI Sales Agents</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">Custom Personalities</p>
+                        <p className="text-sm text-muted-foreground">Train agents with your brand voice and sales approach</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">Product Knowledge</p>
+                        <p className="text-sm text-muted-foreground">Upload catalogs and train on your specific offerings</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                      <div>
+                        <p className="font-medium">Multi-Channel Deployment</p>
+                        <p className="text-sm text-muted-foreground">Deploy on website, WhatsApp, SMS, and email</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <Card className="p-6 bg-gradient-to-br from-crm-primary/5 to-crm-secondary/5">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-crm-primary flex items-center justify-center">
+                        <Users className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Sales Agent: Sarah</p>
+                        <p className="text-sm text-muted-foreground">E-commerce Specialist</p>
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Status: <span className="text-green-500 font-medium">Active</span> • 
+                      Conversations: <span className="font-medium">847 today</span> •
+                      Conversion: <span className="font-medium">23%</span>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="pipeline" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <Card className="p-6">
+                  <h4 className="font-semibold mb-4">Live Pipeline Status</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">New Leads</span>
+                      <Badge variant="secondary">142</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Qualified</span>
+                      <Badge variant="secondary">89</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">In Negotiation</span>
+                      <Badge variant="secondary">34</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Closed Won</span>
+                      <Badge className="bg-green-500">67</Badge>
+                    </div>
+                  </div>
+                </Card>
+                <div>
+                  <h3 className="text-2xl font-bold mb-4">Visual Sales Pipeline</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Track every lead from first contact to closed deal. AI agents automatically 
+                    update lead status and schedule follow-ups.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Automatic lead scoring and qualification</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Real-time pipeline updates</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Intelligent follow-up scheduling</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="font-medium">Status: Active</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-background rounded-lg">
-                    <div className="text-2xl font-bold text-crm-primary">847</div>
-                    <div className="text-sm text-muted-foreground">Conversations today</div>
+            </TabsContent>
+            
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <h3 className="text-2xl font-bold mb-4">Deep Conversation Analytics</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Get insights into every customer interaction. Understand what works, 
+                    optimize agent performance, and improve conversion rates.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-4 rounded-lg bg-muted/50">
+                      <div className="text-2xl font-bold text-crm-primary">340%</div>
+                      <div className="text-xs text-muted-foreground">Conversion Increase</div>
+                    </div>
+                    <div className="text-center p-4 rounded-lg bg-muted/50">
+                      <div className="text-2xl font-bold text-crm-secondary">24/7</div>
+                      <div className="text-xs text-muted-foreground">Available</div>
+                    </div>
                   </div>
-                  <div className="text-center p-3 bg-background rounded-lg">
-                    <div className="text-2xl font-bold text-crm-secondary">23%</div>
-                    <div className="text-sm text-muted-foreground">Conversion Rate</div>
-                  </div>
                 </div>
+                <Card className="p-6 space-y-4">
+                  <h4 className="font-semibold">Today's Performance</h4>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Conversations</span>
+                      <span className="font-medium">1,247</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Qualified Leads</span>
+                      <span className="font-medium">312</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Conversion Rate</span>
+                      <span className="font-medium text-green-500">25.1%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-muted-foreground">Revenue Generated</span>
+                      <span className="font-medium text-crm-primary">$89,400</span>
+                    </div>
+                  </div>
+                </Card>
               </div>
-            </Card>
-          </div>
-        </section>
+            </TabsContent>
+          </Tabs>
+        </div>
 
         {/* Under the Hood: AI Logic Preview */}
         <section className="max-w-6xl mx-auto mb-20">
