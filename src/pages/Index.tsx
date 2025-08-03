@@ -39,9 +39,10 @@ const Index = () => {
 
   // Enhanced navbar items
   const navItems = [
+    { name: 'Use Cases', href: '#use-cases' },
+    { name: 'Features', href: '#features' },
     { name: 'Integration', href: '#integrations' },
     { name: 'Pricing', href: '#pricing' },
-    { name: 'Use Cases', href: '#use-cases' },
     { name: 'Book A Demo', href: '/signup', isButton: true }
   ];
 
@@ -110,48 +111,52 @@ const Index = () => {
       price: '1,799K',
       period: '/month',
       responses: '15,000',
-      channels: 'WA, Messenger',
-      integration: '-',
-      seats: '1',
-      reports: 'Basic',
-      support: 'Email Only',
-      popular: false
+      channels: 'WhatsApp, Messenger',
+      integration: 'Basic CRM',
+      seats: '1 Agent',
+      reports: 'Basic Analytics',
+      support: 'Email Support',
+      popular: false,
+      features: ['AI Chat Bot', 'Basic Analytics', 'WhatsApp Integration', 'Email Support']
     },
     {
       name: 'Business',
       price: '3,599K',
       period: '/month',
       responses: '50,000',
-      channels: 'WA, Messenger, Instagram',
-      integration: 'SAP, Odoo',
-      seats: '3',
-      reports: 'Weekly',
-      support: 'Email and Chat',
-      popular: true
+      channels: 'Multi-Channel',
+      integration: 'SAP + Odoo',
+      seats: '3 Agents',
+      reports: 'Weekly Reports',
+      support: 'Priority Support',
+      popular: true,
+      features: ['Everything in Pro', 'SAP Integration', 'Multi-Channel', 'Weekly Reports', 'Priority Support']
     },
     {
       name: 'Enterprise',
       price: '5,599K',
       period: '/month',
       responses: '150,000',
-      channels: '+ Email, Widget',
-      integration: '+ CRM Scoring, RAG',
-      seats: '10',
-      reports: 'Advanced',
-      support: 'Priority',
-      popular: false
+      channels: 'All Channels',
+      integration: 'Full CRM Suite',
+      seats: '10 Agents',
+      reports: 'Advanced Analytics',
+      support: 'Dedicated Manager',
+      popular: false,
+      features: ['Everything in Business', 'Advanced Analytics', 'API Access', 'Custom Integrations', 'Dedicated Manager']
     },
     {
       name: 'Unlimited',
       price: '15,599K',
       period: '/month',
-      responses: '500,000',
-      channels: '+ Custom',
-      integration: '+ API & Fine-Tuning',
+      responses: 'Unlimited',
+      channels: 'Custom Channels',
+      integration: 'Enterprise Suite',
       seats: 'Unlimited',
-      reports: 'Custom',
-      support: 'Dedicated Manager',
-      popular: false
+      reports: 'Custom Dashboards',
+      support: 'White-label Support',
+      popular: false,
+      features: ['Everything in Enterprise', 'Unlimited Usage', 'White-label Solution', 'Custom Development', '24/7 Phone Support']
     }
   ];
 
@@ -227,6 +232,14 @@ const Index = () => {
               </a>
             )
           ))}
+        </div>
+        {/* Mobile menu button */}
+        <div className="md:hidden">
+          <Button variant="ghost" size="sm">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </Button>
         </div>
       </nav>
 
@@ -411,7 +424,7 @@ const Index = () => {
         </section>
 
         {/* Features Showcase */}
-        <div className="max-w-6xl mx-auto mb-20">
+        <section id="features" className="max-w-6xl mx-auto mb-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Complete Sales Automation Platform
@@ -567,7 +580,7 @@ const Index = () => {
               </div>
             </TabsContent>
           </Tabs>
-        </div>
+        </section>
 
         {/* Easy Integrations Section */}
         <section id="integrations" className="max-w-6xl mx-auto mb-20">
@@ -638,26 +651,26 @@ const Index = () => {
         <section id="pricing" className="max-w-7xl mx-auto mb-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              🧾 Choose Your Plan
+              Choose Your Plan
             </h2>
             <p className="text-muted-foreground text-lg">
               Flexible pricing that scales with your business needs
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 min-w-[800px] lg:min-w-0">
+          <div className="overflow-x-auto pb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-[800px] lg:min-w-0">
               {pricingPlans.map((plan) => (
                 <Card 
                   key={plan.name}
-                  className={`relative p-6 ${
+                  className={`relative p-6 flex flex-col h-full ${
                     plan.popular 
-                      ? 'border-2 border-crm-primary bg-crm-primary/5' 
+                      ? 'border-2 border-crm-primary bg-crm-primary/5 shadow-lg scale-105 z-10' 
                       : 'border-border'
                   }`}
                 >
                   {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-crm-primary">
+                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-crm-primary text-white">
                       Most Popular
                     </Badge>
                   )}
@@ -665,44 +678,52 @@ const Index = () => {
                   <div className="text-center mb-6">
                     <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                     <div className="mb-4">
-                      <span className="text-3xl font-bold">RP {plan.price}</span>
-                      <span className="text-muted-foreground">{plan.period}</span>
+                      <span className="text-3xl font-bold">Rp {plan.price}</span>
+                      <span className="text-muted-foreground text-sm">{plan.period}</span>
                     </div>
                   </div>
 
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Responses</span>
-                      <span className="font-medium">{plan.responses}</span>
+                  <div className="space-y-3 mb-6 flex-grow">
+                    <div className="text-center py-2 px-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm font-medium">{plan.responses} responses/month</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Channels</span>
-                      <span className="font-medium">{plan.channels}</span>
+                    
+                    <div className="space-y-2">
+                      {plan.features.map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Integration</span>
-                      <span className="font-medium">{plan.integration}</span>
+                  </div>
+
+                  <div className="space-y-3 mb-6 pt-4 border-t border-border">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Channels:</span>
+                      <span className="font-medium text-right">{plan.channels}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Agent Seats</span>
-                      <span className="font-medium">{plan.seats}</span>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Integration:</span>
+                      <span className="font-medium text-right">{plan.integration}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Reports</span>
-                      <span className="font-medium">{plan.reports}</span>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Agents:</span>
+                      <span className="font-medium text-right">{plan.seats}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Support</span>
-                      <span className="font-medium">{plan.support}</span>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">Support:</span>
+                      <span className="font-medium text-right">{plan.support}</span>
                     </div>
                   </div>
 
                   <Button 
-                    className={`w-full ${
+                    className={`w-full mt-auto ${
                       plan.popular 
-                        ? 'bg-crm-primary hover:bg-crm-primary/90' 
-                        : 'variant-outline'
+                        ? 'bg-crm-primary hover:bg-crm-primary/90 text-white' 
+                        : ''
                     }`}
+                    variant={plan.popular ? 'default' : 'outline'}
                     onClick={() => navigate('/signup')}
                   >
                     Get Started
@@ -738,6 +759,78 @@ const Index = () => {
           </div>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="bg-muted/50 border-t">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Brand */}
+            <div className="md:col-span-1">
+              <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text mb-4">
+                Valvia AI CRM
+              </div>
+              <p className="text-muted-foreground mb-4">
+                PT PORTA OKULER TEKNOLOGI
+              </p>
+              
+              {/* Social Links */}
+              <div className="flex gap-4">
+                <a href="#" className="text-muted-foreground hover:text-crm-primary transition-colors">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.118.112.221.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.758-1.378l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.624 0 11.99-5.367 11.99-11.99C24.007 5.367 18.641.001 12.017.001z"/>
+                  </svg>
+                </a>
+                <a href="#" className="text-muted-foreground hover:text-crm-primary transition-colors">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                  </svg>
+                </a>
+                <a href="#" className="text-muted-foreground hover:text-crm-primary transition-colors">
+                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+
+            {/* Product */}
+            <div>
+              <h3 className="font-semibold mb-4">Product</h3>
+              <ul className="space-y-2">
+                <li><a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a></li>
+                <li><a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a></li>
+                <li><a href="#integrations" className="text-muted-foreground hover:text-foreground transition-colors">Integration</a></li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2">
+                <li>
+                  <a href="https://wa.me/6281234567890" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    WhatsApp
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h3 className="font-semibold mb-4">Contact</h3>
+              <div className="text-muted-foreground text-sm">
+                <p>PT PORTA OKULER TEKNOLOGI</p>
+                <p>Jakarta, Indonesia</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground text-sm">
+            <p>&copy; 2024 Valvia AI CRM by PT PORTA OKULER TEKNOLOGI. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
