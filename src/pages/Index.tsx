@@ -108,6 +108,7 @@ const Index = () => {
   const pricingPlans = [
     {
       name: 'Pro',
+      description: 'Perfect for small businesses getting started',
       price: '1,799K',
       period: '/month',
       responses: '15,000',
@@ -121,6 +122,7 @@ const Index = () => {
     },
     {
       name: 'Business',
+      description: 'Most popular for growing teams',
       price: '3,599K',
       period: '/month',
       responses: '50,000',
@@ -134,6 +136,7 @@ const Index = () => {
     },
     {
       name: 'Enterprise',
+      description: 'Advanced features for large organizations',
       price: '5,599K',
       period: '/month',
       responses: '150,000',
@@ -147,6 +150,7 @@ const Index = () => {
     },
     {
       name: 'Unlimited',
+      description: 'Complete white-label solution',
       price: '15,599K',
       period: '/month',
       responses: 'Unlimited',
@@ -648,89 +652,176 @@ const Index = () => {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="max-w-7xl mx-auto mb-20">
+        <section id="pricing" className="max-w-6xl mx-auto mb-20 px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Choose Your Plan
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-lg mb-8">
               Flexible pricing that scales with your business needs
             </p>
+            
+            {/* Billing Toggle */}
+            <div className="inline-flex items-center bg-muted rounded-lg p-1 mb-8">
+              <button className="px-4 py-2 text-sm font-medium bg-background text-foreground rounded-md shadow-sm transition-all">
+                Monthly
+              </button>
+              <button className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all">
+                Annual
+                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Save 20%</span>
+              </button>
+            </div>
           </div>
 
-          <div className="overflow-x-auto pb-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-w-[800px] lg:min-w-0">
-              {pricingPlans.map((plan) => (
-                <Card 
-                  key={plan.name}
-                  className={`relative p-6 flex flex-col h-full ${
+          {/* Mobile: Stack cards vertically */}
+          <div className="block lg:hidden space-y-6">
+            {pricingPlans.map((plan) => (
+              <Card 
+                key={plan.name}
+                className={`relative p-6 ${
+                  plan.popular 
+                    ? 'border-2 border-crm-primary bg-crm-primary/5 shadow-lg' 
+                    : 'border-border'
+                }`}
+              >
+                {plan.popular && (
+                  <Badge className="absolute -top-3 left-4 bg-crm-primary text-white">
+                    Most Popular
+                  </Badge>
+                )}
+                
+                <div className="mb-6">
+                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">Rp {plan.price}</span>
+                    <span className="text-muted-foreground">{plan.period}</span>
+                  </div>
+                </div>
+
+                <Button 
+                  className={`w-full mb-6 ${
                     plan.popular 
-                      ? 'border-2 border-crm-primary bg-crm-primary/5 shadow-lg scale-105 z-10' 
-                      : 'border-border'
+                      ? 'bg-crm-primary hover:bg-crm-primary/90 text-white' 
+                      : ''
                   }`}
+                  variant={plan.popular ? 'default' : 'outline'}
+                  onClick={() => navigate('/signup')}
                 >
-                  {plan.popular && (
-                    <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-crm-primary text-white">
-                      Most Popular
-                    </Badge>
-                  )}
+                  Get Started
+                </Button>
+
+                <div className="space-y-4">
+                  <div className="text-center py-3 px-4 bg-muted/50 rounded-lg">
+                    <span className="font-semibold">{plan.responses} responses</span>
+                    <span className="text-muted-foreground text-sm block">per month</span>
+                  </div>
                   
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                    <div className="mb-4">
-                      <span className="text-3xl font-bold">Rp {plan.price}</span>
-                      <span className="text-muted-foreground text-sm">{plan.period}</span>
-                    </div>
+                  <div className="space-y-3">
+                    {plan.features.map((feature, index) => (
+                      <div key={index} className="flex items-start gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{feature}</span>
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="space-y-3 mb-6 flex-grow">
-                    <div className="text-center py-2 px-3 bg-muted/50 rounded-lg">
-                      <span className="text-sm font-medium">{plan.responses} responses/month</span>
+                  <div className="pt-4 border-t border-border space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Channels</span>
+                      <span className="text-sm font-medium">{plan.channels}</span>
                     </div>
-                    
-                    <div className="space-y-2">
-                      {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                          <span>{feature}</span>
-                        </div>
-                      ))}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Integration</span>
+                      <span className="text-sm font-medium">{plan.integration}</span>
                     </div>
-                  </div>
-
-                  <div className="space-y-3 mb-6 pt-4 border-t border-border">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Channels:</span>
-                      <span className="font-medium text-right">{plan.channels}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Agents</span>
+                      <span className="text-sm font-medium">{plan.seats}</span>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Integration:</span>
-                      <span className="font-medium text-right">{plan.integration}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Agents:</span>
-                      <span className="font-medium text-right">{plan.seats}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Support:</span>
-                      <span className="font-medium text-right">{plan.support}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Support</span>
+                      <span className="text-sm font-medium">{plan.support}</span>
                     </div>
                   </div>
+                </div>
+              </Card>
+            ))}
+          </div>
 
-                  <Button 
-                    className={`w-full mt-auto ${
-                      plan.popular 
-                        ? 'bg-crm-primary hover:bg-crm-primary/90 text-white' 
-                        : ''
-                    }`}
-                    variant={plan.popular ? 'default' : 'outline'}
-                    onClick={() => navigate('/signup')}
-                  >
-                    Get Started
-                  </Button>
-                </Card>
-              ))}
-            </div>
+          {/* Desktop: Grid layout */}
+          <div className="hidden lg:grid lg:grid-cols-4 gap-6">
+            {pricingPlans.map((plan) => (
+              <Card 
+                key={plan.name}
+                className={`relative p-6 flex flex-col h-full ${
+                  plan.popular 
+                    ? 'border-2 border-crm-primary bg-crm-primary/5 shadow-lg scale-105 z-10' 
+                    : 'border-border'
+                }`}
+              >
+                {plan.popular && (
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-crm-primary text-white">
+                    Most Popular
+                  </Badge>
+                )}
+                
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                  <div className="mb-4">
+                    <span className="text-3xl font-bold">Rp {plan.price}</span>
+                    <span className="text-muted-foreground text-sm block">{plan.period}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mb-6 flex-grow">
+                  <div className="text-center py-2 px-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium">{plan.responses} responses/month</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {plan.features.map((feature, index) => (
+                      <div key={index} className="flex items-start gap-2 text-sm">
+                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-6 pt-4 border-t border-border">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Channels:</span>
+                    <span className="font-medium">{plan.channels}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Integration:</span>
+                    <span className="font-medium">{plan.integration}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Agents:</span>
+                    <span className="font-medium">{plan.seats}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-muted-foreground">Support:</span>
+                    <span className="font-medium">{plan.support}</span>
+                  </div>
+                </div>
+
+                <Button 
+                  className={`w-full mt-auto ${
+                    plan.popular 
+                      ? 'bg-crm-primary hover:bg-crm-primary/90 text-white' 
+                      : ''
+                  }`}
+                  variant={plan.popular ? 'default' : 'outline'}
+                  onClick={() => navigate('/signup')}
+                >
+                  Get Started
+                </Button>
+              </Card>
+            ))}
           </div>
         </section>
 
