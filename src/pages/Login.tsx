@@ -53,7 +53,10 @@ const Login = () => {
       <div className="w-full max-w-md animate-fade-in">
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold">AI Sales CRM</CardTitle>
+            <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text mb-2">
+              Valvia
+            </div>
+            <CardTitle className="text-2xl font-bold">AI Sales CRM</CardTitle>
             <CardDescription className="text-md">
               Sign in to your account to continue
             </CardDescription>

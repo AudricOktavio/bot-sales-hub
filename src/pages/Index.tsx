@@ -42,8 +42,7 @@ const Index = () => {
     { name: 'Use Cases', href: '#use-cases' },
     { name: 'Features', href: '#features' },
     { name: 'Integration', href: '#integrations' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'Book A Demo', href: '/signup', isButton: true }
+    { name: 'Pricing', href: '#pricing' }
   ];
 
   // Demo conversation data
@@ -218,24 +217,28 @@ const Index = () => {
         </div>
         <div className="hidden md:flex items-center space-x-8">
           {navItems.map((item) => (
-            item.isButton ? (
-              <Button 
-                key={item.name}
-                onClick={() => navigate(item.href)}
-                className="bg-crm-primary hover:bg-crm-primary/90"
-              >
-                {item.name}
-              </Button>
-            ) : (
-              <a 
-                key={item.name}
-                href={item.href}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {item.name}
-              </a>
-            )
+            <a 
+              key={item.name}
+              href={item.href}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {item.name}
+            </a>
           ))}
+          <div className="flex items-center space-x-2 ml-4">
+            <Button 
+              variant="ghost"
+              onClick={() => navigate('/login')}
+            >
+              Login
+            </Button>
+            <Button 
+              onClick={() => navigate('/signup')}
+              className="bg-crm-primary hover:bg-crm-primary/90"
+            >
+              Sign Up
+            </Button>
+          </div>
         </div>
         {/* Mobile menu button */}
         <div className="md:hidden">

@@ -32,6 +32,9 @@ const Navbar = () => {
     <header className="border-b bg-background sticky top-0 z-40">
       <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-x-4">
+          <div className="text-lg md:text-xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text">
+            Valvia
+          </div>
           <h1 className="text-lg md:text-xl font-bold hidden sm:block">AI Sales CRM</h1>
         </div>
 
