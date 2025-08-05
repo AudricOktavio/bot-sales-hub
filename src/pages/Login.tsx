@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { getApiUrl } from '@/config/api';
 
 const Login = () => {
   const [tenantName, setTenantName] = useState('');
@@ -24,7 +25,7 @@ const Login = () => {
       formData.append('username', tenantName);
       formData.append('password', password);
 
-      const response = await axios.post('https://manufest.id/token', formData, {
+      const response = await axios.post(getApiUrl('TOKEN'), formData, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },

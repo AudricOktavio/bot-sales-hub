@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
+import { getApiUrl } from '@/config/api';
 
 const Signup = () => {
   const [tenantName, setTenantName] = useState('');
@@ -33,7 +34,7 @@ const Signup = () => {
     setLoading(true);
     
     try {
-      const response = await axios.post('https://manufest.id/register', {
+      const response = await axios.post(getApiUrl('REGISTER'), {
         tenant_name: tenantName,
         email: email || null,
         password: password
