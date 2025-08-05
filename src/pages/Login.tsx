@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [tenantName, setTenantName] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,28 +20,31 @@ const Login = () => {
     setLoading(true);
     
     try {
-      // For demo purposes, we'll just simulate a login
-      // In a real app, you would verify credentials against a backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const formData = new FormData();
+      formData.append('username', tenantName);
+      formData.append('password', password);
+
+      const response = await axios.post('https://manufest.id/token', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
       
-      if (email && password) {
-        // For demo: navigate to dashboard directly
-        navigate('/dashboard');
-        toast({
-          title: "Login successful",
-          description: "Welcome to AI Sales CRM",
-        });
-      } else {
-        toast({
-          title: "Login failed",
-          description: "Please check your credentials and try again",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+      const { access_token, token_type } = response.data;
+      
+      // Store the token (you might want to use localStorage or a proper auth context)
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('token_type', token_type);
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${tenantName}!`,
+      });
+      navigate('/dashboard');
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "An error occurred during login",
+        description: error.response?.data?.detail || "Invalid tenant name or password",
         variant: "destructive",
       });
     } finally {
@@ -64,13 +68,12 @@ const Login = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="tenant">Tenant Name</Label>
                 <Input 
-                  id="email" 
-                  placeholder="name@company.com" 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="tenant" 
+                  placeholder="your-tenant-name" 
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
                   required
                 />
               </div>
