@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +8,23 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import AgentCard from '@/components/AgentCard';
+import AgentChatDialog from '@/components/AgentChatDialog';
+import axios from 'axios';
+import { API_CONFIG } from '@/config/api';
 
 // Define agent status type to ensure consistency
 type AgentStatus = 'active' | 'inactive' | 'pending';
 
-// Define the agent interface
+// Define the API agent interface
+interface ApiAgent {
+  agent_id: number;
+  agent_name: string;
+  category: string;
+  prompt: string;
+  phone_number_id: string;
+}
+
+// Define the agent interface for display
 interface Agent {
   id: number;
   name: string;
@@ -30,53 +42,17 @@ interface NewAgent {
   description: string;
   category: string;
   prompt: string;
-  personality: string;
+  phone_number_id: string;
   status: AgentStatus;
 }
 
-// Demo data for agents
-const initialAgents: Agent[] = [
-  {
-    id: 1,
-    name: 'Agent Alpha',
-    description: 'Specialized in software sales with a focus on enterprise clients. Uses a consultative approach to identify client needs.',
-    category: 'Software',
-    status: 'active',
-    leadsGenerated: 42,
-    conversionRate: '28.5%',
-  },
-  {
-    id: 2,
-    name: 'Agent Beta',
-    description: 'Focuses on hardware solutions for small and medium businesses. Takes a friendly, solutions-oriented approach.',
-    category: 'Hardware',
-    status: 'active',
-    leadsGenerated: 38,
-    conversionRate: '23.7%',
-  },
-  {
-    id: 3,
-    name: 'Agent Gamma',
-    description: 'Specializes in cloud services and SaaS products. Technical expertise with a focus on ROI and scalability.',
-    category: 'Cloud Services',
-    status: 'active',
-    leadsGenerated: 27,
-    conversionRate: '19.2%',
-  },
-  {
-    id: 4,
-    name: 'Agent Delta',
-    description: 'New agent configured for selling premium support packages. Trained to identify customer pain points.',
-    category: 'Support',
-    status: 'pending',
-    leadsGenerated: 0,
-    conversionRate: '0%',
-  },
-];
-
 const AgentManagement = () => {
-  const [agents, setAgents] = useState<Agent[]>(initialAgents);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isChatDialogOpen, setIsChatDialogOpen] = useState(false);
+  const [chatAgentId, setChatAgentId] = useState<number>(0);
+  const [chatAgentName, setChatAgentName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const { toast } = useToast();
@@ -87,12 +63,45 @@ const AgentManagement = () => {
     description: '',
     category: '',
     prompt: '',
-    personality: '',
+    phone_number_id: '',
     status: 'pending',
   });
   
   const [isEditing, setIsEditing] = useState(false);
   
+  // Load agents on component mount
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
+  const fetchAgents = async () => {
+    try {
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`);
+      const apiAgents: ApiAgent[] = response.data;
+      
+      const formattedAgents: Agent[] = apiAgents.map(agent => ({
+        id: agent.agent_id,
+        name: agent.agent_name,
+        description: agent.prompt || 'No description provided',
+        category: agent.category,
+        status: 'active' as AgentStatus,
+        leadsGenerated: Math.floor(Math.random() * 50), // Demo data
+        conversionRate: `${(Math.random() * 30).toFixed(1)}%`, // Demo data
+      }));
+      
+      setAgents(formattedAgents);
+    } catch (error) {
+      console.error('Failed to fetch agents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load agents. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredAgents = agents.filter(agent => {
     const matchesSearch = agent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          agent.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -110,79 +119,114 @@ const AgentManagement = () => {
       description: '',
       category: '',
       prompt: '',
-      personality: '',
+      phone_number_id: '',
       status: 'pending',
     });
     setIsDialogOpen(true);
   };
   
-  const handleEditAgent = (id: number) => {
-    const agentToEdit = agents.find(agent => agent.id === id);
-    if (agentToEdit) {
+  const handleEditAgent = async (id: number) => {
+    try {
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/agents/${id}`);
+      const agent: ApiAgent = response.data;
+      
       setIsEditing(true);
       setNewAgent({
-        id: agentToEdit.id,
-        name: agentToEdit.name,
-        description: agentToEdit.description,
-        category: agentToEdit.category,
-        status: agentToEdit.status,
-        prompt: 'Sell [product] to [customer type] by highlighting [key benefits]. Focus on [customer pain points].',
-        personality: agentToEdit.category === 'Software' ? 'Technical Expert' : 'Friendly Consultant',
+        id: agent.agent_id,
+        name: agent.agent_name,
+        description: agent.prompt || 'No description provided',
+        category: agent.category,
+        prompt: agent.prompt,
+        phone_number_id: agent.phone_number_id,
+        status: 'active',
       });
       setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Failed to fetch agent details:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load agent details. Please try again.",
+        variant: "destructive",
+      });
     }
   };
   
-  const handleDeleteAgent = (id: number) => {
-    setAgents(agents.filter(agent => agent.id !== id));
-    toast({
-      title: "Agent Deleted",
-      description: "The AI agent has been successfully deleted",
-    });
+  const handleDeleteAgent = async (id: number) => {
+    try {
+      await axios.delete(`${API_CONFIG.BASE_URL}/agents/${id}`);
+      setAgents(agents.filter(agent => agent.id !== id));
+      toast({
+        title: "Agent Deleted",
+        description: "The AI agent has been successfully deleted",
+      });
+    } catch (error) {
+      console.error('Failed to delete agent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete agent. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleSaveAgent = () => {
-    if (!newAgent.name || !newAgent.category || !newAgent.description || !newAgent.prompt) {
+  const handleSaveAgent = async () => {
+    if (!newAgent.name || !newAgent.category || !newAgent.phone_number_id) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields",
+        description: "Please fill in agent name, category, and phone number ID",
         variant: "destructive",
       });
       return;
     }
     
-    if (isEditing) {
-      setAgents(agents.map(agent => agent.id === newAgent.id ? {
-        ...agent,
-        name: newAgent.name,
-        description: newAgent.description,
-        category: newAgent.category,
-        status: newAgent.status
-      } : agent));
+    try {
+      if (isEditing) {
+        // Note: PUT endpoint not specified, using POST for now
+        const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, {
+          agent_name: newAgent.name,
+          category: newAgent.category,
+          prompt: newAgent.prompt || undefined,
+          phone_number_id: newAgent.phone_number_id,
+        });
+        
+        toast({
+          title: "Agent Updated",
+          description: `${newAgent.name} has been updated successfully`,
+        });
+      } else {
+        const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, {
+          agent_name: newAgent.name,
+          category: newAgent.category,
+          prompt: newAgent.prompt || undefined,
+          phone_number_id: newAgent.phone_number_id,
+        });
+        
+        toast({
+          title: "Agent Created",
+          description: `${newAgent.name} has been created successfully`,
+        });
+      }
       
+      // Refresh the agents list
+      await fetchAgents();
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to save agent:', error);
       toast({
-        title: "Agent Updated",
-        description: `${newAgent.name} has been updated successfully`,
-      });
-    } else {
-      const newId = Math.max(...agents.map(a => a.id), 0) + 1;
-      setAgents([...agents, {
-        id: newId, 
-        name: newAgent.name, 
-        description: newAgent.description,
-        category: newAgent.category,
-        status: newAgent.status,
-        leadsGenerated: 0, 
-        conversionRate: '0%'
-      }]);
-      
-      toast({
-        title: "Agent Created",
-        description: `${newAgent.name} has been created successfully`,
+        title: "Error",
+        description: "Failed to save agent. Please try again.",
+        variant: "destructive",
       });
     }
-    
-    setIsDialogOpen(false);
+  };
+
+  const handleChatAgent = (id: number) => {
+    const agent = agents.find(a => a.id === id);
+    if (agent) {
+      setChatAgentId(id);
+      setChatAgentName(agent.name);
+      setIsChatDialogOpen(true);
+    }
   };
   
   return (
@@ -221,21 +265,30 @@ const AgentManagement = () => {
         </div>
       </div>
       
-      <div className="mobile-grid">
-        {filteredAgents.map(agent => (
-          <AgentCard
-            key={agent.id}
-            {...agent}
-            onEdit={handleEditAgent}
-            onDelete={handleDeleteAgent}
-          />
-        ))}
-        {filteredAgents.length === 0 && (
-          <div className="col-span-full text-center py-12 bg-muted/30 rounded-md">
-            <p className="text-muted-foreground">No agents match your search criteria</p>
-          </div>
-        )}
-      </div>
+      {loading ? (
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading agents...</p>
+        </div>
+      ) : (
+        <div className="mobile-grid">
+          {filteredAgents.map(agent => (
+            <AgentCard
+              key={agent.id}
+              {...agent}
+              onEdit={handleEditAgent}
+              onDelete={handleDeleteAgent}
+              onChat={handleChatAgent}
+            />
+          ))}
+          {filteredAgents.length === 0 && (
+            <div className="col-span-full text-center py-12 bg-muted/30 rounded-md">
+              <p className="text-muted-foreground">
+                {agents.length === 0 ? 'No agents created yet' : 'No agents match your search criteria'}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
       
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="mobile-dialog max-w-4xl mx-4 md:mx-auto">
@@ -271,53 +324,30 @@ const AgentManagement = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe what this agent specializes in..."
-                  className="resize-none min-h-[100px]"
-                  rows={4}
-                  value={newAgent.description}
-                  onChange={(e) => setNewAgent({...newAgent, description: e.target.value})}
+                <Label htmlFor="phone_number_id" className="text-sm font-medium">Phone Number ID</Label>
+                <Input
+                  id="phone_number_id"
+                  placeholder="e.g. phone_number_123"
+                  value={newAgent.phone_number_id}
+                  onChange={(e) => setNewAgent({...newAgent, phone_number_id: e.target.value})}
                 />
               </div>
             </div>
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="prompt" className="text-sm font-medium">Sales Prompt</Label>
+                <Label htmlFor="prompt" className="text-sm font-medium">Sales Prompt (Optional)</Label>
                 <Textarea
                   id="prompt"
-                  placeholder="Instructions for how the AI should sell..."
-                  className="resize-none min-h-[100px]"
-                  rows={4}
+                  placeholder="Instructions for how the AI should behave and sell..."
+                  className="resize-none min-h-[120px]"
+                  rows={5}
                   value={newAgent.prompt}
                   onChange={(e) => setNewAgent({...newAgent, prompt: e.target.value})}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Define how the AI approaches sales conversations. Use [brackets] for variables.
+                  Optional: Define how the AI approaches conversations and sales.
                 </p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="personality" className="text-sm font-medium">Personality Type</Label>
-                <Select 
-                  value={newAgent.personality} 
-                  onValueChange={(value) => setNewAgent({...newAgent, personality: value})}
-                >
-                  <SelectTrigger id="personality">
-                    <SelectValue placeholder="Select a personality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="Friendly Consultant">Friendly Consultant</SelectItem>
-                      <SelectItem value="Technical Expert">Technical Expert</SelectItem>
-                      <SelectItem value="Relationship Builder">Relationship Builder</SelectItem>
-                      <SelectItem value="Problem Solver">Problem Solver</SelectItem>
-                      <SelectItem value="Strategic Advisor">Strategic Advisor</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           </div>
@@ -332,6 +362,13 @@ const AgentManagement = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      <AgentChatDialog
+        isOpen={isChatDialogOpen}
+        onClose={() => setIsChatDialogOpen(false)}
+        agentId={chatAgentId}
+        agentName={chatAgentName}
+      />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Check, Edit, Trash2, List } from 'lucide-react';
+import { Check, Edit, Trash2, List, MessageCircle } from 'lucide-react';
 import StatusBadge from '@/components/common/StatusBadge';
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ interface AgentCardProps {
   conversionRate?: string;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onChat?: (id: number) => void;
 }
 
 const AgentCard = ({
@@ -37,6 +38,7 @@ const AgentCard = ({
   conversionRate = '0%',
   onEdit,
   onDelete,
+  onChat,
 }: AgentCardProps) => {
   const [active, setActive] = useState(status === 'active');
   const { toast } = useToast();
@@ -76,6 +78,9 @@ const AgentCard = ({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onChat?.(id)}>
+                <MessageCircle className="mr-2 h-4 w-4" /> Test Chat
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit?.(id)}>
                 <Edit className="mr-2 h-4 w-4" /> Edit Agent
               </DropdownMenuItem>
