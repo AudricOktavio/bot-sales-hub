@@ -7,10 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 const Signup = () => {
-  const [companyName, setCompanyName] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [tenantName, setTenantName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,19 +33,21 @@ const Signup = () => {
     setLoading(true);
     
     try {
-      // For demo purposes, we'll just simulate a signup
-      // In a real app, you would submit this data to your backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const response = await axios.post('https://manufest.id/register', {
+        tenant_name: tenantName,
+        email: email || null,
+        password: password
+      });
       
       toast({
         title: "Account created successfully",
-        description: "Welcome to AI Sales CRM",
+        description: `Welcome to Valvia! Tenant: ${response.data}`,
       });
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Signup failed",
-        description: "An error occurred during account creation",
+        description: error.response?.data?.detail || "An error occurred during account creation",
         variant: "destructive",
       });
     } finally {
@@ -69,22 +71,12 @@ const Signup = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="company">Company Name</Label>
+                <Label htmlFor="tenant">Tenant Name</Label>
                 <Input 
-                  id="company" 
-                  placeholder="Acme Inc." 
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
-                  placeholder="John Smith" 
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  id="tenant" 
+                  placeholder="acme-corp" 
+                  value={tenantName}
+                  onChange={(e) => setTenantName(e.target.value)}
                   required
                 />
               </div>
