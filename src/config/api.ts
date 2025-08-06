@@ -4,7 +4,7 @@ export const API_CONFIG = {
   ENDPOINTS: {
     REGISTER: '/register',
     TOKEN: '/token',
-    AGENTS: '/agents',
+    AGENTS: '/agents/',
     AGENT_BY_ID: (id: number) => `/agents/${id}`,
     AGENT_CHAT: (id: number) => `/agents/${id}`,
   }
