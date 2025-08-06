@@ -7,6 +7,8 @@ export const API_CONFIG = {
     AGENTS: '/agents/',
     AGENT_BY_ID: (id: number) => `/agents/${id}`,
     AGENT_CHAT: (id: number) => `/agents/${id}`,
+    PRODUCTS: '/products/',
+    PRODUCT_BY_ID: (id: number) => `/products/${id}`,
   }
 };
 

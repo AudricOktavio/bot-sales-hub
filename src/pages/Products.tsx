@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,96 +9,23 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from '@/hooks/use-toast';
 import ProductTable from '@/components/ProductTable';
 import sapLogo from '@/assets/sap-logo.png';
+import { API_CONFIG } from '@/config/api';
+import axios from 'axios';
 
-// Demo data for products
-const initialProducts = [
-  {
-    id: 1,
-    name: "Enterprise Cloud Storage",
-    category: "Cloud Services",
-    price: "$499.99",
-    stock: 999,
-    status: "active" as const,
-    sku: "CS-ECS-001",
-    description: "High-performance cloud storage solution for businesses with advanced security features."
-  },
-  {
-    id: 2,
-    name: "Professional CRM License",
-    category: "Software",
-    price: "$299.99",
-    stock: 500,
-    status: "active" as const,
-    sku: "SW-CRM-002",
-    description: "Complete customer relationship management platform with AI-powered insights."
-  },
-  {
-    id: 3,
-    name: "Business Laptop Pro",
-    category: "Hardware",
-    price: "$1,299.99",
-    stock: 42,
-    status: "active" as const,
-    sku: "HW-LPT-003",
-    description: "High-performance business laptop with enhanced security features."
-  },
-  {
-    id: 4,
-    name: "Smart Office Bundle",
-    category: "IoT",
-    price: "$599.99",
-    stock: 27,
-    status: "active" as const,
-    sku: "IOT-SOB-004",
-    description: "Complete smart office solution with connected devices and central management."
-  },
-  {
-    id: 5,
-    name: "Premium Support Package",
-    category: "Services",
-    price: "$199.99",
-    stock: 999,
-    status: "active" as const,
-    sku: "SVC-PSP-005",
-    description: "24/7 priority support with dedicated technical account manager."
-  },
-  {
-    id: 6,
-    name: "Data Security Suite",
-    category: "Software",
-    price: "$399.99",
-    stock: 8,
-    status: "active" as const,
-    sku: "SW-DSS-006",
-    description: "Comprehensive data protection and encryption solution for enterprise use."
-  },
-  {
-    id: 7,
-    name: "Advanced Network Switch",
-    category: "Hardware",
-    price: "$899.99",
-    stock: 15,
-    status: "active" as const,
-    sku: "HW-ANS-007",
-    description: "Enterprise-grade network switch with advanced traffic management."
-  },
-  {
-    id: 8,
-    name: "Cloud Backup Service",
-    category: "Cloud Services",
-    price: "$149.99",
-    stock: 999,
-    status: "inactive" as const,
-    sku: "CS-CBS-008",
-    description: "Automatic cloud backup service with unlimited storage and file versioning."
-  },
-];
+interface ApiProduct {
+  product_id: number;
+  product_name: string;
+  category: string;
+  description: string;
+  price: number;
+  quantity: number;
+}
 
 interface Product {
   id: number;
   name: string;
   category: string;
-  price: string;
+  price: number;
   stock: number;
   status: 'active' | 'inactive';
   sku: string;
@@ -106,18 +33,19 @@ interface Product {
 }
 
 const Products = () => {
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   
   const [editingProduct, setEditingProduct] = useState<Product>({
     id: 0,
     name: '',
     category: '',
-    price: '',
+    price: 0,
     stock: 0,
     status: 'active',
     sku: '',
@@ -126,6 +54,42 @@ const Products = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [importText, setImportText] = useState('');
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const apiProducts: ApiProduct[] = response.data;
+      
+      const formattedProducts: Product[] = apiProducts.map(product => ({
+        id: product.product_id,
+        name: product.product_name,
+        category: product.category,
+        price: product.price,
+        stock: product.quantity,
+        status: 'active',
+        sku: `PRD-${product.product_id.toString().padStart(3, '0')}`,
+        description: product.description,
+      }));
+      
+      setProducts(formattedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch products",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Get unique categories for filter
   const categories = ['all', ...new Set(products.map(p => p.category))];
@@ -148,7 +112,7 @@ const Products = () => {
       id: 0,
       name: '',
       category: '',
-      price: '',
+      price: 0,
       stock: 0,
       status: 'active',
       sku: '',
@@ -157,21 +121,62 @@ const Products = () => {
     setIsDialogOpen(true);
   };
   
-  const handleEditProduct = (product: Product) => {
-    setIsEditing(true);
-    setEditingProduct({ ...product });
-    setIsDialogOpen(true);
+  const handleEditProduct = async (product: Product) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/products/${product.id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const apiProduct: ApiProduct = response.data;
+      
+      setIsEditing(true);
+      setEditingProduct({
+        id: apiProduct.product_id,
+        name: apiProduct.product_name,
+        category: apiProduct.category,
+        price: apiProduct.price,
+        stock: apiProduct.quantity,
+        status: 'active',
+        sku: `PRD-${apiProduct.product_id.toString().padStart(3, '0')}`,
+        description: apiProduct.description,
+      });
+      setIsDialogOpen(true);
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch product details",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleDeleteProduct = (productId: number) => {
-    setProducts(products.filter(product => product.id !== productId));
-    toast({
-      title: "Product Deleted",
-      description: "The product has been removed from your catalog",
-    });
+  const handleDeleteProduct = async (productId: number) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.delete(`${API_CONFIG.BASE_URL}/products/${productId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setProducts(products.filter(product => product.id !== productId));
+      toast({
+        title: "Product Deleted",
+        description: "The product has been removed from your catalog",
+      });
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
   };
   
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     if (!editingProduct.name || !editingProduct.category || !editingProduct.price) {
       toast({
         title: "Missing Information",
@@ -180,32 +185,50 @@ const Products = () => {
       });
       return;
     }
+
+    setIsLoading(true);
     
-    if (isEditing) {
-      setProducts(products.map(product => 
-        product.id === editingProduct.id ? editingProduct : product
-      ));
-      toast({
-        title: "Product Updated",
-        description: `${editingProduct.name} has been updated successfully`,
-      });
-    } else {
-      const newId = Math.max(...products.map(p => p.id), 0) + 1;
-      const newSku = `${editingProduct.category.substring(0, 2).toUpperCase()}-${editingProduct.name.substring(0, 3).toUpperCase()}-${String(newId).padStart(3, '0')}`;
+    try {
+      const token = localStorage.getItem('access_token');
       
-      setProducts([...products, { 
-        ...editingProduct, 
-        id: newId,
-        sku: editingProduct.sku || newSku,
-      }]);
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
       
+      const payload = {
+        product_name: editingProduct.name,
+        category: editingProduct.category,
+        description: editingProduct.description || '',
+        price: editingProduct.price,
+        quantity: editingProduct.stock,
+      };
+      
+      if (isEditing) {
+        await axios.put(`${API_CONFIG.BASE_URL}/products/${editingProduct.id}`, payload, { headers });
+        toast({
+          title: "Product Updated",
+          description: `${editingProduct.name} has been updated successfully`,
+        });
+      } else {
+        await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`, payload, { headers });
+        toast({
+          title: "Product Created",
+          description: `${editingProduct.name} has been added to your catalog`,
+        });
+      }
+      
+      await fetchProducts();
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error('Error saving product:', error);
       toast({
-        title: "Product Created",
-        description: `${editingProduct.name} has been added to your catalog`,
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsDialogOpen(false);
   };
   
   const handleImport = () => {
@@ -236,7 +259,7 @@ const Products = () => {
             id: newId,
             name: columns[0].trim(),
             category: columns[1].trim(),
-            price: columns[2].trim().startsWith('$') ? columns[2].trim() : `$${columns[2].trim()}`,
+            price: parseFloat(columns[2].trim().replace('$', '')) || 0,
             stock: parseInt(columns[3]?.trim() || '100'),
             status: 'active',
             sku: columns[4]?.trim() || `IMPORT-${String(newId).padStart(3, '0')}`,
@@ -359,8 +382,9 @@ const Products = () => {
                 <Label htmlFor="price">Price</Label>
                 <Input
                   id="price"
+                  type="number"
                   value={editingProduct.price}
-                  onChange={(e) => setEditingProduct({...editingProduct, price: e.target.value})}
+                  onChange={(e) => setEditingProduct({...editingProduct, price: parseFloat(e.target.value) || 0})}
                 />
               </div>
             </div>
@@ -418,7 +442,9 @@ const Products = () => {
           
           <div className="flex justify-end gap-3 mt-4">
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveProduct}>{isEditing ? 'Update Product' : 'Add Product'}</Button>
+            <Button onClick={handleSaveProduct} disabled={isLoading}>
+              {isLoading ? 'Saving...' : (isEditing ? 'Update Product' : 'Add Product')}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

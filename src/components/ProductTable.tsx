@@ -19,7 +19,7 @@ interface Product {
   id: number;
   name: string;
   category: string;
-  price: string;
+  price: number;
   stock: number;
   status: 'active' | 'inactive';
   sku: string;
@@ -101,7 +101,7 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
                 <div className="text-xs text-muted-foreground">SKU: {product.sku}</div>
               </TableCell>
               <TableCell>{product.category}</TableCell>
-              <TableCell className="text-right">{product.price}</TableCell>
+              <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
               <TableCell className="text-right">
                 <div className={product.stock <= 10 ? 'text-destructive' : ''}>{product.stock}</div>
                 {product.stock <= 10 && (
