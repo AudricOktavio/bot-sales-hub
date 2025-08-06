@@ -76,7 +76,12 @@ const AgentManagement = () => {
 
   const fetchAgents = async () => {
     try {
-      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`);
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const apiAgents: ApiAgent[] = response.data;
       
       const formattedAgents: Agent[] = apiAgents.map(agent => ({
@@ -127,7 +132,12 @@ const AgentManagement = () => {
   
   const handleEditAgent = async (id: number) => {
     try {
-      const response = await axios.get(`${API_CONFIG.BASE_URL}/agents/${id}`);
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/agents/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       const agent: ApiAgent = response.data;
       
       setIsEditing(true);
@@ -153,7 +163,12 @@ const AgentManagement = () => {
   
   const handleDeleteAgent = async (id: number) => {
     try {
-      await axios.delete(`${API_CONFIG.BASE_URL}/agents/${id}`);
+      const token = localStorage.getItem('access_token');
+      await axios.delete(`${API_CONFIG.BASE_URL}/agents/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       setAgents(agents.filter(agent => agent.id !== id));
       toast({
         title: "Agent Deleted",
@@ -178,36 +193,37 @@ const AgentManagement = () => {
       });
       return;
     }
-    
+  
     try {
+      const token = localStorage.getItem('access_token');
+  
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+  
+      const payload = {
+        agent_name: newAgent.name,
+        category: newAgent.category,
+        prompt: newAgent.prompt || undefined,
+        phone_number_id: newAgent.phone_number_id,
+      };
+  
+      let response;
+  
       if (isEditing) {
-        // Note: PUT endpoint not specified, using POST for now
-        const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, {
-          agent_name: newAgent.name,
-          category: newAgent.category,
-          prompt: newAgent.prompt || undefined,
-          phone_number_id: newAgent.phone_number_id,
-        });
-        
+        response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, payload, { headers });
         toast({
           title: "Agent Updated",
           description: `${newAgent.name} has been updated successfully`,
         });
       } else {
-        const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, {
-          agent_name: newAgent.name,
-          category: newAgent.category,
-          prompt: newAgent.prompt || undefined,
-          phone_number_id: newAgent.phone_number_id,
-        });
-        
+        response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, payload, { headers });
         toast({
           title: "Agent Created",
           description: `${newAgent.name} has been created successfully`,
         });
       }
-      
-      // Refresh the agents list
+  
       await fetchAgents();
       setIsDialogOpen(false);
     } catch (error) {

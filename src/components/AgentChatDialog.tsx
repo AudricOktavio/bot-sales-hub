@@ -41,9 +41,14 @@ const AgentChatDialog = ({ isOpen, onClose, agentId, agentName }: AgentChatDialo
     setIsLoading(true);
 
     try {
+      const token = localStorage.getItem('access_token');
       const response = await axios.post(`${API_CONFIG.BASE_URL}/agents/${agentId}`, {
         messages: [{ content: userMessage.content }],
-        customer_id: 'demo'
+        customer_id: 'demo',
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       const agentMessage: Message = {
