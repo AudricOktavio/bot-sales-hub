@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +39,7 @@ const Products = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  
+
   const [editingProduct, setEditingProduct] = useState<Product>({
     id: 0,
     name: '',
@@ -51,12 +50,18 @@ const Products = () => {
     sku: '',
     description: '',
   });
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [importText, setImportText] = useState('');
 
+  // SAP provider states
+  const [sapProvider, setSapProvider] = useState<any | null>(null);
+  const [isSapProviderLoading, setIsSapProviderLoading] = useState(true);
+  const [isSapSyncing, setIsSapSyncing] = useState(false);
+
   useEffect(() => {
     fetchProducts();
+    fetchSapProvider();
   }, []);
 
   const fetchProducts = async () => {
@@ -68,7 +73,7 @@ const Products = () => {
         }
       });
       const apiProducts: ApiProduct[] = response.data;
-      
+
       const formattedProducts: Product[] = apiProducts.map(product => ({
         id: product.product_id,
         name: product.product_name,
@@ -79,7 +84,7 @@ const Products = () => {
         sku: `PRD-${product.product_id.toString().padStart(3, '0')}`,
         description: product.description,
       }));
-      
+
       setProducts(formattedProducts);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -90,22 +95,71 @@ const Products = () => {
       });
     }
   };
-  
+
+  const fetchSapProvider = async () => {
+    setIsSapProviderLoading(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await axios.get(`${API_CONFIG.BASE_URL}/sap/provider`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.data && Object.keys(response.data).length > 0) {
+        setSapProvider(response.data);
+      } else {
+        setSapProvider(null);
+      }
+    } catch (error) {
+      console.error('Error fetching SAP provider:', error);
+      setSapProvider(null);
+    } finally {
+      setIsSapProviderLoading(false);
+    }
+  };
+
+  const syncProductsFromSap = async () => {
+    setIsSapSyncing(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      await axios.post(`${API_CONFIG.BASE_URL}/sap/sync-products`, {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      toast({
+        title: "SAP Sync Complete",
+        description: "Products have been synced from SAP B1",
+      });
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error syncing from SAP:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sync products from SAP",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSapSyncing(false);
+    }
+  };
+
   // Get unique categories for filter
   const categories = ['all', ...new Set(products.map(p => p.category))];
-  
-  // Filter products based on search and category
+
+  // Filter products
   const filteredProducts = products.filter(product => {
-    const matchesSearch = 
+    const matchesSearch =
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
       product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
-    
+
     return matchesSearch && matchesCategory;
   });
-  
+
   const handleCreateProduct = () => {
     setIsEditing(false);
     setEditingProduct({
@@ -120,7 +174,7 @@ const Products = () => {
     });
     setIsDialogOpen(true);
   };
-  
+
   const handleEditProduct = async (product: Product) => {
     try {
       const token = localStorage.getItem('access_token');
@@ -130,7 +184,7 @@ const Products = () => {
         }
       });
       const apiProduct: ApiProduct = response.data;
-      
+
       setIsEditing(true);
       setEditingProduct({
         id: apiProduct.product_id,
@@ -152,7 +206,7 @@ const Products = () => {
       });
     }
   };
-  
+
   const handleDeleteProduct = async (productId: number) => {
     try {
       const token = localStorage.getItem('access_token');
@@ -175,7 +229,7 @@ const Products = () => {
       });
     }
   };
-  
+
   const handleSaveProduct = async () => {
     if (!editingProduct.name || !editingProduct.category || !editingProduct.price) {
       toast({
@@ -187,14 +241,9 @@ const Products = () => {
     }
 
     setIsLoading(true);
-    
     try {
       const token = localStorage.getItem('access_token');
-      
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
-      
+      const headers = { Authorization: `Bearer ${token}` };
       const payload = {
         product_name: editingProduct.name,
         category: editingProduct.category,
@@ -202,7 +251,7 @@ const Products = () => {
         price: editingProduct.price,
         quantity: editingProduct.stock,
       };
-      
+
       if (isEditing) {
         await axios.put(`${API_CONFIG.BASE_URL}/products/${editingProduct.id}`, payload, { headers });
         toast({
@@ -216,7 +265,7 @@ const Products = () => {
           description: `${editingProduct.name} has been added to your catalog`,
         });
       }
-      
+
       await fetchProducts();
       setIsDialogOpen(false);
     } catch (error) {
@@ -230,7 +279,7 @@ const Products = () => {
       setIsLoading(false);
     }
   };
-  
+
   const handleImport = () => {
     try {
       if (!importText.trim()) {
@@ -241,20 +290,16 @@ const Products = () => {
         });
         return;
       }
-      
-      // Simple CSV parsing (in a real app, use a proper CSV parser)
+
       const rows = importText.trim().split('\n');
       const newProducts: Product[] = [];
-      
-      // Skip header row if present
       const startIdx = rows[0].includes('name,category,price') ? 1 : 0;
-      
+
       for (let i = startIdx; i < rows.length; i++) {
         const columns = rows[i].split(',');
-        
+
         if (columns.length >= 3) {
           const newId = Math.max(...products.map(p => p.id), 0) + newProducts.length + 1;
-          
           newProducts.push({
             id: newId,
             name: columns[0].trim(),
@@ -267,12 +312,11 @@ const Products = () => {
           });
         }
       }
-      
+
       if (newProducts.length > 0) {
         setProducts([...products, ...newProducts]);
         setIsImportDialogOpen(false);
         setImportText('');
-        
         toast({
           title: "Import Successful",
           description: `${newProducts.length} products imported to your catalog`,
@@ -292,7 +336,7 @@ const Products = () => {
       });
     }
   };
-  
+
   return (
     <div className="crm-container">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -303,22 +347,29 @@ const Products = () => {
         <div className="flex gap-2">
           <Button onClick={handleCreateProduct}>Add Product</Button>
           <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>Import</Button>
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              toast({
-                title: "SAP Sync Initiated",
-                description: "Syncing with SAP B1 for latest product data...",
-              });
-            }}
-            className="flex items-center gap-2"
-          >
-            <img src={sapLogo} alt="SAP" className="h-4 w-4" />
-            SAP Sync
-          </Button>
+          {!isSapProviderLoading && sapProvider && (
+            <Button
+              variant="outline"
+              onClick={syncProductsFromSap}
+              disabled={isSapSyncing}
+              className="flex items-center gap-2"
+            >
+              {isSapSyncing ? (
+                <>
+                  <span className="animate-spin border-2 border-t-transparent border-gray-500 rounded-full w-4 h-4"></span>
+                  Syncing...
+                </>
+              ) : (
+                <>
+                  <img src={sapLogo} alt="SAP" className="h-4 w-4" />
+                  SAP Sync
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
-      
+
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <Input
@@ -341,7 +392,7 @@ const Products = () => {
           </SelectContent>
         </Select>
       </div>
-      
+
       <ProductTable
         products={filteredProducts}
         onEdit={handleEditProduct}
