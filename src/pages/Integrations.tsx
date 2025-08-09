@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Settings, CreditCard, Database, MessageCircle } from 'lucide-react';
+import { API_CONFIG } from '@/config/api';
 
 const Integrations = () => {
   const { toast } = useToast();
@@ -49,8 +51,8 @@ const Integrations = () => {
     });
   };
 
-  const handleSapSave = () => {
-    if (!sapBaseUrl || !sapCompanyDb || !sapUsername || !sapPassword) {
+  const handleSapSave = async () => {
+    if (!sapBaseUrl || !sapCompanyDb || !sapUsername || !sapPassword || !sapPort) {
       toast({
         title: "Missing Information",
         description: "Please fill in all SAP B1 connection details",
@@ -58,11 +60,31 @@ const Integrations = () => {
       });
       return;
     }
-
-    toast({
-      title: "SAP B1 Settings Saved",
-      description: "ERP integration configuration has been updated",
-    });
+  
+    try {
+      const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, {
+        provider_name: "SAP B1", // you can make this dynamic
+        base_url: sapBaseUrl,
+        port: sapPort,
+        company_db: sapCompanyDb,
+        username: sapUsername,
+        password: sapPassword,
+        verify_ssl: false,
+        is_active: sapEnabled
+      });
+  
+      toast({
+        title: "SAP B1 Settings Saved",
+        description: "ERP integration configuration has been updated",
+      });
+    } catch (error) {
+      console.error("SAP Save Error:", error);
+      toast({
+        title: "Failed to Save SAP Settings",
+        description: error?.response?.data?.message || "An error occurred while saving SAP settings.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleWhatsappSave = () => {

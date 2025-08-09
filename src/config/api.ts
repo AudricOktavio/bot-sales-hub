@@ -9,6 +9,7 @@ export const API_CONFIG = {
     AGENT_CHAT: (id: number) => `/agents/${id}`,
     PRODUCTS: '/products/',
     PRODUCT_BY_ID: (id: number) => `/products/${id}`,
+    SAP_PROVIDER: '/sap/provider',
   }
 };
 
