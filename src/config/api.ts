@@ -10,6 +10,9 @@ export const API_CONFIG = {
     PRODUCTS: '/products/',
     PRODUCT_BY_ID: (id: number) => `/products/${id}`,
     SAP_PROVIDER: '/sap/provider',
+    WHATSAPPS: '/whatsapps/',
+    WHATSAPP_BY_ID: (id: number) => `/whatsapps/${id}`,
+    PAYMENT_PROVIDER: '/payment/provider',
   }
 };
 

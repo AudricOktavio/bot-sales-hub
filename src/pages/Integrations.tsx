@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff, Settings, CreditCard, Database, MessageCircle } from 'lucide-react';
 import { API_CONFIG } from '@/config/api';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 const Integrations = () => {
   const { toast } = useToast();
 
@@ -17,6 +17,7 @@ const Integrations = () => {
   const [midtransServerKey, setMidtransServerKey] = useState('');
   const [midtransClientKey, setMidtransClientKey] = useState('');
   const [showMidtransServerKey, setShowMidtransServerKey] = useState(false);
+  const [midtransExists, setMidtransExists] = useState(false);
 
   // SAP B1 settings
   const [sapEnabled, setSapEnabled] = useState(false);
@@ -34,8 +35,120 @@ const Integrations = () => {
   const [whatsappVerifyToken, setWhatsappVerifyToken] = useState('');
   const [showWhatsappApiToken, setShowWhatsappApiToken] = useState(false);
   const [showWhatsappVerifyToken, setShowWhatsappVerifyToken] = useState(false);
+  const [whatsappId, setWhatsappId] = useState<number | null>(null);
+  const [selectedAgentId, setSelectedAgentId] = useState<number | ''>('');
+  const [agents, setAgents] = useState<Array<{ agent_id: number; agent_name: string }>>([]);
 
-  const handleMidtransSave = () => {
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('access_token');
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      const headers = getAuthHeaders();
+      try {
+        const [agentsRes, paymentRes, whatsRes] = await Promise.allSettled([
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, { headers }),
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers }),
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, { headers }),
+        ]);
+
+        if (agentsRes.status === 'fulfilled') {
+          setAgents(agentsRes.value.data || []);
+        }
+
+        if (paymentRes.status === 'fulfilled') {
+          const p = paymentRes.value.data;
+          setMidtransEnabled(!!p?.is_active);
+          setMidtransServerKey(p?.server_key || '');
+          setMidtransClientKey(p?.client_key || '');
+          setMidtransExists(true);
+        } else {
+          setMidtransExists(false);
+        }
+
+        if (whatsRes.status === 'fulfilled') {
+          const list = whatsRes.value.data || [];
+          if (Array.isArray(list) && list.length > 0) {
+            const w = list[0];
+            setWhatsappEnabled(true);
+            setWhatsappApiToken(w?.access_token || '');
+            setWhatsappPhoneNumberId(w?.phone_number_id || '');
+            setWhatsappVerifyToken(w?.verify_token || '');
+            setWhatsappId(w?.whatsapp_id ?? w?.id ?? null);
+            setSelectedAgentId(typeof w?.agent_id === 'number' ? w.agent_id : '');
+          }
+        }
+      } catch (error) {
+        console.error('Integrations init error:', error);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  const prevMidtransEnabled = useRef(midtransEnabled);
+  useEffect(() => {
+    const run = async () => {
+      if (prevMidtransEnabled.current && !midtransEnabled && midtransExists) {
+        try {
+          const headers = getAuthHeaders();
+          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers });
+          setMidtransExists(false);
+          setMidtransServerKey('');
+          setMidtransClientKey('');
+          toast({
+            title: 'Midtrans Disabled',
+            description: 'Payment provider removed.',
+          });
+        } catch (error: any) {
+          console.error('Midtrans disable error:', error);
+          toast({
+            title: 'Failed to disable Midtrans',
+            description: error?.response?.data?.message || 'An error occurred.',
+            variant: 'destructive',
+          });
+          setMidtransEnabled(true);
+        }
+      }
+      prevMidtransEnabled.current = midtransEnabled;
+    };
+    run();
+  }, [midtransEnabled, midtransExists]);
+
+  const prevWhatsappEnabled = useRef(whatsappEnabled);
+  useEffect(() => {
+    const run = async () => {
+      if (prevWhatsappEnabled.current && !whatsappEnabled && whatsappId) {
+        try {
+          const headers = getAuthHeaders();
+          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_BY_ID(Number(whatsappId))}`, { headers });
+          setWhatsappId(null);
+          setWhatsappApiToken('');
+          setWhatsappPhoneNumberId('');
+          setWhatsappVerifyToken('');
+          setSelectedAgentId('');
+          toast({
+            title: 'WhatsApp Disabled',
+            description: 'WhatsApp integration removed.',
+          });
+        } catch (error: any) {
+          console.error('WhatsApp disable error:', error);
+          toast({
+            title: 'Failed to disable WhatsApp',
+            description: error?.response?.data?.message || 'An error occurred.',
+            variant: 'destructive',
+          });
+          setWhatsappEnabled(true);
+        }
+      }
+      prevWhatsappEnabled.current = whatsappEnabled;
+    };
+    run();
+  }, [whatsappEnabled, whatsappId]);
+  const handleMidtransSave = async () => {
     if (!midtransServerKey || !midtransClientKey) {
       toast({
         title: "Missing Information",
@@ -45,10 +158,32 @@ const Integrations = () => {
       return;
     }
 
-    toast({
-      title: "Midtrans Settings Saved",
-      description: "Payment gateway configuration has been updated",
-    });
+    try {
+      const headers = getAuthHeaders();
+      await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`,
+        {
+          provider_name: "Midtrans",
+          server_key: midtransServerKey,
+          client_key: midtransClientKey,
+          is_active: midtransEnabled,
+        },
+        { headers }
+      );
+
+      setMidtransExists(true);
+      toast({
+        title: "Midtrans Settings Saved",
+        description: "Payment gateway configuration has been updated",
+      });
+    } catch (error: any) {
+      console.error("Midtrans Save Error:", error);
+      toast({
+        title: "Failed to Save Midtrans Settings",
+        description: error?.response?.data?.message || "An error occurred while saving Midtrans settings.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSapSave = async () => {
@@ -62,16 +197,21 @@ const Integrations = () => {
     }
   
     try {
-      const response = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, {
-        provider_name: "SAP B1", // you can make this dynamic
-        base_url: sapBaseUrl,
-        port: sapPort,
-        company_db: sapCompanyDb,
-        username: sapUsername,
-        password: sapPassword,
-        verify_ssl: false,
-        is_active: sapEnabled
-      });
+      const headers = getAuthHeaders();
+      await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`,
+        {
+          provider_name: "SAP B1", // you can make this dynamic
+          base_url: sapBaseUrl,
+          port: sapPort,
+          company_db: sapCompanyDb,
+          username: sapUsername,
+          password: sapPassword,
+          verify_ssl: false,
+          is_active: sapEnabled
+        },
+        { headers }
+      );
   
       toast({
         title: "SAP B1 Settings Saved",
@@ -87,20 +227,45 @@ const Integrations = () => {
     }
   };
 
-  const handleWhatsappSave = () => {
-    if (!whatsappApiToken || !whatsappPhoneNumberId || !whatsappVerifyToken) {
+  const handleWhatsappSave = async () => {
+    if (!whatsappApiToken || !whatsappPhoneNumberId || !whatsappVerifyToken || selectedAgentId === '') {
       toast({
         title: "Missing Information",
-        description: "Please fill in all WhatsApp Business API details",
+        description: "Please fill in all WhatsApp Business API details and select an agent",
         variant: "destructive",
       });
       return;
     }
 
-    toast({
-      title: "WhatsApp Settings Saved",
-      description: "Messaging integration configuration has been updated",
-    });
+    try {
+      const headers = getAuthHeaders();
+      const payload = {
+        phone_number_id: whatsappPhoneNumberId,
+        access_token: whatsappApiToken,
+        verify_token: whatsappVerifyToken,
+        agent_id: Number(selectedAgentId),
+      };
+
+      if (whatsappId) {
+        await axios.put(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_BY_ID(Number(whatsappId))}`, payload, { headers });
+      } else {
+        const res = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, payload, { headers });
+        const created = res?.data;
+        if (created?.whatsapp_id) setWhatsappId(created.whatsapp_id);
+      }
+
+      toast({
+        title: "WhatsApp Settings Saved",
+        description: "Messaging integration configuration has been updated",
+      });
+    } catch (error: any) {
+      console.error("WhatsApp Save Error:", error);
+      toast({
+        title: "Failed to Save WhatsApp Settings",
+        description: error?.response?.data?.message || "An error occurred while saving WhatsApp settings.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -357,6 +522,25 @@ const Integrations = () => {
                     onChange={(e) => setWhatsappPhoneNumberId(e.target.value)}
                     placeholder="Enter your WhatsApp phone number ID"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp-agent">Linked Agent</Label>
+                  <Select
+                    value={selectedAgentId !== '' ? String(selectedAgentId) : ''}
+                    onValueChange={(v) => setSelectedAgentId(Number(v))}
+                  >
+                    <SelectTrigger id="whatsapp-agent">
+                      <SelectValue placeholder="Select an agent" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {agents.map((a) => (
+                        <SelectItem key={a.agent_id} value={String(a.agent_id)}>
+                          {a.agent_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">
