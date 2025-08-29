@@ -21,6 +21,7 @@ const Integrations = () => {
 
   // SAP B1 settings
   const [sapEnabled, setSapEnabled] = useState(false);
+  const [sapExists, setSapExists] = useState(false); // <-- Add this
   const [sapBaseUrl, setSapBaseUrl] = useState('');
   const [sapCompanyDb, setSapCompanyDb] = useState('');
   const [sapUsername, setSapUsername] = useState('');
@@ -50,10 +51,11 @@ const Integrations = () => {
     const fetchAll = async () => {
       const headers = getAuthHeaders();
       try {
-        const [agentsRes, paymentRes, whatsRes] = await Promise.allSettled([
+        const [agentsRes, paymentRes, whatsRes, sapRes] = await Promise.allSettled([
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, { headers }),
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers }), // <-- SAP status
         ]);
 
         if (agentsRes.status === 'fulfilled') {
@@ -82,6 +84,22 @@ const Integrations = () => {
             setSelectedAgentId(typeof w?.agent_id === 'number' ? w.agent_id : '');
           }
         }
+
+        // SAP status
+        if (sapRes.status === 'fulfilled') {
+          const s = sapRes.value.data;
+          setSapEnabled(!!s?.is_active);
+          setSapExists(!!s?.is_active);
+          // Optionally set other SAP fields if returned
+          setSapBaseUrl(s?.base_url || '');
+          setSapCompanyDb(s?.company_db || '');
+          setSapUsername(s?.username || '');
+          setSapPassword(s?.password || '');
+          setSapPort(s?.port || '');
+        } else {
+          setSapEnabled(false);
+          setSapExists(false);
+        }
       } catch (error) {
         console.error('Integrations init error:', error);
       }
@@ -89,6 +107,7 @@ const Integrations = () => {
     fetchAll();
   }, []);
 
+  // Midtrans toggle logic
   const prevMidtransEnabled = useRef(midtransEnabled);
   useEffect(() => {
     const run = async () => {
@@ -110,7 +129,7 @@ const Integrations = () => {
             description: error?.response?.data?.message || 'An error occurred.',
             variant: 'destructive',
           });
-          setMidtransEnabled(true);
+          setMidtransEnabled(true); // <-- Keep toggle ON if API fails
         }
       }
       prevMidtransEnabled.current = midtransEnabled;
@@ -118,6 +137,7 @@ const Integrations = () => {
     run();
   }, [midtransEnabled, midtransExists]);
 
+  // WhatsApp toggle logic
   const prevWhatsappEnabled = useRef(whatsappEnabled);
   useEffect(() => {
     const run = async () => {
@@ -141,13 +161,47 @@ const Integrations = () => {
             description: error?.response?.data?.message || 'An error occurred.',
             variant: 'destructive',
           });
-          setWhatsappEnabled(true);
+          setWhatsappEnabled(true); // <-- Keep toggle ON if API fails
         }
       }
       prevWhatsappEnabled.current = whatsappEnabled;
     };
     run();
   }, [whatsappEnabled, whatsappId]);
+
+  // SAP toggle logic
+  const prevSapEnabled = useRef(sapEnabled);
+  useEffect(() => {
+    const run = async () => {
+      if (prevSapEnabled.current && !sapEnabled && sapExists) {
+        try {
+          const headers = getAuthHeaders();
+          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers });
+          setSapExists(false);
+          setSapBaseUrl('');
+          setSapCompanyDb('');
+          setSapUsername('');
+          setSapPassword('');
+          setSapPort('');
+          toast({
+            title: 'SAP Disabled',
+            description: 'SAP integration removed.',
+          });
+        } catch (error: any) {
+          console.error('SAP disable error:', error);
+          toast({
+            title: 'Failed to disable SAP',
+            description: error?.response?.data?.message || 'An error occurred.',
+            variant: 'destructive',
+          });
+          setSapEnabled(true); // <-- Keep toggle ON if API fails
+        }
+      }
+      prevSapEnabled.current = sapEnabled;
+    };
+    run();
+  }, [sapEnabled, sapExists]);
+
   const handleMidtransSave = async () => {
     if (!midtransServerKey || !midtransClientKey) {
       toast({
