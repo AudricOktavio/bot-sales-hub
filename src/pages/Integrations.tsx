@@ -40,6 +40,16 @@ const Integrations = () => {
   const [selectedAgentId, setSelectedAgentId] = useState<number | ''>('');
   const [agents, setAgents] = useState<Array<{ agent_id: number; agent_name: string }>>([]);
 
+  // Odoo settings
+  const [odooEnabled, setOdooEnabled] = useState(false);
+  const [odooExists, setOdooExists] = useState(false);
+  const [odooUrl, setOdooUrl] = useState('');
+  const [odooDatabase, setOdooDatabase] = useState('');
+  const [odooUsername, setOdooUsername] = useState('');
+  const [odooPassword, setOdooPassword] = useState('');
+  const [odooPort, setOdooPort] = useState('8069');
+  const [showOdooPassword, setShowOdooPassword] = useState(false);
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('access_token');
     return {
@@ -51,11 +61,12 @@ const Integrations = () => {
     const fetchAll = async () => {
       const headers = getAuthHeaders();
       try {
-        const [agentsRes, paymentRes, whatsRes, sapRes] = await Promise.allSettled([
+        const [agentsRes, paymentRes, whatsRes, sapRes, odooRes] = await Promise.allSettled([
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, { headers }),
-          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers }), // <-- SAP status
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers }),
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`, { headers }),
         ]);
 
         if (agentsRes.status === 'fulfilled') {
@@ -99,6 +110,21 @@ const Integrations = () => {
         } else {
           setSapEnabled(false);
           setSapExists(false);
+        }
+
+        // Odoo status
+        if (odooRes.status === 'fulfilled') {
+          const o = odooRes.value.data;
+          setOdooEnabled(true);
+          setOdooExists(true);
+          setOdooUrl(o?.url || '');
+          setOdooDatabase(o?.database || '');
+          setOdooUsername(o?.username || '');
+          setOdooPort(o?.port?.toString() || '8069');
+          // Don't populate password for security
+        } else {
+          setOdooEnabled(false);
+          setOdooExists(false);
         }
       } catch (error) {
         console.error('Integrations init error:', error);
@@ -201,6 +227,39 @@ const Integrations = () => {
     };
     run();
   }, [sapEnabled, sapExists]);
+
+  // Odoo toggle logic
+  const prevOdooEnabled = useRef(odooEnabled);
+  useEffect(() => {
+    const run = async () => {
+      if (prevOdooEnabled.current && !odooEnabled && odooExists) {
+        try {
+          const headers = getAuthHeaders();
+          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`, { headers });
+          setOdooExists(false);
+          setOdooUrl('');
+          setOdooDatabase('');
+          setOdooUsername('');
+          setOdooPassword('');
+          setOdooPort('8069');
+          toast({
+            title: 'Odoo Disabled',
+            description: 'Odoo integration removed.',
+          });
+        } catch (error: any) {
+          console.error('Odoo disable error:', error);
+          toast({
+            title: 'Failed to disable Odoo',
+            description: error?.response?.data?.message || 'An error occurred.',
+            variant: 'destructive',
+          });
+          setOdooEnabled(true); // <-- Keep toggle ON if API fails
+        }
+      }
+      prevOdooEnabled.current = odooEnabled;
+    };
+    run();
+  }, [odooEnabled, odooExists]);
 
   const handleMidtransSave = async () => {
     if (!midtransServerKey || !midtransClientKey) {
@@ -317,6 +376,99 @@ const Integrations = () => {
       toast({
         title: "Failed to Save WhatsApp Settings",
         description: error?.response?.data?.message || "An error occurred while saving WhatsApp settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOdooSave = async () => {
+    if (!odooUrl || !odooDatabase || !odooUsername || !odooPassword) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all Odoo connection details",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const headers = getAuthHeaders();
+      await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`,
+        {
+          url: odooUrl,
+          database: odooDatabase,
+          username: odooUsername,
+          password: odooPassword,
+          port: parseInt(odooPort) || 8069,
+        },
+        { headers }
+      );
+
+      setOdooExists(true);
+      toast({
+        title: "Odoo Settings Saved",
+        description: "ERP integration configuration has been updated",
+      });
+    } catch (error: any) {
+      console.error("Odoo Save Error:", error);
+      toast({
+        title: "Failed to Save Odoo Settings",
+        description: error?.response?.data?.message || "An error occurred while saving Odoo settings.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOdooTest = async () => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_TEST}`,
+        {},
+        { headers }
+      );
+
+      if (response.data.success) {
+        toast({
+          title: "Connection Successful",
+          description: "Odoo connection test passed",
+        });
+      } else {
+        toast({
+          title: "Connection Failed",
+          description: response.data.message || "Odoo connection test failed",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Odoo Test Error:", error);
+      toast({
+        title: "Test Failed",
+        description: "Failed to test Odoo connection",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleOdooSync = async () => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_SYNC_PRODUCTS}`,
+        {},
+        { headers }
+      );
+
+      toast({
+        title: "Sync Completed",
+        description: `Products synced: ${response.data.created} created, ${response.data.updated} updated`,
+      });
+    } catch (error: any) {
+      console.error("Odoo Sync Error:", error);
+      toast({
+        title: "Sync Failed",
+        description: "Failed to sync products from Odoo",
         variant: "destructive",
       });
     }
@@ -626,6 +778,122 @@ const Integrations = () => {
                 <Button onClick={handleWhatsappSave} className="w-full">
                   Save WhatsApp Configuration
                 </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Odoo ERP */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Odoo ERP
+            </CardTitle>
+            <CardDescription>
+              Connect to your Odoo ERP system for product synchronization
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="odoo-enabled" className="text-base font-medium">
+                  Enable Odoo Integration
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Sync products and data with your Odoo ERP system
+                </p>
+              </div>
+              <Switch
+                id="odoo-enabled"
+                checked={odooEnabled}
+                onCheckedChange={setOdooEnabled}
+              />
+            </div>
+
+            {odooEnabled && (
+              <div className="space-y-4 pl-6 border-l-2 border-muted">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="odoo-url">Server URL</Label>
+                    <Input
+                      id="odoo-url"
+                      value={odooUrl}
+                      onChange={(e) => setOdooUrl(e.target.value)}
+                      placeholder="https://your-odoo-instance.com"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="odoo-port">Port</Label>
+                    <Input
+                      id="odoo-port"
+                      value={odooPort}
+                      onChange={(e) => setOdooPort(e.target.value)}
+                      placeholder="8069"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="odoo-database">Database Name</Label>
+                  <Input
+                    id="odoo-database"
+                    value={odooDatabase}
+                    onChange={(e) => setOdooDatabase(e.target.value)}
+                    placeholder="your_database_name"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="odoo-username">Username</Label>
+                    <Input
+                      id="odoo-username"
+                      value={odooUsername}
+                      onChange={(e) => setOdooUsername(e.target.value)}
+                      placeholder="admin"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="odoo-password">Password</Label>
+                    <div className="relative">
+                      <Input
+                        id="odoo-password"
+                        type={showOdooPassword ? "text" : "password"}
+                        value={odooPassword}
+                        onChange={(e) => setOdooPassword(e.target.value)}
+                        placeholder="Enter Odoo password"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowOdooPassword(!showOdooPassword)}
+                      >
+                        {showOdooPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={handleOdooSave} className="flex-1">
+                    Save Configuration
+                  </Button>
+                  <Button onClick={handleOdooTest} variant="outline">
+                    Test Connection
+                  </Button>
+                  <Button onClick={handleOdooSync} variant="outline">
+                    Sync Products
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
