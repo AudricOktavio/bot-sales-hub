@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import AgentManagement from "./pages/AgentManagement";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
+import Orders from "./pages/Orders";
 import ChatLogs from "./pages/ChatLogs";
 import Settings from "./pages/Settings";
 import Integrations from "./pages/Integrations";
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/agent-management" element={<AuthenticatedRoute><AgentManagement /></AuthenticatedRoute>} />
           <Route path="/customers" element={<AuthenticatedRoute><Customers /></AuthenticatedRoute>} />
           <Route path="/products" element={<AuthenticatedRoute><Products /></AuthenticatedRoute>} />
+          <Route path="/orders" element={<AuthenticatedRoute><Orders /></AuthenticatedRoute>} />
           <Route path="/chat-logs" element={<AuthenticatedRoute><ChatLogs /></AuthenticatedRoute>} />
           <Route path="/settings" element={<AuthenticatedRoute><Settings /></AuthenticatedRoute>} />
           <Route path="/integrations" element={<AuthenticatedRoute><Integrations /></AuthenticatedRoute>} />

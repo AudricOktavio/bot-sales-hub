@@ -11,6 +11,7 @@ import {
   Users, 
   MessageSquare, 
   List,
+  Package,
   Menu,
   Settings,
   Plug
@@ -68,6 +69,7 @@ const Sidebar = () => {
     { to: '/agent-management', icon: <Users size={20} />, label: 'AI Agents' },
     { to: '/customers', icon: <Users size={20} />, label: 'Customers' },
     { to: '/products', icon: <List size={20} />, label: 'Products' },
+    { to: '/orders', icon: <Package size={20} />, label: 'Orders' },
     { to: '/chat-logs', icon: <MessageSquare size={20} />, label: 'Chat Logs' },
   ];
 

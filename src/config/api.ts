@@ -13,6 +13,10 @@ export const API_CONFIG = {
     WHATSAPPS: '/whatsapps/',
     WHATSAPP_BY_ID: (id: number) => `/whatsapps/${id}`,
     PAYMENT_PROVIDER: '/payment/provider',
+    ORDERS: '/orders/',
+    ORDER_BY_ID: (id: number) => `/orders/${id}`,
+    ORDER_DETAILS: '/order-details/',
+    ORDER_DETAIL_BY_ID: (id: number) => `/order-details/${id}`,
   }
 };
 
