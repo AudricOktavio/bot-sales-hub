@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
@@ -23,6 +22,7 @@ interface Product {
   stock: number;
   status: 'active' | 'inactive';
   sku: string;
+  description: string; // Add description field
 }
 
 interface ProductTableProps {
@@ -90,6 +90,7 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
               )}
             </TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Description</TableHead> {/* Add this line */}
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -111,6 +112,7 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
               <TableCell>
                 <StatusBadge status={product.status} />
               </TableCell>
+              <TableCell>{product.description}</TableCell> {/* Add this line */}
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -136,7 +138,7 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
           
           {products.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+              <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
                 No products found
               </TableCell>
             </TableRow>

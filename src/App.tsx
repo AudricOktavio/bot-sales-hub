@@ -42,10 +42,10 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
 // Authentication check wrapper component
 const AuthenticatedRoute = ({ children }: { children: React.ReactNode }) => {
-  // In a real app, you would check if the user is authenticated here
-  // For demo purposes, we'll always allow access
-  const isAuthenticated = true;
   const location = useLocation();
+  // Check for token in localStorage
+  const token = localStorage.getItem('access_token');
+  const isAuthenticated = !!token;
 
   if (!isAuthenticated) {
     // Redirect to login if not authenticated

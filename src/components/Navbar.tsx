@@ -23,9 +23,18 @@ const Navbar = () => {
     console.log('Search for:', searchTerm);
   };
 
-  const handleLogout = () => {
-    // Implement logout functionality here
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+    } catch (error) {
+      console.error("Logout API failed:", error);
+    } finally {
+      // Always clear localStorage
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("token_type");
+
+      // Redirect to login
+      navigate("/login", { replace: true });
+    }
   };
 
   return (

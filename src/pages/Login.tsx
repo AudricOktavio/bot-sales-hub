@@ -58,7 +58,7 @@ const Login = () => {
       <div className="w-full max-w-md animate-fade-in">
         <Card className="border-2">
           <CardHeader className="space-y-1 text-center">
-            <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text mb-2">
+            <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text mb-2" onClick={() => navigate("/")}>
               Valvia
             </div>
             <CardTitle className="text-2xl font-bold">AI Sales CRM</CardTitle>

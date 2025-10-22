@@ -47,6 +47,7 @@ const Orders = () => {
       const response = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ORDERS}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log("GET /orders response.data:", response.data); // <- add this
       setOrders(response.data);
     } catch (error) {
       toast({
@@ -80,19 +81,46 @@ const Orders = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('access_token');
-      await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ORDERS}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
+
+      // prepare payload with total_price for each detail and total_amount for order
+      const detailsWithTotals = formData.order_details.map(d => {
+        const quantity = Number(d.quantity) || 0;
+        const unit_price = Number(d.unit_price) || 0;
+        return {
+          ...d,
+          quantity,
+          unit_price,
+          total_price: parseFloat((quantity * unit_price).toFixed(2)),
+        };
       });
-      
+
+      const total_amount = parseFloat(
+        detailsWithTotals.reduce((sum, d) => sum + (d.total_price ?? 0), 0).toFixed(2)
+      );
+
+      const payload = {
+        ...formData,
+        order_details: detailsWithTotals,
+        total_amount,
+      };
+
+      await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ORDERS}`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       toast({
         title: "Success",
         description: "Order created successfully",
       });
-      
+
       setDialogOpen(false);
       resetForm();
       fetchOrders();
-    } catch (error) {
+    } catch (error: any) {
+      // show server validation error in console to debug
+      console.error('Create order error:', error.response?.data ?? error);
       toast({
         title: "Error",
         description: "Failed to create order",

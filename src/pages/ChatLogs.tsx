@@ -1,217 +1,471 @@
-
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import {
+  ResizablePanelGroup,
+  ResizablePanel,
+  ResizableHandle,
+} from "@/components/ui/resizable";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Download, Plus, Search, Send, Bot, User } from 'lucide-react';
-import ChatLogViewer from '@/components/ChatLogViewer';
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download, Plus, Search, Send, Bot, User } from "lucide-react";
+import api from "@/lib/api";
+import { API_CONFIG } from "@/config/api";
+import { useToast } from "@/hooks/use-toast";
 
-// Demo chat log data
-const initialChatLogs = [
-  {
-    id: 1,
-    agentName: "Agent Alpha",
-    customerName: "Sarah Johnson",
-    date: "May 20, 2025",
-    status: "closed" as const,
-    productDiscussed: "Enterprise Cloud Storage",
-    dealValue: "$4,999.90",
-    messages: [
-      {
-        id: 1,
-        sender: "bot" as const,
-        content: "Hello Sarah! I noticed you were looking at our Enterprise Cloud Storage solutions. How can I help you today?",
-        timestamp: "10:30 AM"
-      },
-      {
-        id: 2,
-        sender: "customer" as const,
-        content: "Hi there! Yes, we're looking to upgrade our current storage solution. Can you tell me about your security features?",
-        timestamp: "10:32 AM"
-      },
-      {
-        id: 3,
-        sender: "bot" as const,
-        content: "Absolutely! Our Enterprise Cloud Storage comes with end-to-end encryption, multi-factor authentication, and compliance with ISO 27001, GDPR, and HIPAA standards. Would you like me to elaborate on any specific security aspect?",
-        timestamp: "10:33 AM"
-      },
-      {
-        id: 4,
-        sender: "customer" as const,
-        content: "That sounds promising. We handle sensitive customer data, so GDPR compliance is essential. What about data recovery options?",
-        timestamp: "10:35 AM"
-      },
-      {
-        id: 5,
-        sender: "bot" as const,
-        content: "Great question! We offer point-in-time recovery for up to 30 days by default, with options to extend to 90 or 180 days. Our system also includes automated backups every 6 hours and geographic redundancy across multiple data centers.",
-        timestamp: "10:37 AM"
-      },
-      {
-        id: 6,
-        sender: "customer" as const,
-        content: "That's exactly what we need. Can we set up a call with your sales team to discuss pricing for about 500 users?",
-        timestamp: "10:40 AM"
-      },
-    ]
-  },
-  {
-    id: 2,
-    agentName: "Agent Beta",
-    customerName: "Michael Wong",
-    date: "May 20, 2025",
-    status: "interested" as const,
-    productDiscussed: "Professional CRM License",
-    messages: [
-      {
-        id: 1,
-        sender: "bot" as const,
-        content: "Hello Michael! I see you're exploring our Professional CRM system. Is there anything specific I can help you understand about this solution?",
-        timestamp: "11:15 AM"
-      },
-      {
-        id: 2,
-        sender: "customer" as const,
-        content: "Hi, yes. We currently use a competitor's CRM but we're looking for something with better analytics. What does your system offer?",
-        timestamp: "11:18 AM"
-      },
-      {
-        id: 3,
-        sender: "bot" as const,
-        content: "Our Professional CRM includes advanced analytics powered by AI, giving you actionable insights on customer behavior, sales performance, and market trends. You can create custom reports and dashboards with drag-and-drop simplicity, and our predictive analytics can forecast sales opportunities.",
-        timestamp: "11:20 AM"
-      },
-      {
-        id: 4,
-        sender: "customer" as const,
-        content: "That sounds interesting. Do you offer data migration from other CRM systems?",
-        timestamp: "11:23 AM"
-      },
-    ]
-  },
-  {
-    id: 3,
-    agentName: "Agent Gamma",
-    customerName: "Elena Rodriguez",
-    date: "May 19, 2025",
-    status: "new-lead" as const,
-    productDiscussed: "Data Security Suite",
-    messages: [
-      {
-        id: 1,
-        sender: "bot" as const,
-        content: "Hello Elena! Welcome to our website. I see you're browsing our Data Security Suite. How can I assist you today?",
-        timestamp: "3:45 PM"
-      },
-      {
-        id: 2,
-        sender: "customer" as const,
-        content: "Hi, I'm just looking around. We've had some security concerns recently and I'm researching potential solutions.",
-        timestamp: "3:47 PM"
-      },
-      {
-        id: 3,
-        sender: "bot" as const,
-        content: "I understand the importance of addressing security concerns promptly. Our Data Security Suite provides comprehensive protection including threat detection, vulnerability management, and real-time monitoring. Would you like to know more about any specific aspect?",
-        timestamp: "3:48 PM"
-      },
-    ]
-  },
-  {
-    id: 4,
-    agentName: "Agent Alpha",
-    customerName: "Thomas Brown",
-    date: "May 18, 2025",
-    status: "closed" as const,
-    productDiscussed: "Business Laptop Pro",
-    dealValue: "$7,799.94",
-    messages: [
-      {
-        id: 1,
-        sender: "bot" as const,
-        content: "Hello Thomas! I see you're looking at our Business Laptop Pro models. How can I help you today?",
-        timestamp: "2:15 PM"
-      },
-      {
-        id: 2,
-        sender: "customer" as const,
-        content: "Hi, we need to purchase laptops for our sales team. I'm evaluating options for about 6 people.",
-        timestamp: "2:18 PM"
-      },
-    ]
-  },
-  {
-    id: 5,
-    agentName: "Agent Beta",
-    customerName: "James Wilson",
-    date: "May 17, 2025",
-    status: "no-interest" as const,
-    productDiscussed: "Smart Office Bundle",
-    messages: [
-      {
-        id: 1,
-        sender: "bot" as const,
-        content: "Hello James! I notice you're exploring our Smart Office Bundle. How can I assist you today?",
-        timestamp: "10:05 AM"
-      },
-      {
-        id: 2,
-        sender: "customer" as const,
-        content: "I'm just looking. What exactly does the Smart Office Bundle include?",
-        timestamp: "10:07 AM"
-      },
-    ]
-  },
-];
+/* ----------------------------- Types ----------------------------- */
+type Sender = "ai" | "human";
+interface Message {
+  id: number;
+  sender: Sender;
+  content: string;
+  timestamp: string;
+}
+type Status = "new-lead" | "interested" | "closed" | "no-interest";
+interface ListRow {
+  id: number;
+  phoneNumber: string;
+  customerName: string;
+  date: string;
+  status: Status;
+  agentName: string;
+  customerId?: number; // used for PATCH/POST endpoints
+  handoffActive?: boolean;
+  messages: Message[];
+}
+interface ChatItemWire {
+  chat_id: number;
+  message: string;
+  created_at: string;
+  role?: "ai" | "human" | "interrupt";
+}
+interface ApiChatLogWire {
+  phone_number: string;
+  customer_name: string;
+  customer_id?: number; // make sure backend returns this
+  is_handoff_active?: boolean;
+  log: ChatItemWire[] | ChatItemWire;
+}
+interface LastChatLogWire {
+  chat_list: ApiChatLogWire[];
+}
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'closed': return 'bg-green-500';
-    case 'interested': return 'bg-blue-500';
-    case 'new-lead': return 'bg-yellow-500';
-    case 'no-interest': return 'bg-red-500';
-    default: return 'bg-gray-500';
-  }
+/* ----------------------------- Helpers ----------------------------- */
+const getStatusColor = (s: Status) =>
+  s === "closed"
+    ? "bg-green-500"
+    : s === "interested"
+    ? "bg-blue-500"
+    : s === "new-lead"
+    ? "bg-yellow-500"
+    : s === "no-interest"
+    ? "bg-red-500"
+    : "bg-gray-500";
+const getStatusText = (s: Status) =>
+  s === "closed"
+    ? "Closed Won"
+    : s === "interested"
+    ? "Interested"
+    : s === "new-lead"
+    ? "New Lead"
+    : s === "no-interest"
+    ? "No Interest"
+    : s;
+
+const transformChatLog = (apiChatLog: ApiChatLogWire): ListRow => {
+  const logArray = Array.isArray(apiChatLog.log)
+    ? apiChatLog.log
+    : [apiChatLog.log];
+
+  const messages: Message[] = logArray.map((item, i) => ({
+    id: item.chat_id,
+    sender:
+      item.role === "ai" || item.role === "interrupt"
+        ? "ai"
+        : item.role === "human"
+        ? "human"
+        : i % 2 === 0
+        ? "ai"
+        : "human",
+    content: item.message,
+    timestamp: new Date(item.created_at).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  }));
+
+  return {
+    id:
+      parseInt(apiChatLog.phone_number.replace(/\D/g, "")) ||
+      Math.floor(Math.random() * 1e9),
+    phoneNumber: apiChatLog.phone_number,
+    customerName: apiChatLog.customer_name || apiChatLog.phone_number,
+    date: logArray.length
+      ? new Date(logArray[0].created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
+      : "Unknown",
+    status: "new-lead",
+    agentName: "Agent",
+    handoffActive: apiChatLog.is_handoff_active ?? false,
+    customerId: apiChatLog.customer_id, // keep the PK from API
+    messages,
+  };
 };
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'closed': return 'Closed Won';
-    case 'interested': return 'Interested';
-    case 'new-lead': return 'New Lead';
-    case 'no-interest': return 'No Interest';
-    default: return status;
-  }
-};
+// Extracts a readable error message from Axios/Fetch errors
+const extractErr = (e: any) =>
+  e?.response?.data?.detail ||
+  e?.response?.data?.message ||
+  e?.response?.data?.error ||
+  e?.message ||
+  "Unknown error";
 
+/* ----------------------------- Component ----------------------------- */
 const ChatLogs = () => {
-  const [chatLogs, setChatLogs] = useState(initialChatLogs);
-  const [selectedChat, setSelectedChat] = useState(initialChatLogs[0]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newMessage, setNewMessage] = useState('');
-  
-  // Apply search filter
-  const filteredLogs = chatLogs.filter(log => 
-    log.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.productDiscussed?.toLowerCase().includes(searchTerm.toLowerCase())
+  const [chatLogs, setChatLogs] = useState<ListRow[]>([]);
+  const [selectedChat, setSelectedChat] = useState<ListRow | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const { toast } = useToast();
+  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [handoffActive, setHandoffActive] = useState<Record<string, boolean>>(
+    {}
+  );
+  const [filterTab, setFilterTab] = useState<"all" | "assigned" | "unassigned">(
+    "assigned"
+  );
+  // New states for infinite scroll
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreOlder, setHasMoreOlder] = useState<Record<string, boolean>>({}); // per phone
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  // central fetch that respects current tab
+  const fetchChatLogs = async (tab: typeof filterTab) => {
+    setLoading(true);
+    try {
+      const params: Record<string, any> = { limit: 50 };
+      if (tab === "assigned") params.handoff = "assigned";
+      else if (tab === "unassigned") params.handoff = "unassigned";
+
+      const res = await api.get<LastChatLogWire>(
+        API_CONFIG.ENDPOINTS.CHAT_LOGS,
+        { params }
+      );
+
+      const rows = res.data.chat_list.map(transformChatLog);
+      setChatLogs(rows);
+
+      const map: Record<string, boolean> = {};
+      res.data.chat_list.forEach((c) => {
+        map[c.phone_number] = Boolean(c.is_handoff_active);
+      });
+      setHandoffActive(map);
+
+      setSelectedChat(null);
+    } catch (e) {
+      console.error("[fetchChatLogs] error:", e);
+      setChatLogs([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // initial + on tab change
+  useEffect(() => {
+    fetchChatLogs(filterTab); /* eslint-disable-next-line */
+  }, [filterTab]);
+
+  // WebSocket (optional)
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const socket = new WebSocket(
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WEBSOCKET}?token=${token}`
+    );
+    setWs(socket);
+    socket.onopen = () => setIsConnected(true);
+    socket.onclose = () => setIsConnected(false);
+    socket.onerror = () => setIsConnected(false);
+    socket.onmessage = (evt) => console.log("WS:", evt.data);
+    return () => socket.close();
+  }, []);
+
+  // Map server wire item -> Message (reuse mapping logic)
+  const mapWireToMessage = (it: ChatItemWire): Message => ({
+    id: it.chat_id,
+    sender: it.role === "ai" || it.role === "interrupt" ? "ai" : "human",
+    content: it.message,
+    timestamp: new Date(it.created_at).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+  });
+
+  // Fetch older messages (prepend). Uses last_chat_id = earliestId - 1
+  const fetchOlderMessages = useCallback(
+    async (phoneNumber: string) => {
+      if (!selectedChat || selectedChat.phoneNumber !== phoneNumber) return;
+      if (loadingOlder) return;
+
+      const earliestId = selectedChat.messages[0]?.id ?? 0;
+      if (!earliestId || earliestId <= 1) {
+        // nothing older
+        setHasMoreOlder((p) => ({ ...p, [phoneNumber]: false }));
+        return;
+      }
+
+      setLoadingOlder(true);
+      try {
+        const last_chat_id = earliestId - 1;
+        // preserve scroll measurements to restore position after prepend
+        const container = scrollContainerRef.current;
+        const prevScrollTop = container?.scrollTop ?? 0;
+        const prevScrollHeight = container?.scrollHeight ?? 0;
+
+        const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
+          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(phoneNumber, last_chat_id)
+        );
+        const logArray = Array.isArray(res.data.log)
+          ? res.data.log
+          : [res.data.log];
+
+        if (logArray.length === 0) {
+          setHasMoreOlder((p) => ({ ...p, [phoneNumber]: false }));
+          return;
+        }
+
+        const olderMessages = logArray.map(mapWireToMessage);
+
+        // Prepend older messages and keep selectedChat reference
+        const updated: ListRow = {
+          ...selectedChat,
+          messages: [...olderMessages, ...selectedChat.messages],
+        };
+        setSelectedChat(updated);
+        setChatLogs((prev) =>
+          prev.map((r) => (r.phoneNumber === phoneNumber ? updated : r))
+        );
+
+        // If server returned less than page size, assume no more older messages
+        const pageSize = 50; // backend limit
+        if (logArray.length < pageSize) {
+          setHasMoreOlder((p) => ({ ...p, [phoneNumber]: false }));
+        } else {
+          setHasMoreOlder((p) => ({ ...p, [phoneNumber]: true }));
+        }
+
+        // wait for DOM update, then restore scroll so UI doesn't jump
+        requestAnimationFrame(() => {
+          const container2 = scrollContainerRef.current;
+          if (container2 && prevScrollHeight) {
+            const newScrollHeight = container2.scrollHeight;
+            container2.scrollTop = newScrollHeight - prevScrollHeight + prevScrollTop;
+          }
+        });
+      } catch (e) {
+        console.error("[fetchOlderMessages] error:", e);
+        toast({
+          title: "Error",
+          description: "Failed to load older messages.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingOlder(false);
+      }
+    },
+    [selectedChat, loadingOlder, toast]
   );
 
+  // onScroll handler - load older when near top
+  const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    // threshold: 120px from top to trigger older load
+    if (target.scrollTop < 120 && selectedChat) {
+      const phone = selectedChat.phoneNumber;
+      const more = hasMoreOlder[phone];
+      // if we have never set hasMoreOlder for this phone, assume true
+      if ((more === undefined || more === true) && !loadingOlder) {
+        fetchOlderMessages(phone);
+      }
+    }
+  };
+
+  // detail fetch
+  const handleSelectChat = async (chat: ListRow) => {
+    setLoadingDetail(true);
+    try {
+      // Always fetch the latest page (last_chat_id=0) when opening a chat.
+      const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
+        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(chat.phoneNumber, 0)
+      );
+      const logArray = Array.isArray(res.data.log)
+        ? res.data.log
+        : [res.data.log];
+
+      const messages: Message[] = logArray.map(mapWireToMessage);
+
+      const updated = { ...chat, messages };
+      setSelectedChat(updated);
+      setChatLogs((prev) =>
+        prev.map((r) => (r.phoneNumber === chat.phoneNumber ? updated : r))
+      );
+
+      // decide hasMoreOlder for this conversation: if we got full page, assume more is available
+      const pageSize = 50;
+      setHasMoreOlder((p) => ({
+        ...p,
+        [chat.phoneNumber]: logArray.length >= pageSize,
+      }));
+
+      // scroll to bottom after render finishes
+      requestAnimationFrame(() => {
+        scrollToBottom("auto");
+      });
+    } catch (e) {
+      console.error("[handleSelectChat] error:", e);
+      toast({
+        title: "Error",
+        description: "Failed to load chat details.",
+        variant: "destructive",
+      });
+      setSelectedChat(null);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  // Toggle handoff (use real contactId; send JSON body)
+  const toggleHandoff = async (row: ListRow) => {
+    try {
+      if (!row.customerId) {
+        const msg = `Missing customerId for ${row.phoneNumber}`;
+        console.error("[toggleHandoff]", msg, row);
+        throw new Error(msg);
+      }
+      const current = Boolean(handoffActive[row.phoneNumber]);
+      console.debug(
+        "[toggleHandoff] customerId=%s phone=%s -> %s",
+        row.customerId,
+        row.phoneNumber,
+        !current
+      );
+      const res = await api.patch(
+        API_CONFIG.ENDPOINTS.HANDOFF_TOGGLE(row.customerId),
+        { active: !current } // JSON body
+      );
+      console.debug("[toggleHandoff] response:", res.status, res.data);
+      if (res.data.status === "ok") {
+        const newVal = Boolean(res.data.handoff_active);
+        setHandoffActive((p) => ({ ...p, [row.phoneNumber]: newVal }));
+        setChatLogs((p) =>
+          p.map((r) =>
+            r.phoneNumber === row.phoneNumber
+              ? { ...r, handoffActive: newVal }
+              : r
+          )
+        );
+        if (selectedChat?.phoneNumber === row.phoneNumber)
+          setSelectedChat({ ...selectedChat, handoffActive: newVal });
+        toast({
+          title: "Handoff Updated",
+          description: `Switched to ${newVal ? "Human CS" : "AI Agent"}`,
+        });
+        await fetchChatLogs(filterTab);
+      } else {
+        throw new Error("Unexpected response from server.");
+      }
+    } catch (e: any) {
+      console.error("[toggleHandoff] error:", e?.response || e);
+      toast({
+        title: "Error",
+        description: `Failed to toggle handoff mode: ${extractErr(e)}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Resolve → hand back to AI
+  const resolveChat = async (row: ListRow) => {
+    try {
+      if (!row.customerId) {
+        const msg = `Missing customerId for ${row.phoneNumber}`;
+        console.error("[resolveChat]", msg, row);
+        throw new Error(msg);
+      }
+      console.debug(
+        "[resolveChat] customerId=%s phone=%s",
+        row.customerId,
+        row.phoneNumber
+      );
+      const res = await api.post(
+        API_CONFIG.ENDPOINTS.HANDOFF_RESOLVE(row.customerId)
+      );
+      if (res.data.status === "ok") {
+        const newVal = Boolean(res.data.handoff_active);
+        setHandoffActive((p) => ({ ...p, [row.phoneNumber]: newVal }));
+        setChatLogs((p) =>
+          p.map((r) =>
+            r.phoneNumber === row.phoneNumber
+              ? { ...r, handoffActive: newVal }
+              : r
+          )
+        );
+        if (selectedChat?.phoneNumber === row.phoneNumber) {
+          setSelectedChat({ ...selectedChat, handoffActive: newVal });
+        }
+        toast({
+          title: "Conversation resolved",
+          description: "Returned to AI Agent",
+        });
+        await fetchChatLogs(filterTab);
+      } else {
+        throw new Error("Unexpected response from server.");
+      }
+    } catch (e: any) {
+      console.error("[resolveChat] error:", e?.response || e);
+      toast({
+        title: "Error",
+        description: `Failed to resolve conversation: ${extractErr(e)}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // filter client-side (still useful with search)
+  const filteredLogs = chatLogs.filter((row) => {
+    const matchesSearch =
+      row.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (row as any).productDiscussed
+        ?.toLowerCase?.()
+        .includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+    return true; // server already filtered for assigned/unassigned
+  });
+
   const handleNewChat = () => {
-    const newChatId = Math.max(...chatLogs.map(c => c.id)) + 1;
-    const newChat = {
-      id: newChatId,
-      agentName: "Agent Alpha",
+    const newChat: ListRow = {
+      id: Math.max(0, ...chatLogs.map((c) => c.id)) + 1,
+      phoneNumber: String(Math.floor(Math.random() * 1e11)),
       customerName: "New Customer",
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      status: "new-lead" as const,
-      productDiscussed: "",
-      messages: []
+      date: new Date().toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      status: "new-lead",
+      agentName: "Agent",
+      messages: [],
+      handoffActive: false,
     };
     setChatLogs([newChat, ...chatLogs]);
     setSelectedChat(newChat);
@@ -219,35 +473,46 @@ const ChatLogs = () => {
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedChat) return;
-    
-    const newMsg = {
-      id: Math.max(...selectedChat.messages.map(m => m.id), 0) + 1,
-      sender: "bot" as const,
+    const newMsg: Message = {
+      id: Math.max(0, ...selectedChat.messages.map((m) => m.id)) + 1,
+      sender: "ai",
       content: newMessage,
-      timestamp: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
-
-    const updatedChat = {
+    const updated = {
       ...selectedChat,
-      messages: [...selectedChat.messages, newMsg]
+      messages: [...selectedChat.messages, newMsg],
     };
-
-    const updatedChatLogs = chatLogs.map(log => 
-      log.id === selectedChat.id ? updatedChat : log
+    setSelectedChat(updated);
+    setChatLogs((prev) =>
+      prev.map((r) => (r.phoneNumber === updated.phoneNumber ? updated : r))
     );
+    setNewMessage("");
 
-    setChatLogs(updatedChatLogs);
-    setSelectedChat(updatedChat);
-    setNewMessage('');
+    // scroll after render completes
+    requestAnimationFrame(() => scrollToBottom("smooth"));
   };
+
+  const scrollToBottom = (behavior: ScrollBehavior = "auto") => {
+    // scroll the sentinel into view — works inside custom ScrollArea as well
+    endRef.current?.scrollIntoView({ behavior, block: "nearest" });
+  };
+
+  // whenever selected chat or number of messages changes, scroll to bottom
+  useEffect(() => {
+    // use microtask so DOM updates finish first
+    requestAnimationFrame(() => scrollToBottom("auto"));
+  }, [selectedChat?.id, selectedChat?.messages.length]);
 
   return (
     <div className="h-[calc(100vh-2rem)] flex flex-col">
-      {/* Header */}
+      {/* header */}
       <div className="flex justify-between items-center p-4 border-b bg-background">
         <div>
           <h1 className="text-2xl font-bold">Chat Logs</h1>
-          <p className="text-sm text-muted-foreground">Review and manage conversations</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">
@@ -261,15 +526,13 @@ const ChatLogs = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <ResizablePanelGroup direction="horizontal" className="flex-1">
-        {/* Chat List Panel */}
+        {/* list */}
         <ResizablePanel defaultSize={35} minSize={25}>
           <div className="h-full flex flex-col">
-            {/* Search */}
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search conversations..."
                   value={searchTerm}
@@ -277,111 +540,189 @@ const ChatLogs = () => {
                   className="pl-9"
                 />
               </div>
+              <Tabs
+                value={filterTab}
+                onValueChange={(v) => setFilterTab(v as any)}
+              >
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="assigned">Assigned</TabsTrigger>
+                  <TabsTrigger value="unassigned">Unassigned</TabsTrigger>
+                  <TabsTrigger value="all">All Agent</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
-            {/* Chat List */}
             <ScrollArea className="flex-1">
-              <div className="divide-y">
-                {filteredLogs.map((chat) => (
-                  <div
-                    key={chat.id}
-                    onClick={() => setSelectedChat(chat)}
-                    className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                      selectedChat?.id === chat.id ? 'bg-muted' : ''
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback>
-                          {chat.customerName.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-medium truncate">{chat.customerName}</h3>
-                          <span className="text-xs text-muted-foreground">{chat.date}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground truncate">
-                          {chat.messages[chat.messages.length - 1]?.content || 'No messages yet'}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge variant="secondary" className={`${getStatusColor(chat.status)} text-white text-xs`}>
-                            {getStatusText(chat.status)}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">{chat.agentName}</span>
+              {loading ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  Loading chat logs...
+                </div>
+              ) : filteredLogs.length === 0 ? (
+                <div className="p-4 text-center text-muted-foreground">
+                  No chat logs found
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {filteredLogs.map((row) => (
+                    <div
+                      key={row.id}
+                      onClick={() => handleSelectChat(row)}
+                      className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
+                        selectedChat?.id === row.id ? "bg-muted" : ""
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback>
+                            {row.customerName
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium truncate">
+                              {row.customerName}
+                            </h3>
+                            <span className="text-xs text-muted-foreground">
+                              {row.date}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {row.messages[row.messages.length - 1]?.content ||
+                              "No messages yet"}
+                          </p>
+                          <div className="flex items-center justify-between mt-2">
+                            <Badge
+                              variant="secondary"
+                              className={`${getStatusColor(
+                                row.status
+                              )} text-white text-xs`}
+                            >
+                              {getStatusText(row.status)}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {row.agentName}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </ScrollArea>
           </div>
         </ResizablePanel>
 
         <ResizableHandle withHandle />
 
-        {/* Chat Detail Panel */}
+        {/* detail */}
         <ResizablePanel defaultSize={65}>
-          {selectedChat ? (
+          {loadingDetail ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                Loading chat details...
+              </div>
+            </div>
+          ) : selectedChat ? (
             <div className="h-full flex flex-col">
-              {/* Chat Header */}
               <div className="p-4 border-b bg-muted/30">
+                {/* header unchanged */}
                 <div className="flex items-center gap-3">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback>
-                      {selectedChat.customerName.split(' ').map(n => n[0]).join('')}
+                      {selectedChat.customerName
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <h2 className="font-semibold">{selectedChat.customerName}</h2>
+                    <h2 className="font-semibold">
+                      {selectedChat.customerName}
+                    </h2>
                     <p className="text-sm text-muted-foreground">
-                      {selectedChat.productDiscussed || 'Product not specified'} • {selectedChat.agentName}
+                      Product not specified • {selectedChat.agentName}
                     </p>
                   </div>
-                  <Badge variant="secondary" className={`${getStatusColor(selectedChat.status)} text-white`}>
-                    {getStatusText(selectedChat.status)}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    {(filterTab === "assigned" ||
+                      selectedChat.handoffActive === true ||
+                      Boolean(handoffActive[selectedChat.phoneNumber])) && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => resolveChat(selectedChat)}
+                      >
+                        Resolve
+                      </Button>
+                    )}
+                    <Badge
+                      variant="secondary"
+                      className={`${getStatusColor(
+                        selectedChat.status
+                      )} text-white`}
+                    >
+                      {getStatusText(selectedChat.status)}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
-              {/* Messages */}
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  {selectedChat.messages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`flex ${message.sender === 'bot' ? 'justify-start' : 'justify-end'}`}
-                    >
-                      <div className={`flex items-start gap-2 max-w-[70%] ${
-                        message.sender === 'customer' ? 'flex-row-reverse' : ''
-                      }`}>
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {message.sender === 'bot' ? (
-                              <Bot className="h-4 w-4" />
-                            ) : (
-                              <User className="h-4 w-4" />
-                            )}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className={`rounded-lg p-3 ${
-                          message.sender === 'bot' 
-                            ? 'bg-muted text-foreground' 
-                            : 'bg-primary text-primary-foreground'
-                        }`}>
-                          <p className="text-sm">{message.content}</p>
-                          <span className="text-xs opacity-70 mt-1 block">
-                            {message.timestamp}
-                          </span>
+              {/* IMPORTANT: put an inner scrollable DIV we can ref & attach onScroll to */}
+              <ScrollArea className="flex-1">
+                <div
+                  ref={scrollContainerRef}
+                  onScroll={onScroll}
+                  className="flex-1 overflow-auto p-4"
+                  style={{ maxHeight: "100%" }}
+                >
+                  <div className="space-y-4">
+                    {loadingOlder && (
+                      <div className="text-center text-xs text-muted-foreground">
+                        Loading older messages...
+                      </div>
+                    )}
+                    {selectedChat.messages.map((m) => (
+                      <div
+                        key={m.id}
+                        className={`flex ${m.sender === "ai" ? "justify-end" : "justify-start"
+                          }`}
+                      >
+                        <div
+                          className={`flex items-start gap-2 max-w-[70%] ${m.sender === "ai" ? "flex-row-reverse" : ""
+                            }`}
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>
+                              {m.sender === "ai" ? (
+                                <Bot className="h-4 w-4" />
+                              ) : (
+                                <User className="h-4 w-4" />
+                              )}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div
+                            className={`rounded-lg p-3 ${m.sender === "ai"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-foreground"
+                              }`}
+                          >
+                            <p className="text-sm">{m.content}</p>
+                            <span className="text-xs opacity-70 mt-1 block">
+                              {m.timestamp}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                    <div ref={endRef} />
+                  </div>
                 </div>
               </ScrollArea>
 
-              {/* Message Input */}
               <div className="p-4 border-t">
                 <div className="flex gap-2">
                   <Textarea
@@ -390,13 +731,17 @@ const ChatLogs = () => {
                     onChange={(e) => setNewMessage(e.target.value)}
                     className="min-h-[60px] resize-none"
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
+                      if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
                         handleSendMessage();
                       }
                     }}
                   />
-                  <Button onClick={handleSendMessage} size="icon" className="self-end">
+                  <Button
+                    onClick={handleSendMessage}
+                    size="icon"
+                    className="self-end"
+                  >
                     <Send className="h-4 w-4" />
                   </Button>
                 </div>
@@ -405,8 +750,12 @@ const ChatLogs = () => {
           ) : (
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
-                <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-                <p className="text-muted-foreground">Choose a chat from the list to view the conversation</p>
+                <h3 className="text-lg font-medium mb-2">
+                  Select a conversation
+                </h3>
+                <p className="text-muted-foreground">
+                  Choose a chat from the list to view the conversation
+                </p>
               </div>
             </div>
           )}

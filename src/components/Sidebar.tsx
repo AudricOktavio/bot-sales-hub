@@ -1,21 +1,20 @@
-
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  LayoutDashboard, 
-  Users, 
-  MessageSquare, 
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
+import {
+  ChevronLeft,
+  ChevronRight,
+  LayoutDashboard,
+  Users,
+  MessageSquare,
   List,
   Package,
   Menu,
   Settings,
-  Plug
-} from 'lucide-react';
+  Plug,
+} from "lucide-react";
 
 interface NavItemProps {
   to: string;
@@ -33,11 +32,11 @@ const NavItem = ({ to, icon, label, collapsed, onClick }: NavItemProps) => {
     <NavLink
       to={to}
       onClick={onClick}
-      className={({ isActive }) => 
+      className={({ isActive }) =>
         cn(
           "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 group text-sm",
-          isActive 
-            ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+          isActive
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
             : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
         )
       }
@@ -65,17 +64,21 @@ const Sidebar = () => {
   };
 
   const navItems = [
-    { to: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard' },
-    { to: '/agent-management', icon: <Users size={20} />, label: 'AI Agents' },
-    { to: '/customers', icon: <Users size={20} />, label: 'Customers' },
-    { to: '/products', icon: <List size={20} />, label: 'Products' },
-    { to: '/orders', icon: <Package size={20} />, label: 'Orders' },
-    { to: '/chat-logs', icon: <MessageSquare size={20} />, label: 'Chat Logs' },
+    {
+      to: "/dashboard",
+      icon: <LayoutDashboard size={20} />,
+      label: "Dashboard",
+    },
+    { to: "/agent-management", icon: <Users size={20} />, label: "AI Agents" },
+    { to: "/customers", icon: <Users size={20} />, label: "Customers" },
+    { to: "/products", icon: <List size={20} />, label: "Products" },
+    { to: "/orders", icon: <Package size={20} />, label: "Orders" },
+    { to: "/chat-logs", icon: <MessageSquare size={20} />, label: "Chat Logs" },
   ];
 
   const bottomNavItems = [
-    { to: '/integrations', icon: <Plug size={20} />, label: 'Integrations' },
-    { to: '/settings', icon: <Settings size={20} />, label: 'Settings' },
+    { to: "/integrations", icon: <Plug size={20} />, label: "Integrations" },
+    { to: "/settings", icon: <Settings size={20} />, label: "Settings" },
   ];
 
   // Mobile sidebar
@@ -86,12 +89,17 @@ const Sidebar = () => {
           <Menu size={20} />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-64 p-0 bg-sidebar border-sidebar-border">
+      <SheetContent
+        side="left"
+        className="w-64 p-0 bg-sidebar border-sidebar-border"
+      >
         <div className="flex flex-col h-full">
           <div className="p-4 border-b border-sidebar-border">
-            <div className="text-lg font-bold text-sidebar-foreground">AI Sales CRM</div>
+            <div className="text-lg font-bold text-sidebar-foreground">
+              AI Sales CRM
+            </div>
           </div>
-          
+
           <div className="flex-1 p-3 space-y-1 overflow-auto">
             {navItems.map((item) => (
               <NavItem
@@ -103,7 +111,7 @@ const Sidebar = () => {
               />
             ))}
           </div>
-          
+
           <div className="p-3 border-t border-sidebar-border space-y-1">
             {bottomNavItems.map((item) => (
               <NavItem
@@ -130,7 +138,9 @@ const Sidebar = () => {
     >
       <div className="p-4 flex items-center justify-between border-b border-sidebar-border">
         {!collapsed && (
-          <div className="text-lg font-bold text-sidebar-foreground">AI Sales CRM</div>
+          <div className="text-lg font-bold text-sidebar-foreground">
+            AI Sales CRM
+          </div>
         )}
         <Button
           variant="ghost"

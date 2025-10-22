@@ -1,57 +1,77 @@
-import { useState, useEffect, useRef } from 'react';
-import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Settings, CreditCard, Database, MessageCircle } from 'lucide-react';
-import { API_CONFIG } from '@/config/api';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState, useEffect, useRef } from "react";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import {
+  Eye,
+  EyeOff,
+  Settings,
+  CreditCard,
+  Database,
+  MessageCircle,
+} from "lucide-react";
+import { API_CONFIG } from "@/config/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 const Integrations = () => {
   const { toast } = useToast();
 
   // Midtrans settings
   const [midtransEnabled, setMidtransEnabled] = useState(false);
-  const [midtransServerKey, setMidtransServerKey] = useState('');
-  const [midtransClientKey, setMidtransClientKey] = useState('');
+  const [midtransServerKey, setMidtransServerKey] = useState("");
+  const [midtransClientKey, setMidtransClientKey] = useState("");
   const [showMidtransServerKey, setShowMidtransServerKey] = useState(false);
   const [midtransExists, setMidtransExists] = useState(false);
 
   // SAP B1 settings
   const [sapEnabled, setSapEnabled] = useState(false);
   const [sapExists, setSapExists] = useState(false); // <-- Add this
-  const [sapBaseUrl, setSapBaseUrl] = useState('');
-  const [sapCompanyDb, setSapCompanyDb] = useState('');
-  const [sapUsername, setSapUsername] = useState('');
-  const [sapPassword, setSapPassword] = useState('');
-  const [sapPort, setSapPort] = useState('');
+  const [sapBaseUrl, setSapBaseUrl] = useState("");
+  const [sapCompanyDb, setSapCompanyDb] = useState("");
+  const [sapUsername, setSapUsername] = useState("");
+  const [sapPassword, setSapPassword] = useState("");
+  const [sapPort, setSapPort] = useState("");
   const [showSapPassword, setShowSapPassword] = useState(false);
 
   // WhatsApp settings
   const [whatsappEnabled, setWhatsappEnabled] = useState(false);
-  const [whatsappApiToken, setWhatsappApiToken] = useState('');
-  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState('');
-  const [whatsappVerifyToken, setWhatsappVerifyToken] = useState('');
+  const [whatsappApiToken, setWhatsappApiToken] = useState("");
+  const [whatsappPhoneNumberId, setWhatsappPhoneNumberId] = useState("");
+  const [whatsappVerifyToken, setWhatsappVerifyToken] = useState("");
   const [showWhatsappApiToken, setShowWhatsappApiToken] = useState(false);
   const [showWhatsappVerifyToken, setShowWhatsappVerifyToken] = useState(false);
   const [whatsappId, setWhatsappId] = useState<number | null>(null);
-  const [selectedAgentId, setSelectedAgentId] = useState<number | ''>('');
-  const [agents, setAgents] = useState<Array<{ agent_id: number; agent_name: string }>>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState<number | "">("");
+  const [agents, setAgents] = useState<
+    Array<{ agent_id: number; agent_name: string }>
+  >([]);
 
   // Odoo settings
   const [odooEnabled, setOdooEnabled] = useState(false);
   const [odooExists, setOdooExists] = useState(false);
-  const [odooUrl, setOdooUrl] = useState('');
-  const [odooDatabase, setOdooDatabase] = useState('');
-  const [odooUsername, setOdooUsername] = useState('');
-  const [odooPassword, setOdooPassword] = useState('');
-  const [odooPort, setOdooPort] = useState('8069');
+  const [odooUrl, setOdooUrl] = useState("");
+  const [odooDatabase, setOdooDatabase] = useState("");
+  const [odooUsername, setOdooUsername] = useState("");
+  const [odooPassword, setOdooPassword] = useState("");
   const [showOdooPassword, setShowOdooPassword] = useState(false);
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem("access_token");
     return {
       Authorization: `Bearer ${token}`,
     };
@@ -61,73 +81,89 @@ const Integrations = () => {
     const fetchAll = async () => {
       const headers = getAuthHeaders();
       try {
-        const [agentsRes, paymentRes, whatsRes, sapRes, odooRes] = await Promise.allSettled([
-          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, { headers }),
-          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers }),
-          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, { headers }),
-          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers }),
-          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`, { headers }),
-        ]);
+        const [agentsRes, paymentRes, whatsRes, sapRes, odooRes] =
+          await Promise.allSettled([
+            axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, {
+              headers,
+            }),
+            axios.get(
+              `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`,
+              { headers }
+            ),
+            axios.get(
+              `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`,
+              { headers }
+            ),
+            axios.get(
+              `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`,
+              { headers }
+            ),
+            axios.get(
+              `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`,
+              { headers }
+            ),
+          ]);
 
-        if (agentsRes.status === 'fulfilled') {
+        if (agentsRes.status === "fulfilled") {
           setAgents(agentsRes.value.data || []);
         }
 
-        if (paymentRes.status === 'fulfilled') {
+        if (paymentRes.status === "fulfilled") {
           const p = paymentRes.value.data;
           setMidtransEnabled(!!p?.is_active);
-          setMidtransServerKey(p?.server_key || '');
-          setMidtransClientKey(p?.client_key || '');
+          setMidtransServerKey(p?.server_key || "");
+          setMidtransClientKey(p?.client_key || "");
           setMidtransExists(true);
         } else {
           setMidtransExists(false);
         }
 
-        if (whatsRes.status === 'fulfilled') {
+        if (whatsRes.status === "fulfilled") {
           const list = whatsRes.value.data || [];
           if (Array.isArray(list) && list.length > 0) {
             const w = list[0];
             setWhatsappEnabled(true);
-            setWhatsappApiToken(w?.access_token || '');
-            setWhatsappPhoneNumberId(w?.phone_number_id || '');
-            setWhatsappVerifyToken(w?.verify_token || '');
+            setWhatsappApiToken(w?.access_token || "");
+            setWhatsappPhoneNumberId(w?.phone_number_id || "");
+            setWhatsappVerifyToken(w?.verify_token || "");
             setWhatsappId(w?.whatsapp_id ?? w?.id ?? null);
-            setSelectedAgentId(typeof w?.agent_id === 'number' ? w.agent_id : '');
+            setSelectedAgentId(
+              typeof w?.agent_id === "number" ? w.agent_id : ""
+            );
           }
         }
 
         // SAP status
-        if (sapRes.status === 'fulfilled') {
+        if (sapRes.status === "fulfilled") {
           const s = sapRes.value.data;
           setSapEnabled(!!s?.is_active);
           setSapExists(!!s?.is_active);
           // Optionally set other SAP fields if returned
-          setSapBaseUrl(s?.base_url || '');
-          setSapCompanyDb(s?.company_db || '');
-          setSapUsername(s?.username || '');
-          setSapPassword(s?.password || '');
-          setSapPort(s?.port || '');
+          setSapBaseUrl(s?.base_url || "");
+          setSapCompanyDb(s?.company_db || "");
+          setSapUsername(s?.username || "");
+          setSapPassword(s?.password || "");
+          setSapPort(s?.port || "");
         } else {
           setSapEnabled(false);
           setSapExists(false);
         }
 
         // Odoo status
-        if (odooRes.status === 'fulfilled') {
+        if (odooRes.status === "fulfilled") {
           const o = odooRes.value.data;
-          setOdooEnabled(true);
+          setOdooEnabled(!!o?.is_active);
           setOdooExists(true);
-          setOdooUrl(o?.url || '');
-          setOdooDatabase(o?.database || '');
-          setOdooUsername(o?.username || '');
-          setOdooPort(o?.port?.toString() || '8069');
-          // Don't populate password for security
+          setOdooUrl(o?.base_url || "");
+          setOdooDatabase(o?.company_db || "");
+          setOdooUsername(o?.username || "");
+          setOdooPassword(o?.password || "");
         } else {
           setOdooEnabled(false);
           setOdooExists(false);
         }
       } catch (error) {
-        console.error('Integrations init error:', error);
+        console.error("Integrations init error:", error);
       }
     };
     fetchAll();
@@ -140,20 +176,23 @@ const Integrations = () => {
       if (prevMidtransEnabled.current && !midtransEnabled && midtransExists) {
         try {
           const headers = getAuthHeaders();
-          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers });
+          await axios.delete(
+            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`,
+            { headers }
+          );
           setMidtransExists(false);
-          setMidtransServerKey('');
-          setMidtransClientKey('');
+          setMidtransServerKey("");
+          setMidtransClientKey("");
           toast({
-            title: 'Midtrans Disabled',
-            description: 'Payment provider removed.',
+            title: "Midtrans Disabled",
+            description: "Payment provider removed.",
           });
         } catch (error: any) {
-          console.error('Midtrans disable error:', error);
+          console.error("Midtrans disable error:", error);
           toast({
-            title: 'Failed to disable Midtrans',
-            description: error?.response?.data?.message || 'An error occurred.',
-            variant: 'destructive',
+            title: "Failed to disable Midtrans",
+            description: error?.response?.data?.message || "An error occurred.",
+            variant: "destructive",
           });
           setMidtransEnabled(true); // <-- Keep toggle ON if API fails
         }
@@ -170,22 +209,27 @@ const Integrations = () => {
       if (prevWhatsappEnabled.current && !whatsappEnabled && whatsappId) {
         try {
           const headers = getAuthHeaders();
-          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_BY_ID(Number(whatsappId))}`, { headers });
+          await axios.delete(
+            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_BY_ID(
+              Number(whatsappId)
+            )}`,
+            { headers }
+          );
           setWhatsappId(null);
-          setWhatsappApiToken('');
-          setWhatsappPhoneNumberId('');
-          setWhatsappVerifyToken('');
-          setSelectedAgentId('');
+          setWhatsappApiToken("");
+          setWhatsappPhoneNumberId("");
+          setWhatsappVerifyToken("");
+          setSelectedAgentId("");
           toast({
-            title: 'WhatsApp Disabled',
-            description: 'WhatsApp integration removed.',
+            title: "WhatsApp Disabled",
+            description: "WhatsApp integration removed.",
           });
         } catch (error: any) {
-          console.error('WhatsApp disable error:', error);
+          console.error("WhatsApp disable error:", error);
           toast({
-            title: 'Failed to disable WhatsApp',
-            description: error?.response?.data?.message || 'An error occurred.',
-            variant: 'destructive',
+            title: "Failed to disable WhatsApp",
+            description: error?.response?.data?.message || "An error occurred.",
+            variant: "destructive",
           });
           setWhatsappEnabled(true); // <-- Keep toggle ON if API fails
         }
@@ -202,23 +246,26 @@ const Integrations = () => {
       if (prevSapEnabled.current && !sapEnabled && sapExists) {
         try {
           const headers = getAuthHeaders();
-          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers });
+          await axios.delete(
+            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`,
+            { headers }
+          );
           setSapExists(false);
-          setSapBaseUrl('');
-          setSapCompanyDb('');
-          setSapUsername('');
-          setSapPassword('');
-          setSapPort('');
+          setSapBaseUrl("");
+          setSapCompanyDb("");
+          setSapUsername("");
+          setSapPassword("");
+          setSapPort("");
           toast({
-            title: 'SAP Disabled',
-            description: 'SAP integration removed.',
+            title: "SAP Disabled",
+            description: "SAP integration removed.",
           });
         } catch (error: any) {
-          console.error('SAP disable error:', error);
+          console.error("SAP disable error:", error);
           toast({
-            title: 'Failed to disable SAP',
-            description: error?.response?.data?.message || 'An error occurred.',
-            variant: 'destructive',
+            title: "Failed to disable SAP",
+            description: error?.response?.data?.message || "An error occurred.",
+            variant: "destructive",
           });
           setSapEnabled(true); // <-- Keep toggle ON if API fails
         }
@@ -235,23 +282,25 @@ const Integrations = () => {
       if (prevOdooEnabled.current && !odooEnabled && odooExists) {
         try {
           const headers = getAuthHeaders();
-          await axios.delete(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`, { headers });
+          await axios.delete(
+            `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`,
+            { headers }
+          );
           setOdooExists(false);
-          setOdooUrl('');
-          setOdooDatabase('');
-          setOdooUsername('');
-          setOdooPassword('');
-          setOdooPort('8069');
+          setOdooUrl("");
+          setOdooDatabase("");
+          setOdooUsername("");
+          setOdooPassword("");
           toast({
-            title: 'Odoo Disabled',
-            description: 'Odoo integration removed.',
+            title: "Odoo Disabled",
+            description: "Odoo integration removed.",
           });
         } catch (error: any) {
-          console.error('Odoo disable error:', error);
+          console.error("Odoo disable error:", error);
           toast({
-            title: 'Failed to disable Odoo',
-            description: error?.response?.data?.message || 'An error occurred.',
-            variant: 'destructive',
+            title: "Failed to disable Odoo",
+            description: error?.response?.data?.message || "An error occurred.",
+            variant: "destructive",
           });
           setOdooEnabled(true); // <-- Keep toggle ON if API fails
         }
@@ -293,14 +342,22 @@ const Integrations = () => {
       console.error("Midtrans Save Error:", error);
       toast({
         title: "Failed to Save Midtrans Settings",
-        description: error?.response?.data?.message || "An error occurred while saving Midtrans settings.",
+        description:
+          error?.response?.data?.message ||
+          "An error occurred while saving Midtrans settings.",
         variant: "destructive",
       });
     }
   };
 
   const handleSapSave = async () => {
-    if (!sapBaseUrl || !sapCompanyDb || !sapUsername || !sapPassword || !sapPort) {
+    if (
+      !sapBaseUrl ||
+      !sapCompanyDb ||
+      !sapUsername ||
+      !sapPassword ||
+      !sapPort
+    ) {
       toast({
         title: "Missing Information",
         description: "Please fill in all SAP B1 connection details",
@@ -308,7 +365,7 @@ const Integrations = () => {
       });
       return;
     }
-  
+
     try {
       const headers = getAuthHeaders();
       await axios.post(
@@ -321,11 +378,11 @@ const Integrations = () => {
           username: sapUsername,
           password: sapPassword,
           verify_ssl: false,
-          is_active: sapEnabled
+          is_active: sapEnabled,
         },
         { headers }
       );
-  
+
       toast({
         title: "SAP B1 Settings Saved",
         description: "ERP integration configuration has been updated",
@@ -334,17 +391,25 @@ const Integrations = () => {
       console.error("SAP Save Error:", error);
       toast({
         title: "Failed to Save SAP Settings",
-        description: error?.response?.data?.message || "An error occurred while saving SAP settings.",
+        description:
+          error?.response?.data?.message ||
+          "An error occurred while saving SAP settings.",
         variant: "destructive",
       });
     }
   };
 
   const handleWhatsappSave = async () => {
-    if (!whatsappApiToken || !whatsappPhoneNumberId || !whatsappVerifyToken || selectedAgentId === '') {
+    if (
+      !whatsappApiToken ||
+      !whatsappPhoneNumberId ||
+      !whatsappVerifyToken ||
+      selectedAgentId === ""
+    ) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all WhatsApp Business API details and select an agent",
+        description:
+          "Please fill in all WhatsApp Business API details and select an agent",
         variant: "destructive",
       });
       return;
@@ -360,9 +425,19 @@ const Integrations = () => {
       };
 
       if (whatsappId) {
-        await axios.put(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_BY_ID(Number(whatsappId))}`, payload, { headers });
+        await axios.put(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_BY_ID(
+            Number(whatsappId)
+          )}`,
+          payload,
+          { headers }
+        );
       } else {
-        const res = await axios.post(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, payload, { headers });
+        const res = await axios.post(
+          `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`,
+          payload,
+          { headers }
+        );
         const created = res?.data;
         if (created?.whatsapp_id) setWhatsappId(created.whatsapp_id);
       }
@@ -375,7 +450,9 @@ const Integrations = () => {
       console.error("WhatsApp Save Error:", error);
       toast({
         title: "Failed to Save WhatsApp Settings",
-        description: error?.response?.data?.message || "An error occurred while saving WhatsApp settings.",
+        description:
+          error?.response?.data?.message ||
+          "An error occurred while saving WhatsApp settings.",
         variant: "destructive",
       });
     }
@@ -396,11 +473,13 @@ const Integrations = () => {
       await axios.post(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`,
         {
-          url: odooUrl,
-          database: odooDatabase,
+          provider_name: "Odoo Integration",
+          base_url: odooUrl,
+          company_db: odooDatabase,
           username: odooUsername,
           password: odooPassword,
-          port: parseInt(odooPort) || 8069,
+          verify_ssl: false,
+          is_active: odooEnabled,
         },
         { headers }
       );
@@ -414,61 +493,9 @@ const Integrations = () => {
       console.error("Odoo Save Error:", error);
       toast({
         title: "Failed to Save Odoo Settings",
-        description: error?.response?.data?.message || "An error occurred while saving Odoo settings.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleOdooTest = async () => {
-    try {
-      const headers = getAuthHeaders();
-      const response = await axios.post(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_TEST}`,
-        {},
-        { headers }
-      );
-
-      if (response.data.success) {
-        toast({
-          title: "Connection Successful",
-          description: "Odoo connection test passed",
-        });
-      } else {
-        toast({
-          title: "Connection Failed",
-          description: response.data.message || "Odoo connection test failed",
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Odoo Test Error:", error);
-      toast({
-        title: "Test Failed",
-        description: "Failed to test Odoo connection",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleOdooSync = async () => {
-    try {
-      const headers = getAuthHeaders();
-      const response = await axios.post(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_SYNC_PRODUCTS}`,
-        {},
-        { headers }
-      );
-
-      toast({
-        title: "Sync Completed",
-        description: `Products synced: ${response.data.created} created, ${response.data.updated} updated`,
-      });
-    } catch (error: any) {
-      console.error("Odoo Sync Error:", error);
-      toast({
-        title: "Sync Failed",
-        description: "Failed to sync products from Odoo",
+        description:
+          error?.response?.data?.message ||
+          "An error occurred while saving Odoo settings.",
         variant: "destructive",
       });
     }
@@ -478,7 +505,9 @@ const Integrations = () => {
     <div className="crm-container">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Tools & Integrations</h1>
-        <p className="text-muted-foreground mt-1">Configure third-party services and APIs</p>
+        <p className="text-muted-foreground mt-1">
+          Configure third-party services and APIs
+        </p>
       </div>
 
       <div className="space-y-6">
@@ -496,7 +525,10 @@ const Integrations = () => {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="midtrans-enabled" className="text-base font-medium">
+                <Label
+                  htmlFor="midtrans-enabled"
+                  className="text-base font-medium"
+                >
                   Enable Midtrans Integration
                 </Label>
                 <p className="text-sm text-muted-foreground">
@@ -527,7 +559,9 @@ const Integrations = () => {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowMidtransServerKey(!showMidtransServerKey)}
+                      onClick={() =>
+                        setShowMidtransServerKey(!showMidtransServerKey)
+                      }
                     >
                       {showMidtransServerKey ? (
                         <EyeOff className="h-4 w-4" />
@@ -678,7 +712,10 @@ const Integrations = () => {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <Label htmlFor="whatsapp-enabled" className="text-base font-medium">
+                <Label
+                  htmlFor="whatsapp-enabled"
+                  className="text-base font-medium"
+                >
                   Enable WhatsApp Integration
                 </Label>
                 <p className="text-sm text-muted-foreground">
@@ -709,7 +746,9 @@ const Integrations = () => {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowWhatsappApiToken(!showWhatsappApiToken)}
+                      onClick={() =>
+                        setShowWhatsappApiToken(!showWhatsappApiToken)
+                      }
                     >
                       {showWhatsappApiToken ? (
                         <EyeOff className="h-4 w-4" />
@@ -721,7 +760,9 @@ const Integrations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="whatsapp-phone-number-id">Phone Number ID</Label>
+                  <Label htmlFor="whatsapp-phone-number-id">
+                    Phone Number ID
+                  </Label>
                   <Input
                     id="whatsapp-phone-number-id"
                     value={whatsappPhoneNumberId}
@@ -733,7 +774,9 @@ const Integrations = () => {
                 <div className="space-y-2">
                   <Label htmlFor="whatsapp-agent">Linked Agent</Label>
                   <Select
-                    value={selectedAgentId !== '' ? String(selectedAgentId) : ''}
+                    value={
+                      selectedAgentId !== "" ? String(selectedAgentId) : ""
+                    }
                     onValueChange={(v) => setSelectedAgentId(Number(v))}
                   >
                     <SelectTrigger id="whatsapp-agent">
@@ -764,7 +807,9 @@ const Integrations = () => {
                       variant="ghost"
                       size="sm"
                       className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowWhatsappVerifyToken(!showWhatsappVerifyToken)}
+                      onClick={() =>
+                        setShowWhatsappVerifyToken(!showWhatsappVerifyToken)
+                      }
                     >
                       {showWhatsappVerifyToken ? (
                         <EyeOff className="h-4 w-4" />
@@ -787,7 +832,7 @@ const Integrations = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+              <Database className="h-5 w-5" />
               Odoo ERP
             </CardTitle>
             <CardDescription>
@@ -813,26 +858,14 @@ const Integrations = () => {
 
             {odooEnabled && (
               <div className="space-y-4 pl-6 border-l-2 border-muted">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="odoo-url">Server URL</Label>
-                    <Input
-                      id="odoo-url"
-                      value={odooUrl}
-                      onChange={(e) => setOdooUrl(e.target.value)}
-                      placeholder="https://your-odoo-instance.com"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="odoo-port">Port</Label>
-                    <Input
-                      id="odoo-port"
-                      value={odooPort}
-                      onChange={(e) => setOdooPort(e.target.value)}
-                      placeholder="8069"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="odoo-url">Server URL</Label>
+                  <Input
+                    id="odoo-url"
+                    value={odooUrl}
+                    onChange={(e) => setOdooUrl(e.target.value)}
+                    placeholder="https://your-odoo-instance.com"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -886,12 +919,6 @@ const Integrations = () => {
                 <div className="flex gap-2">
                   <Button onClick={handleOdooSave} className="flex-1">
                     Save Configuration
-                  </Button>
-                  <Button onClick={handleOdooTest} variant="outline">
-                    Test Connection
-                  </Button>
-                  <Button onClick={handleOdooSync} variant="outline">
-                    Sync Products
                   </Button>
                 </div>
               </div>
