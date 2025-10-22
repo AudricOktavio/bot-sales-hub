@@ -22,7 +22,8 @@ interface Product {
   stock: number;
   status: 'active' | 'inactive';
   sku: string;
-  description: string; // Add description field
+  description?: string;
+  source?: "sap" | "odoo" | "manual";
 }
 
 interface ProductTableProps {
@@ -112,7 +113,7 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
               <TableCell>
                 <StatusBadge status={product.status} />
               </TableCell>
-              <TableCell>{product.description}</TableCell> {/* Add this line */}
+              <TableCell>{product.description || "-"}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
