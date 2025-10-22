@@ -22,6 +22,18 @@ interface DailyConversion {
   total_order_amount: number;
 }
 
+interface Agent {
+  agent_id: number;
+  agent_name: string;
+  agent_type: string;
+  is_active: boolean;
+}
+
+interface MetricsOverviewProps {
+  startDate: Date;
+  endDate: Date;
+}
+
 interface MetricCardProps {
   title: string;
   value: string | number;
@@ -54,24 +66,20 @@ const MetricCard = ({ title, value, trend, trendUp, subtitle, icon }: MetricCard
   </div>
 );
 
-const MetricsOverview = () => {
+const MetricsOverview = ({ startDate, endDate }: MetricsOverviewProps) => {
   const { toast } = useToast();
   const [summary, setSummary] = useState<ConversionSummary | null>(null);
   const [dailyData, setDailyData] = useState<DailyConversion[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        // Get date range for this week
-        const today = new Date();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
-        
         const formatDate = (date: Date) => date.toISOString().split('T')[0];
         
-        // Fetch summary for this week
-        const summaryUrl = getApiUrl('ANALYTICS_SUMMARY', formatDate(startOfWeek), formatDate(today));
+        // Fetch summary for selected date range
+        const summaryUrl = getApiUrl('ANALYTICS_SUMMARY', formatDate(startDate), formatDate(endDate));
         const summaryRes = await api.get<ConversionSummary>(summaryUrl);
         setSummary(summaryRes.data);
 
@@ -79,6 +87,11 @@ const MetricsOverview = () => {
         const dailyUrl = getApiUrl('ANALYTICS_DAILY');
         const dailyRes = await api.get<DailyConversion[]>(dailyUrl);
         setDailyData(dailyRes.data);
+
+        // Fetch agents
+        const agentsUrl = getApiUrl('AGENTS');
+        const agentsRes = await api.get<Agent[]>(agentsUrl);
+        setAgents(agentsRes.data);
       } catch (error) {
         toast({
           title: "Error",
@@ -91,7 +104,7 @@ const MetricsOverview = () => {
     };
 
     fetchAnalytics();
-  }, [toast]);
+  }, [startDate, endDate, toast]);
 
   // Transform daily data for chart
   const chartData = dailyData.map(day => ({
@@ -115,8 +128,8 @@ const MetricsOverview = () => {
         />
         <MetricCard
           title="Active AI Agents"
-          value="8"
-          subtitle="2 pending setup"
+          value={loading ? "..." : agents.filter(a => a.is_active).length.toString()}
+          subtitle={`${agents.length} total agents`}
         />
         <MetricCard
           title="Total Sales"

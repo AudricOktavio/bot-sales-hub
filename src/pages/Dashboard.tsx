@@ -1,8 +1,13 @@
-
+import { useState } from 'react';
 import MetricsOverview from '@/components/MetricsOverview';
 import DashboardCard from '@/components/common/DashboardCard';
 import StatusBadge from '@/components/common/StatusBadge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 // Demo data
 const topAgents = [
@@ -18,14 +23,57 @@ const recentLeads = [
 ];
 
 const Dashboard = () => {
+  const [startDate, setStartDate] = useState<Date>(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - date.getDay() + 1); // Monday this week
+    return date;
+  });
+  const [endDate, setEndDate] = useState<Date>(new Date());
+
   return (
     <div className="crm-container">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Button>Generate Report</Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("justify-start text-left font-normal")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(startDate, "PPP")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => date && setStartDate(date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <span className="text-muted-foreground">to</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("justify-start text-left font-normal")}>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(endDate, "PPP")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => date && setEndDate(date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
       
-      <MetricsOverview />
+      <MetricsOverview startDate={startDate} endDate={endDate} />
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <DashboardCard 
