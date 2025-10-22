@@ -53,6 +53,11 @@ export const API_CONFIG = {
     HANDOFF_TOGGLE: (contact_id: number) => `/contacts/${contact_id}/handoff`, // use PATCH with body {active:boolean}
     HANDOFF_RESOLVE: (contact_id: number) => `/contacts/${contact_id}/resolve`, // use POST (no body)
 
+    // Analytics
+    ANALYTICS_SUMMARY: (start_date: string, end_date: string) => 
+      `/analytics/summary?start_date=${start_date}&end_date=${end_date}`,
+    ANALYTICS_DAILY: "/analytics/daily",
+
     WEBSOCKET: "/ws",
   },
 } as const;

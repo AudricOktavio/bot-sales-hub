@@ -1,17 +1,26 @@
-
+import { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import DashboardCard from './common/DashboardCard';
+import api from '@/lib/api';
+import { getApiUrl } from '@/config/api';
+import { useToast } from '@/hooks/use-toast';
 
-// Demo data for metrics
-const salesData = [
-  { name: 'Mon', leads: 12, sales: 4 },
-  { name: 'Tue', leads: 14, sales: 6 },
-  { name: 'Wed', leads: 10, sales: 2 },
-  { name: 'Thu', leads: 18, sales: 9 },
-  { name: 'Fri', leads: 24, sales: 12 },
-  { name: 'Sat', leads: 8, sales: 3 },
-  { name: 'Sun', leads: 6, sales: 1 },
-];
+interface ConversionSummary {
+  start_date: string;
+  end_date: string;
+  total_leads: number;
+  total_conversions: number;
+  conversion_rate_percent: number;
+  total_order_amount: number;
+}
+
+interface DailyConversion {
+  date: string;
+  total_leads: number;
+  total_conversions: number;
+  conversion_rate_percent: number;
+  total_order_amount: number;
+}
 
 interface MetricCardProps {
   title: string;
@@ -46,22 +55,63 @@ const MetricCard = ({ title, value, trend, trendUp, subtitle, icon }: MetricCard
 );
 
 const MetricsOverview = () => {
+  const { toast } = useToast();
+  const [summary, setSummary] = useState<ConversionSummary | null>(null);
+  const [dailyData, setDailyData] = useState<DailyConversion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAnalytics = async () => {
+      try {
+        // Get date range for this week
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay() + 1); // Monday
+        
+        const formatDate = (date: Date) => date.toISOString().split('T')[0];
+        
+        // Fetch summary for this week
+        const summaryUrl = getApiUrl('ANALYTICS_SUMMARY', formatDate(startOfWeek), formatDate(today));
+        const summaryRes = await api.get<ConversionSummary>(summaryUrl);
+        setSummary(summaryRes.data);
+
+        // Fetch daily data
+        const dailyUrl = getApiUrl('ANALYTICS_DAILY');
+        const dailyRes = await api.get<DailyConversion[]>(dailyUrl);
+        setDailyData(dailyRes.data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch analytics data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [toast]);
+
+  // Transform daily data for chart
+  const chartData = dailyData.map(day => ({
+    name: new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' }),
+    leads: day.total_leads,
+    conversions: day.total_conversions,
+  }));
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Total Leads"
-          value="324"
-          trend="12%"
-          trendUp={true}
-          subtitle="92 new this week"
+          value={loading ? "..." : summary?.total_leads.toString() || "0"}
+          subtitle="This week"
         />
         <MetricCard
           title="Conversion Rate"
-          value="24.8%"
-          trend="3.2%"
-          trendUp={true}
-          subtitle="From website visitors"
+          value={loading ? "..." : `${summary?.conversion_rate_percent.toFixed(1) || 0}%`}
+          subtitle="This week"
         />
         <MetricCard
           title="Active AI Agents"
@@ -69,24 +119,22 @@ const MetricsOverview = () => {
           subtitle="2 pending setup"
         />
         <MetricCard
-          title="Deals Closed"
-          value="$34,590"
-          trend="8.5%"
-          trendUp={false}
-          subtitle="18 deals this month"
+          title="Total Sales"
+          value={loading ? "..." : `$${summary?.total_order_amount.toFixed(2) || 0}`}
+          subtitle={`${summary?.total_conversions || 0} conversions this week`}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <DashboardCard title="Sales Performance" subtitle="Last 7 days">
+        <DashboardCard title="Sales Performance" subtitle="This week">
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={salesData}>
+              <BarChart data={chartData}>
                 <XAxis dataKey="name" />
                 <Tooltip />
                 <Legend />
                 <Bar dataKey="leads" name="Leads" fill="#7e4ff3" />
-                <Bar dataKey="sales" name="Sales" fill="#30c9c6" />
+                <Bar dataKey="conversions" name="Conversions" fill="#30c9c6" />
               </BarChart>
             </ResponsiveContainer>
           </div>
