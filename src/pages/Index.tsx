@@ -30,6 +30,11 @@ import {
   Sparkles
 } from 'lucide-react';
 import phoneImage from '@/assets/phone-illustration.png';
+import orderScreenshot from '@/assets/screenshot-order-management.png';
+import dashboardScreenshot from '@/assets/screenshot-dashboard.png';
+import productsScreenshot from '@/assets/screenshot-products.png';
+import odooLogo from '@/assets/odoo-logo.svg';
+import sapLogo from '@/assets/sap-logo.svg';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -210,10 +215,10 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
       {/* Enhanced Navigation */}
-      <nav className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text">
+      <nav className="container mx-auto px-4 py-6 flex justify-between items-center relative z-50">
+        <div className="text-2xl font-bold text-white">
           Valvia
         </div>
         <div className="hidden md:flex items-center space-x-8">
@@ -221,7 +226,7 @@ const Index = () => {
             <a 
               key={item.name}
               href={item.href}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-slate-300 hover:text-white transition-colors"
             >
               {item.name}
             </a>
@@ -230,12 +235,13 @@ const Index = () => {
             <Button 
               variant="ghost"
               onClick={() => navigate('/login')}
+              className="text-white hover:bg-white/10"
             >
               Login
             </Button>
             <Button 
               onClick={() => navigate('/signup')}
-              className="bg-crm-primary hover:bg-crm-primary/90"
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
             >
               Sign Up
             </Button>
@@ -243,7 +249,7 @@ const Index = () => {
         </div>
         {/* Mobile menu button */}
         <div className="md:hidden">
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className="text-white">
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -252,52 +258,149 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-12 md:py-24">
-        <div className="text-center max-w-4xl mx-auto mb-16">
-          <Badge className="mb-6 bg-crm-primary/10 text-crm-primary hover:bg-crm-primary/20">
-            Valvia - AI That Closes Deals
-          </Badge>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text animate-fade-in">
-            AI That Closes Deals — and Opens Up Your Time.
-          </h1>
-          
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Deploy human-like AI sales agents that engage customers 24/7, qualify leads instantly, 
-            and boost your conversion rates by 340%. No coding required.
-          </p>
-          
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            <Button 
-              size="lg" 
-              className="bg-crm-primary hover:bg-crm-primary/90 group"
-              onClick={() => navigate('/signup')}
-            >
-              <Play className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
-              Try Live Demo
-            </Button>
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={() => navigate('/login')}
-            >
-              Watch in Action
-            </Button>
+      <section className="container mx-auto px-4 pt-12 pb-32 relative">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left Column - Content */}
+          <div className="space-y-8 animate-fade-in z-10">
+            <div className="inline-block px-4 py-2 bg-primary/20 backdrop-blur-sm rounded-full text-primary font-medium text-sm border border-primary/30">
+              Next-Gen AI Sales Platform
+            </div>
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-tight">
+              AI That Closes Deals — and Opens Up Your Time.
+            </h1>
+            <p className="text-xl md:text-2xl text-slate-300 leading-relaxed">
+              Transform your sales pipeline with AI agents that qualify leads, handle objections, 
+              and close deals 24/7. Integrates seamlessly with your existing systems.
+            </p>
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Button 
+                size="lg" 
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-lg px-8 py-6 shadow-2xl shadow-primary/50"
+                onClick={() => navigate('/signup')}
+              >
+                Start Free Trial <ArrowRight className="ml-2" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 backdrop-blur-sm"
+                onClick={() => navigate('/login')}
+              >
+                Watch Demo <Play className="ml-2" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-6 text-sm text-slate-400 pt-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="text-green-400" size={20} />
+                No credit card required
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="text-green-400" size={20} />
+                14-day free trial
+              </div>
+            </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="flex justify-center mb-2">
-                  <stat.icon className="h-8 w-8 text-crm-primary" />
-                </div>
-                <div className="text-2xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
+          {/* Right Column - Floating Phone */}
+          <div className="relative h-[600px] flex items-center justify-center lg:justify-end">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-secondary/30 rounded-full blur-3xl opacity-50 animate-pulse-slow"></div>
+            <img 
+              src={phoneImage} 
+              alt="AI Sales Platform" 
+              className="relative z-10 max-h-full w-auto object-contain animate-float-tilt drop-shadow-2xl"
+              style={{ transform: 'rotate(-5deg)' }}
+            />
           </div>
         </div>
+      </section>
+
+      {/* Product Screenshots Section */}
+      <section className="container mx-auto px-4 pb-32 relative">
+        <div className="relative">
+          {/* Integration Badges - Floating around screenshots */}
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Top Left Badge */}
+            <div className="absolute top-0 left-1/4 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center animate-orbit-slow z-20">
+              <img src={odooLogo} alt="Odoo" className="w-10 h-10 object-contain" />
+            </div>
+            {/* Top Right Badge */}
+            <div className="absolute top-0 right-1/4 translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full shadow-xl flex items-center justify-center animate-orbit-reverse z-20">
+              <img src={sapLogo} alt="SAP" className="w-10 h-10 object-contain" />
+            </div>
+            {/* Bottom Left Badge */}
+            <div className="absolute bottom-0 left-1/3 -translate-x-1/2 translate-y-1/2 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center animate-orbit-slow border-2 border-primary/20 z-20">
+              <Database className="w-7 h-7 text-primary" />
+            </div>
+            {/* Bottom Right Badge */}
+            <div className="absolute bottom-0 right-1/3 translate-x-1/2 translate-y-1/2 w-14 h-14 bg-white rounded-full shadow-xl flex items-center justify-center animate-orbit-reverse border-2 border-secondary/20 z-20">
+              <Zap className="w-7 h-7 text-secondary" />
+            </div>
+            {/* Dotted connection lines */}
+            <svg className="absolute inset-0 w-full h-full" style={{ zIndex: 5 }}>
+              <line x1="25%" y1="0%" x2="33%" y2="100%" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeDasharray="5,5" />
+              <line x1="75%" y1="0%" x2="66%" y2="100%" stroke="rgba(255,255,255,0.2)" strokeWidth="2" strokeDasharray="5,5" />
+            </svg>
+          </div>
+
+          {/* Screenshot Frames */}
+          <div className="grid md:grid-cols-3 gap-6 relative z-10">
+            {/* Frame 1 - Order Management */}
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+              <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-2">
+                <div className="relative overflow-hidden rounded-lg">
+                  <img 
+                    src={orderScreenshot} 
+                    alt="Order Management" 
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <p className="text-white font-semibold">Automated Order Management</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Frame 2 - Dashboard */}
+            <div className="group relative md:mt-8">
+              <div className="absolute -inset-1 bg-gradient-to-r from-secondary to-accent rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+              <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-2xl hover:shadow-secondary/30 transition-all duration-300 hover:-translate-y-2">
+                <div className="relative overflow-hidden rounded-lg">
+                  <img 
+                    src={dashboardScreenshot} 
+                    alt="CRM Analytics" 
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <p className="text-white font-semibold">Data-Driven Insights</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Frame 3 - Products */}
+            <div className="group relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-accent to-primary rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-500"></div>
+              <div className="relative bg-slate-800/50 backdrop-blur-sm rounded-2xl p-3 border border-white/10 shadow-2xl hover:shadow-accent/30 transition-all duration-300 hover:-translate-y-2">
+                <div className="relative overflow-hidden rounded-lg">
+                  <img 
+                    src={productsScreenshot} 
+                    alt="Product Knowledge" 
+                    className="w-full h-auto object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-4">
+                    <p className="text-white font-semibold">Intelligent Product Integration</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rest of content with restored background */}
+      <div className="bg-gradient-to-b from-slate-800 to-background">
+        <div className="container mx-auto px-4 py-12">
         
         {/* Interactive Demo Section */}
         <section id="use-cases" className="max-w-6xl mx-auto mb-20">
@@ -974,6 +1077,7 @@ const Index = () => {
             >
               Schedule Demo
             </Button>
+          </div>
           </div>
         </div>
       </div>

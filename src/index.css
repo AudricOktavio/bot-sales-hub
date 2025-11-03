@@ -12,8 +12,51 @@
   }
 }
 
+@keyframes float-tilt {
+  0%, 100% {
+    transform: translateY(0px) rotate(-5deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(-3deg);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg) translateY(-10px);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg) translateY(-10px);
+  }
+}
+
+@keyframes orbit-reverse {
+  0% {
+    transform: translate(50%, -50%) rotate(0deg) translateY(-10px);
+  }
+  100% {
+    transform: translate(50%, -50%) rotate(-360deg) translateY(-10px);
+  }
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-tilt {
+  animation: float-tilt 6s ease-in-out infinite;
+}
+
+.animate-orbit-slow {
+  animation: orbit 20s linear infinite;
+}
+
+.animate-orbit-reverse {
+  animation: orbit-reverse 20s linear infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @layer base {
