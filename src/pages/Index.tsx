@@ -29,6 +29,7 @@ import {
   Bot,
   Sparkles
 } from 'lucide-react';
+import phoneImage from '@/assets/phone-illustration.png';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -428,6 +429,129 @@ const Index = () => {
               ))}
             </div>
           </Card>
+        </section>
+
+        {/* AI Capabilities Showcase */}
+        <section className="max-w-6xl mx-auto mb-20">
+          <div className="text-center mb-12">
+            <Badge className="mb-6 bg-crm-primary/10 text-crm-primary hover:bg-crm-primary/20">
+              <Bot className="h-3 w-3 mr-2" />
+              Powered by Advanced AI
+            </Badge>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Smart AI That Handles Everything
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              From customer inquiries to closed deals - your AI agent manages it all
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
+            {/* Phone Image */}
+            <div className="relative flex justify-center items-center">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-crm-primary/20 to-crm-secondary/20 rounded-full blur-3xl" />
+                <img 
+                  src={phoneImage}
+                  alt="AI Sales Communication"
+                  className="relative h-96 w-auto object-contain animate-float"
+                />
+              </div>
+            </div>
+
+            {/* Capabilities List */}
+            <div className="space-y-8">
+              {/* Order Management */}
+              <Card className="p-6 hover:shadow-lg transition-all duration-300 border-2 hover:border-crm-primary/50">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-crm-primary to-crm-primary/70 flex items-center justify-center flex-shrink-0">
+                    <FileText className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2">Order Management</h3>
+                    <p className="text-muted-foreground mb-3">
+                      AI agents automatically process orders, check inventory in real-time, 
+                      generate invoices, and update order status across your entire system.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Real-time Inventory
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Auto Invoicing
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        <CheckCircle className="h-3 w-3 mr-1" />
+                        Order Tracking
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Data-Driven Decisions */}
+              <Card className="p-6 hover:shadow-lg transition-all duration-300 border-2 hover:border-crm-primary/50">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-crm-secondary to-crm-secondary/70 flex items-center justify-center flex-shrink-0">
+                    <BarChart3 className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2">Data-Driven Decisions</h3>
+                    <p className="text-muted-foreground mb-3">
+                      Access comprehensive analytics and insights to make informed business decisions. 
+                      Track performance, conversion rates, and revenue in real-time.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Live Analytics
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        <BarChart3 className="h-3 w-3 mr-1" />
+                        Performance Reports
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        <Star className="h-3 w-3 mr-1" />
+                        Lead Scoring
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Product Knowledge */}
+              <Card className="p-6 hover:shadow-lg transition-all duration-300 border-2 hover:border-crm-primary/50">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Database className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2">Product Knowledge Integration</h3>
+                    <p className="text-muted-foreground mb-3">
+                      AI agents have instant access to your complete product catalog, pricing, 
+                      and stock levels through direct integration with SAP, Odoo, or your WMS.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        <Database className="h-3 w-3 mr-1" />
+                        SAP Integration
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        <Database className="h-3 w-3 mr-1" />
+                        Odoo Sync
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        <Workflow className="h-3 w-3 mr-1" />
+                        Live Stock Updates
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
         </section>
 
         {/* Features Showcase */}
