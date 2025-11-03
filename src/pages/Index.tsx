@@ -588,16 +588,16 @@ const Index = () => {
       </section>
 
       {/* Rest of content with restored background */}
-      <div className="bg-gradient-to-b from-slate-800 to-background">
+      <div className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         <div className="container mx-auto px-4 py-12">
         
         {/* Interactive Demo Section */}
         <section id="use-cases" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               See AI Sales Agents in Action
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-slate-300 text-lg">
               Watch real conversations and see how AI agents convert leads across different industries
             </p>
           </div>
@@ -605,24 +605,24 @@ const Index = () => {
           <div className="grid lg:grid-cols-2 gap-8 items-start">
             {/* Demo Selector */}
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold mb-4">Choose a Demo:</h3>
+              <h3 className="text-xl font-semibold mb-4 text-white">Choose a Demo:</h3>
               {demos.map((demo, index) => (
                 <Card 
                   key={index}
-                  className={`p-4 cursor-pointer transition-all border-2 hover:shadow-md ${
+                  className={`p-4 cursor-pointer transition-all border hover:shadow-xl ${
                     currentDemo === index 
-                      ? 'border-crm-primary bg-crm-primary/5' 
-                      : 'border-border hover:border-crm-primary/50'
+                      ? 'border-primary bg-slate-800/70 backdrop-blur-sm shadow-primary/30' 
+                      : 'border-white/10 bg-slate-800/50 backdrop-blur-sm hover:border-primary/50'
                   }`}
                   onClick={() => setCurrentDemo(index)}
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-semibold">{demo.title}</h4>
-                      <p className="text-sm text-muted-foreground">{demo.industry}</p>
+                      <h4 className="font-semibold text-white">{demo.title}</h4>
+                      <p className="text-sm text-slate-400">{demo.industry}</p>
                     </div>
                     <div className={`h-3 w-3 rounded-full transition-colors ${
-                      currentDemo === index ? 'bg-crm-primary' : 'bg-muted'
+                      currentDemo === index ? 'bg-primary' : 'bg-slate-600'
                     }`} />
                   </div>
                 </Card>
@@ -630,14 +630,14 @@ const Index = () => {
             </div>
 
             {/* Chat Demo */}
-            <Card className="p-6 h-96 flex flex-col">
-              <div className="flex items-center gap-3 mb-4 pb-4 border-b">
-                <div className="h-8 w-8 rounded-full bg-crm-primary flex items-center justify-center">
+            <Card className="p-6 h-96 flex flex-col bg-slate-800/70 backdrop-blur-sm border-white/10">
+              <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/10">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                   <MessageCircle className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-semibold">{demos[currentDemo].title}</h4>
-                  <p className="text-xs text-muted-foreground">Online now</p>
+                  <h4 className="font-semibold text-white">{demos[currentDemo].title}</h4>
+                  <p className="text-xs text-slate-400">Online now</p>
                 </div>
               </div>
 
@@ -650,10 +650,10 @@ const Index = () => {
                     <div
                       className={`max-w-[80%] rounded-xl p-3 ${
                         message.sender === 'bot'
-                          ? 'bg-muted text-foreground'
+                          ? 'bg-slate-700/50 text-white'
                           : message.isResult
                           ? 'bg-green-500 text-white'
-                          : 'bg-crm-primary text-white'
+                          : 'bg-gradient-to-r from-primary to-secondary text-white'
                       } ${message.isResult ? 'font-semibold' : ''}`}
                     >
                       <p className="text-sm">{message.text}</p>
@@ -663,11 +663,11 @@ const Index = () => {
                 
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-muted rounded-xl p-3">
+                    <div className="bg-slate-700/50 rounded-xl p-3">
                       <div className="flex space-x-1">
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce"></div>
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-2 h-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   </div>
@@ -679,16 +679,16 @@ const Index = () => {
 
         {/* Under the Hood: AI Logic Preview */}
         <section className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Streamline Every Step of Your Sales Process from Inquiry to Closing
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-slate-300 text-lg">
               See how Valvia processes customer requests and generates intelligent responses
             </p>
           </div>
 
-          <Card className="p-8 bg-gradient-to-br from-background to-muted/50">
+          <Card className="p-8 bg-slate-800/50 backdrop-blur-sm border-white/10">
             <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
               {workflowSteps.map((step, index) => (
                 <div key={index} className="flex items-center">
@@ -697,24 +697,24 @@ const Index = () => {
                   }`}>
                     <div className={`h-16 w-16 rounded-full flex items-center justify-center mb-3 transition-all duration-500 ${
                       activeStep === index 
-                        ? 'bg-crm-primary text-white shadow-lg shadow-crm-primary/30' 
-                        : 'bg-muted text-muted-foreground'
+                        ? 'bg-gradient-to-br from-primary to-secondary text-white shadow-lg shadow-primary/30' 
+                        : 'bg-slate-700/50 text-slate-400'
                     }`}>
                       <step.icon className="h-8 w-8" />
                     </div>
                     <p className={`text-sm font-medium text-center max-w-20 transition-colors duration-500 ${
-                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
+                      activeStep === index ? 'text-primary' : 'text-slate-400'
                     }`}>
                       {step.step}
                     </p>
-                    <p className="text-xs text-muted-foreground text-center max-w-24 mt-1">
+                    <p className="text-xs text-slate-500 text-center max-w-24 mt-1">
                       {step.description}
                     </p>
                   </div>
                   
                   {index < workflowSteps.length - 1 && (
                     <ArrowRight className={`h-6 w-6 mx-2 transition-colors duration-500 ${
-                      activeStep === index ? 'text-crm-primary' : 'text-muted-foreground'
+                      activeStep === index ? 'text-primary' : 'text-slate-600'
                     }`} />
                   )}
                 </div>
@@ -725,15 +725,15 @@ const Index = () => {
 
         {/* AI Capabilities Showcase */}
         <section className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <Badge className="mb-6 bg-crm-primary/10 text-crm-primary hover:bg-crm-primary/20">
+          <div className="text-center mb-12 animate-fade-in">
+            <Badge className="mb-6 bg-primary/20 text-primary hover:bg-primary/30 border-primary/30">
               <Bot className="h-3 w-3 mr-2" />
               Powered by Advanced AI
             </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Smart AI That Handles Everything
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-slate-300 text-lg">
               From customer inquiries to closed deals - your AI agent manages it all
             </p>
           </div>
@@ -742,7 +742,7 @@ const Index = () => {
             {/* Phone Image */}
             <div className="relative flex justify-center items-center">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-crm-primary/20 to-crm-secondary/20 rounded-full blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur-3xl" />
                 <img 
                   src={phoneImage}
                   alt="AI Sales Communication"
@@ -754,27 +754,27 @@ const Index = () => {
             {/* Capabilities List */}
             <div className="space-y-8">
               {/* Order Management */}
-              <Card className="p-6 hover:shadow-lg transition-all duration-300 border-2 hover:border-crm-primary/50">
+              <Card className="p-6 hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 border border-white/10 bg-slate-800/50 backdrop-blur-sm hover:border-primary/50">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-crm-primary to-crm-primary/70 flex items-center justify-center flex-shrink-0">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/30">
                     <FileText className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">Order Management</h3>
-                    <p className="text-muted-foreground mb-3">
+                    <h3 className="text-xl font-bold mb-2 text-white">Order Management</h3>
+                    <p className="text-slate-400 mb-3">
                       AI agents automatically process orders, check inventory in real-time, 
                       generate invoices, and update order status across your entire system.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Real-time Inventory
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Auto Invoicing
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Order Tracking
                       </Badge>
@@ -784,27 +784,27 @@ const Index = () => {
               </Card>
 
               {/* Data-Driven Decisions */}
-              <Card className="p-6 hover:shadow-lg transition-all duration-300 border-2 hover:border-crm-primary/50">
+              <Card className="p-6 hover:shadow-xl hover:shadow-accent/20 transition-all duration-300 border border-white/10 bg-slate-800/50 backdrop-blur-sm hover:border-accent/50">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-crm-secondary to-crm-secondary/70 flex items-center justify-center flex-shrink-0">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-accent to-accent/70 flex items-center justify-center flex-shrink-0 shadow-lg shadow-accent/30">
                     <BarChart3 className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">Data-Driven Decisions</h3>
-                    <p className="text-muted-foreground mb-3">
+                    <h3 className="text-xl font-bold mb-2 text-white">Data-Driven Decisions</h3>
+                    <p className="text-slate-400 mb-3">
                       Access comprehensive analytics and insights to make informed business decisions. 
                       Track performance, conversion rates, and revenue in real-time.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <TrendingUp className="h-3 w-3 mr-1" />
                         Live Analytics
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <BarChart3 className="h-3 w-3 mr-1" />
                         Performance Reports
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <Star className="h-3 w-3 mr-1" />
                         Lead Scoring
                       </Badge>
@@ -814,27 +814,27 @@ const Index = () => {
               </Card>
 
               {/* Product Knowledge */}
-              <Card className="p-6 hover:shadow-lg transition-all duration-300 border-2 hover:border-crm-primary/50">
+              <Card className="p-6 hover:shadow-xl hover:shadow-secondary/20 transition-all duration-300 border border-white/10 bg-slate-800/50 backdrop-blur-sm hover:border-secondary/50">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-secondary to-secondary/70 flex items-center justify-center flex-shrink-0 shadow-lg shadow-secondary/30">
                     <Database className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold mb-2">Product Knowledge Integration</h3>
-                    <p className="text-muted-foreground mb-3">
+                    <h3 className="text-xl font-bold mb-2 text-white">Product Knowledge Integration</h3>
+                    <p className="text-slate-400 mb-3">
                       AI agents have instant access to your complete product catalog, pricing, 
                       and stock levels through direct integration with SAP, Odoo, or your WMS.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <Database className="h-3 w-3 mr-1" />
                         SAP Integration
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <Database className="h-3 w-3 mr-1" />
                         Odoo Sync
                       </Badge>
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-xs bg-slate-700/50 text-slate-300 border-slate-600">
                         <Workflow className="h-3 w-3 mr-1" />
                         Live Stock Updates
                       </Badge>
@@ -848,11 +848,11 @@ const Index = () => {
 
         {/* Features Showcase */}
         <section id="features" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Complete Sales Automation Platform
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-slate-300 text-lg">
               Everything you need to manage, deploy, and optimize AI sales agents
             </p>
           </div>
@@ -1007,11 +1007,11 @@ const Index = () => {
 
         {/* Easy Integrations Section */}
         <section id="integrations" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Easy Integrations
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-slate-300 text-lg">
               Unify Your Customer Relationship Management Systems and Data. Safely.
             </p>
           </div>
@@ -1019,13 +1019,13 @@ const Index = () => {
           <div className="relative">
             {/* Central CRM Hub */}
             <div className="flex justify-center mb-8">
-              <Card className="p-6 bg-gradient-to-br from-crm-primary/10 to-crm-secondary/10 border-2 border-crm-primary/20">
+              <Card className="p-6 bg-gradient-to-br from-primary/20 to-secondary/20 border-2 border-primary/30 backdrop-blur-sm">
                 <div className="text-center">
-                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-crm-primary flex items-center justify-center">
+                  <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/30">
                     <Brain className="h-8 w-8 text-white" />
                   </div>
-                  <h3 className="font-bold text-lg">Valvia AI Agent</h3>
-                  <p className="text-sm text-muted-foreground">Central Intelligence Hub</p>
+                  <h3 className="font-bold text-lg text-white">Valvia AI Agent</h3>
+                  <p className="text-sm text-slate-400">Central Intelligence Hub</p>
                 </div>
               </Card>
             </div>
@@ -1072,11 +1072,11 @@ const Index = () => {
 
         {/* Pricing Section */}
         <section id="pricing" className="max-w-6xl mx-auto mb-20 px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
               Choose Your Plan
             </h2>
-            <p className="text-muted-foreground text-lg mb-8">
+            <p className="text-slate-300 text-lg mb-8">
               Flexible pricing that scales with your business needs
             </p>
             
@@ -1245,81 +1245,73 @@ const Index = () => {
         </section>
 
         {/* CTA Section */}
-        <div className="text-center max-w-2xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Transform Your Sales?
+        <div className="text-center max-w-2xl mx-auto pb-20">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            Ready to Transform Your CRM?
           </h2>
-          <p className="text-muted-foreground text-lg mb-8">
-            Join thousands of businesses using Valvia AI to close more deals and save time.
+          <p className="text-slate-300 text-lg mb-8">
+            Join thousands of teams already using Valvia to automate customer relationships and drive unprecedented growth with AI-powered intelligence.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button 
               size="lg" 
-              className="bg-crm-primary hover:bg-crm-primary/90"
+              className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-lg px-8 py-6"
               onClick={() => navigate('/signup')}
             >
-              Start Free Trial
+              Get Started Free
             </Button>
             <Button 
               variant="outline" 
               size="lg"
+              className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6"
             >
-              Schedule Demo
+              Talk to Sales
             </Button>
           </div>
+          <p className="text-sm text-slate-500 mt-6">
+            No credit card required • 14-day free trial • Cancel anytime
+          </p>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-muted/50 border-t">
+      <footer className="bg-slate-950 border-t border-white/10">
         <div className="container mx-auto px-4 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="md:col-span-1">
-              <div className="text-2xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text mb-4">
-                Valvia AI CRM
+              <div className="text-2xl font-bold bg-gradient-to-r from-primary to-accent text-transparent bg-clip-text mb-4">
+                Valvia
               </div>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-slate-400 mb-4">
                 PT PORTA OKULER TEKNOLOGI
               </p>
               
               {/* Social Links */}
               <div className="flex gap-4">
-                <a href="#" className="text-muted-foreground hover:text-crm-primary transition-colors">
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.741.097.118.112.221.085.345-.09.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.165-1.495-.69-2.433-2.878-2.433-4.646 0-3.776 2.748-7.252 7.92-7.252 4.158 0 7.392 2.967 7.392 6.923 0 4.135-2.607 7.462-6.233 7.462-1.214 0-2.357-.629-2.758-1.378l-.749 2.848c-.269 1.045-1.004 2.352-1.498 3.146 1.123.345 2.306.535 3.55.535 6.624 0 11.99-5.367 11.99-11.99C24.007 5.367 18.641.001 12.017.001z"/>
-                  </svg>
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-crm-primary transition-colors">
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
-                  </svg>
-                </a>
-                <a href="#" className="text-muted-foreground hover:text-crm-primary transition-colors">
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                  </svg>
+                <a href="#" className="text-slate-400 hover:text-primary transition-colors">
+...
                 </a>
               </div>
             </div>
 
             {/* Product */}
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
+              <h3 className="font-semibold mb-4 text-white">Product</h3>
               <ul className="space-y-2">
-                <li><a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#integrations" className="text-muted-foreground hover:text-foreground transition-colors">Integration</a></li>
+                <li><a href="#features" className="text-slate-400 hover:text-white transition-colors">Features</a></li>
+                <li><a href="#pricing" className="text-slate-400 hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#integrations" className="text-slate-400 hover:text-white transition-colors">Integration</a></li>
               </ul>
             </div>
 
             {/* Support */}
             <div>
-              <h3 className="font-semibold mb-4">Support</h3>
+              <h3 className="font-semibold mb-4 text-white">Support</h3>
               <ul className="space-y-2">
                 <li>
-                  <a href="https://wa.me/6281234567890" className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2">
+                  <a href="https://wa.me/6281234567890" className="text-slate-400 hover:text-white transition-colors flex items-center gap-2">
                     <MessageCircle className="h-4 w-4" />
                     WhatsApp
                   </a>
@@ -1329,16 +1321,16 @@ const Index = () => {
 
             {/* Contact */}
             <div>
-              <h3 className="font-semibold mb-4">Contact</h3>
-              <div className="text-muted-foreground text-sm">
+              <h3 className="font-semibold mb-4 text-white">Contact</h3>
+              <div className="text-slate-400 text-sm">
                 <p>PT PORTA OKULER TEKNOLOGI</p>
                 <p>Jakarta, Indonesia</p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-border mt-8 pt-8 text-center text-muted-foreground text-sm">
-            <p>&copy; 2024 Valvia AI CRM by PT PORTA OKULER TEKNOLOGI. All rights reserved.</p>
+          <div className="border-t border-white/10 mt-8 pt-8 text-center text-slate-500 text-sm">
+            <p>&copy; 2025 Valvia by PT PORTA OKULER TEKNOLOGI. All rights reserved.</p>
           </div>
         </div>
       </footer>
