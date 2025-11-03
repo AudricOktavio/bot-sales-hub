@@ -858,55 +858,55 @@ const Index = () => {
           </div>
 
           <Tabs defaultValue="agents" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="agents">AI Agent Management</TabsTrigger>
-              <TabsTrigger value="pipeline">Sales Pipeline</TabsTrigger>
-              <TabsTrigger value="analytics">Analytics & Insights</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 mb-8 bg-slate-800/50 backdrop-blur-sm border-white/10">
+              <TabsTrigger value="agents" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white text-slate-400">AI Agent Management</TabsTrigger>
+              <TabsTrigger value="pipeline" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white text-slate-400">Sales Pipeline</TabsTrigger>
+              <TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-secondary data-[state=active]:text-white text-slate-400">Analytics & Insights</TabsTrigger>
             </TabsList>
             
             <TabsContent value="agents" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h3 className="text-2xl font-bold mb-4">Create Custom AI Sales Agents</h3>
+                  <h3 className="text-2xl font-bold mb-4 text-white">Create Custom AI Sales Agents</h3>
                   <div className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                      <CheckCircle className="h-5 w-5 text-green-400 mt-1 flex-shrink-0" />
                       <div>
-                        <p className="font-medium">Custom Personalities</p>
-                        <p className="text-sm text-muted-foreground">Train agents with your brand voice and sales approach</p>
+                        <p className="font-medium text-white">Custom Personalities</p>
+                        <p className="text-sm text-slate-400">Train agents with your brand voice and sales approach</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                      <CheckCircle className="h-5 w-5 text-green-400 mt-1 flex-shrink-0" />
                       <div>
-                        <p className="font-medium">Product Knowledge</p>
-                        <p className="text-sm text-muted-foreground">Upload catalogs and train on your specific offerings</p>
+                        <p className="font-medium text-white">Product Knowledge</p>
+                        <p className="text-sm text-slate-400">Upload catalogs and train on your specific offerings</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                      <CheckCircle className="h-5 w-5 text-green-400 mt-1 flex-shrink-0" />
                       <div>
-                        <p className="font-medium">Multi-Channel Deployment</p>
-                        <p className="text-sm text-muted-foreground">Deploy on website, WhatsApp, SMS, and email</p>
+                        <p className="font-medium text-white">Multi-Channel Deployment</p>
+                        <p className="text-sm text-slate-400">Deploy on website, WhatsApp, SMS, and email</p>
                       </div>
                     </div>
                   </div>
                 </div>
-                <Card className="p-6 bg-gradient-to-br from-crm-primary/5 to-crm-secondary/5">
+                <Card className="p-6 bg-slate-800/50 backdrop-blur-sm border-white/10">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-crm-primary flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg shadow-primary/30">
                         <Users className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <p className="font-semibold">Sales Agent: Sarah</p>
-                        <p className="text-sm text-muted-foreground">E-commerce Specialist</p>
+                        <p className="font-semibold text-white">Sales Agent: Sarah</p>
+                        <p className="text-sm text-slate-400">E-commerce Specialist</p>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
-                      Status: <span className="text-green-500 font-medium">Active</span> • 
-                      Conversations: <span className="font-medium">847 today</span> •
-                      Conversion: <span className="font-medium">23%</span>
+                    <div className="text-sm text-slate-400">
+                      Status: <span className="text-green-400 font-medium">Active</span> • 
+                      Conversations: <span className="font-medium text-white">847 today</span> •
+                      Conversion: <span className="font-medium text-white">23%</span>
                     </div>
                   </div>
                 </Card>
@@ -915,45 +915,45 @@ const Index = () => {
             
             <TabsContent value="pipeline" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-8 items-center">
-                <Card className="p-6">
-                  <h4 className="font-semibold mb-4">Live Pipeline Status</h4>
+                <Card className="p-6 bg-slate-800/50 backdrop-blur-sm border-white/10">
+                  <h4 className="font-semibold mb-4 text-white">Live Pipeline Status</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">New Leads</span>
-                      <Badge variant="secondary">142</Badge>
+                      <span className="text-sm text-slate-300">New Leads</span>
+                      <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 border-slate-600">142</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Qualified</span>
-                      <Badge variant="secondary">89</Badge>
+                      <span className="text-sm text-slate-300">Qualified</span>
+                      <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 border-slate-600">89</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">In Negotiation</span>
-                      <Badge variant="secondary">34</Badge>
+                      <span className="text-sm text-slate-300">In Negotiation</span>
+                      <Badge variant="secondary" className="bg-slate-700/50 text-slate-300 border-slate-600">34</Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Closed Won</span>
-                      <Badge className="bg-green-500">67</Badge>
+                      <span className="text-sm text-slate-300">Closed Won</span>
+                      <Badge className="bg-green-500 text-white">67</Badge>
                     </div>
                   </div>
                 </Card>
                 <div>
-                  <h3 className="text-2xl font-bold mb-4">Visual Sales Pipeline</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-2xl font-bold mb-4 text-white">Visual Sales Pipeline</h3>
+                  <p className="text-slate-400 mb-4">
                     Track every lead from first contact to closed deal. AI agents automatically 
                     update lead status and schedule follow-ups.
                   </p>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Automatic lead scoring and qualification</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-slate-300">Automatic lead scoring and qualification</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Real-time pipeline updates</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-slate-300">Real-time pipeline updates</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Intelligent follow-up scheduling</span>
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                      <span className="text-sm text-slate-300">Intelligent follow-up scheduling</span>
                     </div>
                   </div>
                 </div>
@@ -963,40 +963,40 @@ const Index = () => {
             <TabsContent value="analytics" className="space-y-6">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div>
-                  <h3 className="text-2xl font-bold mb-4">Deep Conversation Analytics</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-2xl font-bold mb-4 text-white">Deep Conversation Analytics</h3>
+                  <p className="text-slate-400 mb-4">
                     Get insights into every customer interaction. Understand what works, 
                     optimize agent performance, and improve conversion rates.
                   </p>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-crm-primary">340%</div>
-                      <div className="text-xs text-muted-foreground">Conversion Increase</div>
+                    <div className="text-center p-4 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-white/10">
+                      <div className="text-2xl font-bold text-primary">340%</div>
+                      <div className="text-xs text-slate-500">Conversion Increase</div>
                     </div>
-                    <div className="text-center p-4 rounded-lg bg-muted/50">
-                      <div className="text-2xl font-bold text-crm-secondary">24/7</div>
-                      <div className="text-xs text-muted-foreground">Available</div>
+                    <div className="text-center p-4 rounded-lg bg-slate-800/50 backdrop-blur-sm border border-white/10">
+                      <div className="text-2xl font-bold text-accent">24/7</div>
+                      <div className="text-xs text-slate-500">Available</div>
                     </div>
                   </div>
                 </div>
-                <Card className="p-6 space-y-4">
-                  <h4 className="font-semibold">Today's Performance</h4>
+                <Card className="p-6 space-y-4 bg-slate-800/50 backdrop-blur-sm border-white/10">
+                  <h4 className="font-semibold text-white">Today's Performance</h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Conversations</span>
-                      <span className="font-medium">1,247</span>
+                      <span className="text-sm text-slate-400">Conversations</span>
+                      <span className="font-medium text-white">1,247</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Qualified Leads</span>
-                      <span className="font-medium">312</span>
+                      <span className="text-sm text-slate-400">Qualified Leads</span>
+                      <span className="font-medium text-white">312</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Conversion Rate</span>
-                      <span className="font-medium text-green-500">25.1%</span>
+                      <span className="text-sm text-slate-400">Conversion Rate</span>
+                      <span className="font-medium text-green-400">25.1%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-muted-foreground">Revenue Generated</span>
-                      <span className="font-medium text-crm-primary">$89,400</span>
+                      <span className="text-sm text-slate-400">Revenue Generated</span>
+                      <span className="font-medium text-primary">$89,400</span>
                     </div>
                   </div>
                 </Card>
@@ -1035,11 +1035,11 @@ const Index = () => {
               {integrations.map((integration, index) => (
                 <div key={integration.name} className="relative">
                   {/* Connecting line to center */}
-                  <div className={`absolute top-6 left-1/2 w-px h-20 bg-gradient-to-t from-crm-primary/30 to-transparent transform -translate-x-1/2 -translate-y-full animate-pulse`} 
+                  <div className={`absolute top-6 left-1/2 w-px h-20 bg-gradient-to-t from-primary/30 to-transparent transform -translate-x-1/2 -translate-y-full animate-pulse`} 
                        style={{ animationDelay: `${integration.delay}ms` }} />
                   
                   <Card 
-                    className="p-4 text-center hover:shadow-lg transition-all duration-300 hover:scale-105 group relative z-10"
+                    className="p-4 text-center hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 hover:scale-105 group relative z-10 bg-slate-800/50 backdrop-blur-sm border-white/10"
                     style={{ animationDelay: `${integration.delay}ms` }}
                   >
                     <div className="h-12 w-12 mx-auto mb-3 rounded-lg bg-white shadow-sm flex items-center justify-center group-hover:shadow-md transition-all">
@@ -1053,10 +1053,10 @@ const Index = () => {
                         <integration.icon className={`h-6 w-6 ${integration.color}`} />
                       )}
                     </div>
-                    <p className="text-sm font-medium">{integration.name}</p>
-                    <div className="mt-2 h-1 w-full bg-muted rounded-full overflow-hidden">
+                    <p className="text-sm font-medium text-white">{integration.name}</p>
+                    <div className="mt-2 h-1 w-full bg-slate-700/50 rounded-full overflow-hidden">
                       <div 
-                        className="h-full bg-crm-primary rounded-full transition-all duration-1000 ease-out"
+                        className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-1000 ease-out"
                         style={{ 
                           width: '100%',
                           animationDelay: `${integration.delay + 500}ms`
@@ -1081,13 +1081,13 @@ const Index = () => {
             </p>
             
             {/* Billing Toggle */}
-            <div className="inline-flex items-center bg-muted rounded-lg p-1 mb-8">
-              <button className="px-4 py-2 text-sm font-medium bg-background text-foreground rounded-md shadow-sm transition-all">
+            <div className="inline-flex items-center bg-slate-800/50 backdrop-blur-sm border border-white/10 rounded-lg p-1 mb-8">
+              <button className="px-4 py-2 text-sm font-medium bg-gradient-to-r from-primary to-secondary text-white rounded-md shadow-sm transition-all">
                 Monthly
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-all">
+              <button className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-all">
                 Annual
-                <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Save 20%</span>
+                <span className="ml-2 text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-1 rounded-full">Save 20%</span>
               </button>
             </div>
           </div>
@@ -1097,32 +1097,32 @@ const Index = () => {
             {pricingPlans.map((plan) => (
               <Card 
                 key={plan.name}
-                className={`relative p-6 ${
+                className={`relative p-6 bg-slate-800/50 backdrop-blur-sm border ${
                   plan.popular 
-                    ? 'border-2 border-crm-primary bg-crm-primary/5 shadow-lg' 
-                    : 'border-border'
+                    ? 'border-2 border-primary shadow-xl shadow-primary/20' 
+                    : 'border-white/10'
                 }`}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-4 bg-crm-primary text-white">
+                  <Badge className="absolute -top-3 left-4 bg-gradient-to-r from-primary to-secondary text-white">
                     Most Popular
                   </Badge>
                 )}
                 
                 <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                  <h3 className="text-xl font-bold mb-2 text-white">{plan.name}</h3>
+                  <p className="text-sm text-slate-400 mb-4">{plan.description}</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">Rp {plan.price}</span>
-                    <span className="text-muted-foreground">{plan.period}</span>
+                    <span className="text-4xl font-bold text-white">Rp {plan.price}</span>
+                    <span className="text-slate-400">{plan.period}</span>
                   </div>
                 </div>
 
                 <Button 
                   className={`w-full mb-6 ${
                     plan.popular 
-                      ? 'bg-crm-primary hover:bg-crm-primary/90 text-white' 
-                      : ''
+                      ? 'bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white' 
+                      : 'border-white/30 text-white hover:bg-white/10'
                   }`}
                   variant={plan.popular ? 'default' : 'outline'}
                   onClick={() => navigate('/signup')}
@@ -1131,36 +1131,36 @@ const Index = () => {
                 </Button>
 
                 <div className="space-y-4">
-                  <div className="text-center py-3 px-4 bg-muted/50 rounded-lg">
-                    <span className="font-semibold">{plan.responses} responses</span>
-                    <span className="text-muted-foreground text-sm block">per month</span>
+                  <div className="text-center py-3 px-4 bg-slate-700/30 backdrop-blur-sm rounded-lg border border-white/10">
+                    <span className="font-semibold text-white">{plan.responses} responses</span>
+                    <span className="text-slate-400 text-sm block">per month</span>
                   </div>
                   
                   <div className="space-y-3">
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm">{feature}</span>
+                        <CheckCircle className="h-5 w-5 text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-slate-300">{feature}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="pt-4 border-t border-border space-y-3">
+                  <div className="pt-4 border-t border-white/10 space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Channels</span>
-                      <span className="text-sm font-medium">{plan.channels}</span>
+                      <span className="text-sm text-slate-400">Channels</span>
+                      <span className="text-sm font-medium text-white">{plan.channels}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Integration</span>
-                      <span className="text-sm font-medium">{plan.integration}</span>
+                      <span className="text-sm text-slate-400">Integration</span>
+                      <span className="text-sm font-medium text-white">{plan.integration}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Agents</span>
-                      <span className="text-sm font-medium">{plan.seats}</span>
+                      <span className="text-sm text-slate-400">Agents</span>
+                      <span className="text-sm font-medium text-white">{plan.seats}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Support</span>
-                      <span className="text-sm font-medium">{plan.support}</span>
+                      <span className="text-sm text-slate-400">Support</span>
+                      <span className="text-sm font-medium text-white">{plan.support}</span>
                     </div>
                   </div>
                 </div>
@@ -1173,66 +1173,66 @@ const Index = () => {
             {pricingPlans.map((plan) => (
               <Card 
                 key={plan.name}
-                className={`relative p-6 flex flex-col h-full ${
+                className={`relative p-6 flex flex-col h-full bg-slate-800/50 backdrop-blur-sm border ${
                   plan.popular 
-                    ? 'border-2 border-crm-primary bg-crm-primary/5 shadow-lg scale-105 z-10' 
-                    : 'border-border'
+                    ? 'border-2 border-primary shadow-xl shadow-primary/20 scale-105 z-10' 
+                    : 'border-white/10'
                 }`}
               >
                 {plan.popular && (
-                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-crm-primary text-white">
+                  <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-primary to-secondary text-white">
                     Most Popular
                   </Badge>
                 )}
                 
                 <div className="text-center mb-6">
-                  <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-4">{plan.description}</p>
+                  <h3 className="text-xl font-bold mb-2 text-white">{plan.name}</h3>
+                  <p className="text-sm text-slate-400 mb-4">{plan.description}</p>
                   <div className="mb-4">
-                    <span className="text-3xl font-bold">Rp {plan.price}</span>
-                    <span className="text-muted-foreground text-sm block">{plan.period}</span>
+                    <span className="text-3xl font-bold text-white">Rp {plan.price}</span>
+                    <span className="text-slate-400 text-sm block">{plan.period}</span>
                   </div>
                 </div>
 
                 <div className="space-y-4 mb-6 flex-grow">
-                  <div className="text-center py-2 px-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm font-medium">{plan.responses} responses/month</span>
+                  <div className="text-center py-2 px-3 bg-slate-700/30 backdrop-blur-sm rounded-lg border border-white/10">
+                    <span className="text-sm font-medium text-white">{plan.responses} responses/month</span>
                   </div>
                   
                   <div className="space-y-2">
                     {plan.features.map((feature, index) => (
                       <div key={index} className="flex items-start gap-2 text-sm">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        <span>{feature}</span>
+                        <CheckCircle className="h-4 w-4 text-green-400 mt-0.5 flex-shrink-0" />
+                        <span className="text-slate-300">{feature}</span>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="space-y-2 mb-6 pt-4 border-t border-border">
+                <div className="space-y-2 mb-6 pt-4 border-t border-white/10">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Channels:</span>
-                    <span className="font-medium">{plan.channels}</span>
+                    <span className="text-slate-400">Channels:</span>
+                    <span className="font-medium text-white">{plan.channels}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Integration:</span>
-                    <span className="font-medium">{plan.integration}</span>
+                    <span className="text-slate-400">Integration:</span>
+                    <span className="font-medium text-white">{plan.integration}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Agents:</span>
-                    <span className="font-medium">{plan.seats}</span>
+                    <span className="text-slate-400">Agents:</span>
+                    <span className="font-medium text-white">{plan.seats}</span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-muted-foreground">Support:</span>
-                    <span className="font-medium">{plan.support}</span>
+                    <span className="text-slate-400">Support:</span>
+                    <span className="font-medium text-white">{plan.support}</span>
                   </div>
                 </div>
 
                 <Button 
                   className={`w-full mt-auto ${
                     plan.popular 
-                      ? 'bg-crm-primary hover:bg-crm-primary/90 text-white' 
-                      : ''
+                      ? 'bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white' 
+                      : 'border-white/30 text-white hover:bg-white/10'
                   }`}
                   variant={plan.popular ? 'default' : 'outline'}
                   onClick={() => navigate('/signup')}
