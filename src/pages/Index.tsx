@@ -291,7 +291,7 @@ const Index = () => {
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6 backdrop-blur-sm"
+                className="border-2 border-white/30 bg-white/5 text-white hover:bg-white/15 text-lg px-8 py-6 backdrop-blur-sm"
                 onClick={() => navigate('/login')}
               >
                 Watch Demo <Play className="ml-2" />
@@ -1122,7 +1122,7 @@ const Index = () => {
                   className={`w-full mb-6 ${
                     plan.popular 
                       ? 'bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white' 
-                      : 'border-white/30 text-white hover:bg-white/10'
+                      : 'bg-white/5 border-white/30 text-white hover:bg-white/15'
                   }`}
                   variant={plan.popular ? 'default' : 'outline'}
                   onClick={() => navigate('/signup')}
@@ -1232,7 +1232,7 @@ const Index = () => {
                   className={`w-full mt-auto ${
                     plan.popular 
                       ? 'bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white' 
-                      : 'border-white/30 text-white hover:bg-white/10'
+                      : 'bg-white/5 border-white/30 text-white hover:bg-white/15'
                   }`}
                   variant={plan.popular ? 'default' : 'outline'}
                   onClick={() => navigate('/signup')}
@@ -1263,7 +1263,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="lg"
-              className="border-2 border-white/30 text-white hover:bg-white/10 text-lg px-8 py-6"
+              className="border-2 border-white/30 bg-white/5 text-white hover:bg-white/15 text-lg px-8 py-6 backdrop-blur-sm"
             >
               Talk to Sales
             </Button>
