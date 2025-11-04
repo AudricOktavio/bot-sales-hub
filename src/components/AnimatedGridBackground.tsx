@@ -154,7 +154,7 @@ export const AnimatedGridBackground = () => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none opacity-40"
-      style={{ mixBlendMode: 'screen' }}
+      style={{ mixBlendMode: 'screen', minWidth: '100%' }}
     />
   );
 };

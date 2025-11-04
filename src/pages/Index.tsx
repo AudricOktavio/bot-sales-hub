@@ -258,13 +258,18 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-12 pb-32 relative overflow-hidden">
-        {/* Animated Grid Background */}
-        <AnimatedGridBackground />
+      {/* Hero Section with Animated Background */}
+      <div className="relative overflow-hidden">
+        {/* Animated Grid Background - spans both hero and screenshots */}
+        <div className="absolute inset-0 w-full h-full">
+          <AnimatedGridBackground />
+        </div>
         
         {/* Gradient Overlay for depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-900 pointer-events-none" />
+      
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 pt-12 pb-32 relative">
         
         <div className="grid lg:grid-cols-2 gap-16 items-center relative z-10">
           {/* Left Column - Content */}
@@ -342,7 +347,7 @@ const Index = () => {
       </section>
 
       {/* Product Screenshots Section */}
-      <section className="container mx-auto px-4 pb-32 relative">
+      <section className="container mx-auto px-4 pb-32 relative z-10">
         <div className="relative">
           {/* Integration Badges - Floating around screenshots */}
           <div className="absolute inset-0 pointer-events-none">
@@ -424,6 +429,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+      
+      </div>
+      {/* End of Hero + Screenshots wrapper with animated background */}
 
       {/* Rest of content with restored background */}
       <div className="bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
