@@ -35,6 +35,7 @@ import dashboardScreenshot from '@/assets/screenshot-dashboard.png';
 import productsScreenshot from '@/assets/screenshot-products.png';
 import odooLogo from '@/assets/odoo-logo.svg';
 import sapLogo from '@/assets/sap-logo.svg';
+import { AnimatedGridBackground } from '@/components/AnimatedGridBackground';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -258,8 +259,14 @@ const Index = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-12 pb-32 relative">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+      <section className="container mx-auto px-4 pt-12 pb-32 relative overflow-hidden">
+        {/* Animated Grid Background */}
+        <AnimatedGridBackground />
+        
+        {/* Gradient Overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-900 pointer-events-none" />
+        
+        <div className="grid lg:grid-cols-2 gap-16 items-center relative z-10">
           {/* Left Column - Content */}
           <div className="space-y-8 animate-fade-in z-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 backdrop-blur-sm rounded-full text-primary font-medium text-sm border border-primary/30">
