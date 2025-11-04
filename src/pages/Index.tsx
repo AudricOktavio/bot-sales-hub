@@ -35,7 +35,8 @@ import dashboardScreenshot from '@/assets/screenshot-dashboard.png';
 import productsScreenshot from '@/assets/screenshot-products.png';
 import odooLogo from '@/assets/odoo-logo.svg';
 import sapLogo from '@/assets/sap-logo.svg';
-import { AnimatedGridBackground } from '@/components/AnimatedGridBackground';
+import { GlobalAnimatedBackground } from '@/components/GlobalAnimatedBackground';
+import { useScrollAnimation } from '@/hooks/useScrollAnimation';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -43,6 +44,14 @@ const Index = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [selectedTone, setSelectedTone] = useState('Professional');
   const [activeStep, setActiveStep] = useState(0);
+
+  // Scroll animations for sections
+  const chatDemoAnimation = useScrollAnimation();
+  const workflowAnimation = useScrollAnimation();
+  const featuresAnimation = useScrollAnimation();
+  const integrationsAnimation = useScrollAnimation();
+  const pricingAnimation = useScrollAnimation();
+  const ctaAnimation = useScrollAnimation();
 
   // Enhanced navbar items
   const navItems = [
@@ -216,7 +225,13 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 overflow-hidden">
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Global Animated Background with Gradient */}
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-950 via-blue-950 to-violet-950 animate-gradient -z-10" />
+      <div className="fixed inset-0 -z-10">
+        <GlobalAnimatedBackground />
+      </div>
+      
       {/* Enhanced Navigation */}
       <nav className="container mx-auto px-4 py-6 flex justify-between items-center relative z-50">
         <div className="text-2xl font-bold text-white">
@@ -258,15 +273,10 @@ const Index = () => {
         </div>
       </nav>
 
-      {/* Hero Section with Animated Background */}
-      <div className="relative overflow-hidden">
-        {/* Animated Grid Background - spans both hero and screenshots */}
-        <div className="absolute inset-0 w-full h-full">
-          <AnimatedGridBackground />
-        </div>
-        
+      {/* Hero Section with Overlay */}
+      <div className="relative">
         {/* Gradient Overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-900 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/30 to-transparent pointer-events-none" />
       
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-12 pb-32 relative">
@@ -438,9 +448,13 @@ const Index = () => {
         <div className="container mx-auto px-4 py-12">
         
         {/* Interactive Demo Section */}
-        <section id="use-cases" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section 
+          id="use-cases" 
+          ref={chatDemoAnimation.elementRef as any}
+          className={`max-w-6xl mx-auto mb-20 ${chatDemoAnimation.isVisible ? 'scroll-fade-up' : 'opacity-0'}`}
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-slate-900/40 backdrop-blur-sm inline-block px-6 py-3 rounded-lg">
               See AI Sales Agents in Action
             </h2>
             <p className="text-slate-300 text-lg">
@@ -524,9 +538,12 @@ const Index = () => {
         </section>
 
         {/* Under the Hood: AI Logic Preview */}
-        <section className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section 
+          ref={workflowAnimation.elementRef as any}
+          className={`max-w-6xl mx-auto mb-20 ${workflowAnimation.isVisible ? 'scroll-fade-up' : 'opacity-0'}`}
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-slate-900/40 backdrop-blur-sm inline-block px-6 py-3 rounded-lg">
               Streamline Every Step of Your Sales Process from Inquiry to Closing
             </h2>
             <p className="text-slate-300 text-lg">
@@ -693,9 +710,13 @@ const Index = () => {
         </section>
 
         {/* Features Showcase */}
-        <section id="features" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section 
+          id="features" 
+          ref={featuresAnimation.elementRef as any}
+          className={`max-w-6xl mx-auto mb-20 ${featuresAnimation.isVisible ? 'scroll-fade-up' : 'opacity-0'}`}
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-slate-900/40 backdrop-blur-sm inline-block px-6 py-3 rounded-lg">
               Complete Sales Automation Platform
             </h2>
             <p className="text-slate-300 text-lg">
@@ -852,9 +873,13 @@ const Index = () => {
         </section>
 
         {/* Easy Integrations Section */}
-        <section id="integrations" className="max-w-6xl mx-auto mb-20">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section 
+          id="integrations" 
+          ref={integrationsAnimation.elementRef as any}
+          className={`max-w-6xl mx-auto mb-20 ${integrationsAnimation.isVisible ? 'scroll-scale-in' : 'opacity-0'}`}
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-slate-900/40 backdrop-blur-sm inline-block px-6 py-3 rounded-lg">
               Easy Integrations
             </h2>
             <p className="text-slate-300 text-lg">
@@ -917,9 +942,13 @@ const Index = () => {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="max-w-6xl mx-auto mb-20 px-4">
-          <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section 
+          id="pricing" 
+          ref={pricingAnimation.elementRef as any}
+          className={`max-w-6xl mx-auto mb-20 px-4 ${pricingAnimation.isVisible ? 'scroll-fade-up' : 'opacity-0'}`}
+        >
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-slate-900/40 backdrop-blur-sm inline-block px-6 py-3 rounded-lg">
               Choose Your Plan
             </h2>
             <p className="text-slate-300 text-lg mb-8">
@@ -1091,8 +1120,11 @@ const Index = () => {
         </section>
 
         {/* CTA Section */}
-        <div className="text-center max-w-2xl mx-auto pb-20">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <div 
+          ref={ctaAnimation.elementRef as any}
+          className={`text-center max-w-2xl mx-auto pb-20 ${ctaAnimation.isVisible ? 'scroll-scale-in' : 'opacity-0'}`}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 bg-slate-900/40 backdrop-blur-sm inline-block px-6 py-3 rounded-lg">
             Ready to Transform Your CRM?
           </h2>
           <p className="text-slate-300 text-lg mb-8">
