@@ -38,7 +38,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="border-b bg-background sticky top-0 z-40">
+    <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-40 transition-all">
       <div className="flex h-14 md:h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-x-4">
           <div className="text-lg md:text-xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text">

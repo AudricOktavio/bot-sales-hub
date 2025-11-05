@@ -54,7 +54,7 @@ export const AnimatedGridBackground = () => {
       // Update time for animation
       time += 0.005;
 
-      // Draw vertical lines
+      // Draw vertical lines with increased opacity
       for (let x = 0; x <= width; x += gridSize) {
         const offset = Math.sin(time + x * 0.01) * 3;
         const glowIntensity = Math.sin(time * 2 + x * 0.02) * 0.3 + 0.4;
@@ -62,18 +62,18 @@ export const AnimatedGridBackground = () => {
         ctx.beginPath();
         ctx.moveTo(x + offset, 0);
         ctx.lineTo(x + offset, height);
-        ctx.strokeStyle = `rgba(139, 92, 246, ${0.15 * glowIntensity})`;
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(139, 92, 246, ${0.35 * glowIntensity})`;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
         // Add glow effect
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = `rgba(139, 92, 246, ${0.3 * glowIntensity})`;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = `rgba(139, 92, 246, ${0.5 * glowIntensity})`;
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
 
-      // Draw horizontal lines
+      // Draw horizontal lines with increased opacity
       for (let y = 0; y <= height; y += gridSize) {
         const offset = Math.sin(time + y * 0.01) * 3;
         const glowIntensity = Math.sin(time * 2 + y * 0.02) * 0.3 + 0.4;
@@ -81,13 +81,13 @@ export const AnimatedGridBackground = () => {
         ctx.beginPath();
         ctx.moveTo(0, y + offset);
         ctx.lineTo(width, y + offset);
-        ctx.strokeStyle = `rgba(59, 130, 246, ${0.15 * glowIntensity})`;
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(59, 130, 246, ${0.35 * glowIntensity})`;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
 
         // Add glow effect
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = `rgba(59, 130, 246, ${0.3 * glowIntensity})`;
+        ctx.shadowBlur = 12;
+        ctx.shadowColor = `rgba(59, 130, 246, ${0.5 * glowIntensity})`;
         ctx.stroke();
         ctx.shadowBlur = 0;
       }
