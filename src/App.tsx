@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import AgentManagement from "./pages/AgentManagement";
+import AgentDetail from "./pages/AgentDetail";
 import Customers from "./pages/Customers";
 import Products from "./pages/Products";
 import Orders from "./pages/Orders";
@@ -70,6 +71,7 @@ const App = () => (
           {/* Protected Routes */}
           <Route path="/dashboard" element={<AuthenticatedRoute><Dashboard /></AuthenticatedRoute>} />
           <Route path="/agent-management" element={<AuthenticatedRoute><AgentManagement /></AuthenticatedRoute>} />
+          <Route path="/agent-management/:agentId" element={<AuthenticatedRoute><AgentDetail /></AuthenticatedRoute>} />
           <Route path="/customers" element={<AuthenticatedRoute><Customers /></AuthenticatedRoute>} />
           <Route path="/products" element={<AuthenticatedRoute><Products /></AuthenticatedRoute>} />
           <Route path="/orders" element={<AuthenticatedRoute><Orders /></AuthenticatedRoute>} />

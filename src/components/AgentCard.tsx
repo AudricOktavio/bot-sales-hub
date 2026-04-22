@@ -5,6 +5,8 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Check, Edit, Trash2, List, MessageCircle } from 'lucide-react';
 import StatusBadge from '@/components/common/StatusBadge';
+import { useNavigate } from 'react-router-dom';
+import { Settings as SettingsIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +44,7 @@ const AgentCard = ({
 }: AgentCardProps) => {
   const [active, setActive] = useState(status === 'active');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleStatusChange = (checked: boolean) => {
     setActive(checked);
@@ -78,6 +81,9 @@ const AgentCard = ({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => navigate(`/agent-management/${id}`)}>
+                <SettingsIcon className="mr-2 h-4 w-4" /> Configure
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onChat?.(id)}>
                 <MessageCircle className="mr-2 h-4 w-4" /> Test Chat
               </DropdownMenuItem>

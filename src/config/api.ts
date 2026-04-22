@@ -45,6 +45,12 @@ export const API_CONFIG = {
     PRODUCTS_CREATE: "/products",
     PRODUCT_BY_ID: (id: number) => `/products/${id}`,
 
+    PRODUCTS_BY_AGENT: (agent_id: number) => `/products-by-agent/${agent_id}`,
+    UNASSIGNED_PRODUCTS_BY_AGENT: (agent_id: number) =>
+      `/unassigned-products-by-agent/${agent_id}`,
+    PRODUCT_AGENT_RELATIONSHIPS: "/product-agent-relationships",
+    PRODUCTS_AGENT_RELATIONSHIPS: "/products-agent-relationships",
+
     ACCURATE_CONNECT: "/accurate/connect",
     ACCURATE_PROVIDER: "/accurate/provider",
     ACCURATE_DATABASES: "/accurate/databases",
