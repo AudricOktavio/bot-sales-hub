@@ -97,7 +97,9 @@ const AgentChatPanel = ({ agentId, agentName, resetKey = 0 }: AgentChatPanelProp
 
   useEffect(() => {
     subscribeChat(DEMO_PHONE);
-    return () => subscribeChat(null);
+    return () => {
+      subscribeChat(null);
+    };
   }, [subscribeChat, agentId]);
 
   const sendViaRest = async (text: string) => {
