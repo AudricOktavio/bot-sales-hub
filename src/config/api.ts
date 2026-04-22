@@ -1,7 +1,30 @@
-// In prod your Dockerfile sets VITE_API_BASE=/api; in dev we default to http://localhost:8000
-const RAW_API_BASE =
+let RAW_API_BASE =
   (import.meta as any).env?.VITE_API_BASE?.toString().trim() ||
   "http://localhost:8000";
+
+/**
+ * ✅ SAFETY FIX:
+ * If running DEV mode and RAW_API_BASE is "/api",
+ * then you're about to call http://localhost:5173/api/... which is 404.
+ * So force it to localhost backend.
+ */
+if (import.meta.env.DEV && RAW_API_BASE.startsWith("/")) {
+  RAW_API_BASE = "http://localhost:8000";
+}
+
+/**
+ * ✅ Mixed-content fix (prod https)
+ * If current site is https and base is http (non-local), upgrade to https.
+ */
+if (
+  typeof window !== "undefined" &&
+  window.location.protocol === "https:" &&
+  RAW_API_BASE.startsWith("http://") &&
+  !RAW_API_BASE.includes("localhost") &&
+  !RAW_API_BASE.includes("127.0.0.1")
+) {
+  RAW_API_BASE = RAW_API_BASE.replace("http://", "https://");
+}
 
 // Ensure no trailing slash so concatenation is clean
 const API_BASE = RAW_API_BASE.replace(/\/+$/, "");
@@ -22,10 +45,17 @@ export const API_CONFIG = {
     PRODUCTS_CREATE: "/products",
     PRODUCT_BY_ID: (id: number) => `/products/${id}`,
 
+    ACCURATE_CONNECT: "/accurate/connect",
+    ACCURATE_PROVIDER: "/accurate/provider",
+    ACCURATE_DATABASES: "/accurate/databases",
+    ACCURATE_OPEN_DB: "/accurate/databases/open",
+    ACCURATE_SYNC_PRODUCTS: "/accurate/sync-products",
+
     SAP_PROVIDER: "/sap/provider",
 
     WHATSAPPS: "/whatsapps",
     WHATSAPP_BY_ID: (id: number) => `/whatsapps/${id}`,
+    WHATSAPP_OAUTH_LOGIN: "/whatsapps/oauth/login",
 
     PAYMENT_PROVIDER: "/payment/provider",
 
@@ -42,19 +72,17 @@ export const API_CONFIG = {
     CONTACTS: "/contacts",
     CONTACTS_CREATE: "/contacts",
     CONTACT_BY_ID: (id: number) => `/contacts/${id}`,
+    CONTACT_STATUS: (id: number) => `/contacts/${id}/status`,
+    CONTACT_STATS_STATUS: "/contacts/stats/status",
 
     CHAT_LOGS: "/chat_logs",
     CHAT_LOG_BY_PHONE: (phone_number: string, last_chat_id: number) =>
-      `/chat_logs/${encodeURIComponent(
-        phone_number
-      )}?last_chat_id=${last_chat_id}`,
+      `/chat_logs/${encodeURIComponent(phone_number)}?last_chat_id=${last_chat_id}`,
 
-    // Handoff controls
-    HANDOFF_TOGGLE: (contact_id: number) => `/contacts/${contact_id}/handoff`, // use PATCH with body {active:boolean}
-    HANDOFF_RESOLVE: (contact_id: number) => `/contacts/${contact_id}/resolve`, // use POST (no body)
+    HANDOFF_TOGGLE: (contact_id: number) => `/contacts/${contact_id}/handoff`,
+    HANDOFF_RESOLVE: (contact_id: number) => `/contacts/${contact_id}/resolve`,
 
-    // Analytics
-    ANALYTICS_SUMMARY: (start_date: string, end_date: string) => 
+    ANALYTICS_SUMMARY: (start_date: string, end_date: string) =>
       `/analytics/summary?start_date=${start_date}&end_date=${end_date}`,
     ANALYTICS_DAILY: "/analytics/daily",
 
@@ -62,14 +90,13 @@ export const API_CONFIG = {
   },
 } as const;
 
-// Helper: works for both string endpoints and function endpoints
 type Endpoints = typeof API_CONFIG.ENDPOINTS;
+
 export function getApiUrl<K extends keyof Endpoints>(
   key: K,
   ...args: Endpoints[K] extends EndpointFn ? Parameters<Endpoints[K]> : []
 ): string {
   const ep = API_CONFIG.ENDPOINTS[key] as unknown as string | EndpointFn;
   const path = typeof ep === "function" ? ep(...(args as any)) : ep;
-  // Join without creating double slashes
   return `${API_CONFIG.BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 }

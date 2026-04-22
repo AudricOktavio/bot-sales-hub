@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useMemo, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,111 +15,216 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Edit, MoreHorizontal, Trash2 } from 'lucide-react';
-import StatusBadge from './common/StatusBadge';
+} from "@/components/ui/dropdown-menu";
+import { Edit, MoreHorizontal, Trash2 } from "lucide-react";
+import StatusBadge from "./common/StatusBadge";
 
-// Interface for product data
+type OptionalColumns = {
+  uom: boolean;
+  conversion: boolean;
+  moq: boolean;
+};
+
 interface Product {
   id: number;
   name: string;
   category: string;
   price: number;
   stock: number;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   sku: string;
   description?: string;
-  source?: "sap" | "odoo" | "manual";
+
+  uom?: string | null;
+  conversion?: string | null;
+  preOrderMoq?: number | null;
 }
 
 interface ProductTableProps {
   products: Product[];
   onEdit: (product: Product) => void;
   onDelete: (productId: number) => void;
+
+  // ✅ make optional so other call sites won't break
+  showColumns?: OptionalColumns;
 }
 
-const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Product; direction: 'ascending' | 'descending' } | null>(null);
-  
-  const sortedProducts = [...products].sort((a, b) => {
-    if (!sortConfig) return 0;
-    
+const formatPrice = (value: number) =>
+  new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+  }).format(value || 0);
+
+const ProductTable = ({
+  products,
+  onEdit,
+  onDelete,
+  showColumns,
+}: ProductTableProps) => {
+  // ✅ default if not provided
+  const cols: OptionalColumns = showColumns ?? {
+    uom: false,
+    conversion: false,
+    moq: false,
+  };
+
+  const [sortConfig, setSortConfig] = useState<{
+    key: keyof Product;
+    direction: "ascending" | "descending";
+  } | null>(null);
+
+  const sortedProducts = useMemo(() => {
+    const arr = [...products];
+    if (!sortConfig) return arr;
+
     const { key, direction } = sortConfig;
-    
-    if (a[key] < b[key]) {
-      return direction === 'ascending' ? -1 : 1;
-    }
-    
-    if (a[key] > b[key]) {
-      return direction === 'ascending' ? 1 : -1;
-    }
-    
-    return 0;
-  });
-  
+    return arr.sort((a, b) => {
+      const aVal = a[key] as any;
+      const bVal = b[key] as any;
+
+      const aNorm = aVal === null || aVal === undefined ? "" : aVal;
+      const bNorm = bVal === null || bVal === undefined ? "" : bVal;
+
+      if (aNorm < bNorm) return direction === "ascending" ? -1 : 1;
+      if (aNorm > bNorm) return direction === "ascending" ? 1 : -1;
+      return 0;
+    });
+  }, [products, sortConfig]);
+
   const requestSort = (key: keyof Product) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
+    let direction: "ascending" | "descending" = "ascending";
+    if (
+      sortConfig &&
+      sortConfig.key === key &&
+      sortConfig.direction === "ascending"
+    ) {
+      direction = "descending";
     }
-    
     setSortConfig({ key, direction });
   };
-  
+
+  const visibleOptionalCount =
+    (cols.uom ? 1 : 0) + (cols.conversion ? 1 : 0) + (cols.moq ? 1 : 0);
+
+  // Base columns: Product Name, Category, Price, Stock, Status, Description, Actions = 7
+  const colCount = 7 + visibleOptionalCount;
+
   return (
     <div className="rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="cursor-pointer w-[300px]" onClick={() => requestSort('name')}>
+            <TableHead
+              className="cursor-pointer w-[300px]"
+              onClick={() => requestSort("name")}
+            >
               Product Name
-              {sortConfig?.key === 'name' && (
-                <span className="ml-1">{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+              {sortConfig?.key === "name" && (
+                <span className="ml-1">
+                  {sortConfig.direction === "ascending" ? "↑" : "↓"}
+                </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer" onClick={() => requestSort('category')}>
+
+            <TableHead
+              className="cursor-pointer"
+              onClick={() => requestSort("category")}
+            >
               Category
-              {sortConfig?.key === 'category' && (
-                <span className="ml-1">{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+              {sortConfig?.key === "category" && (
+                <span className="ml-1">
+                  {sortConfig.direction === "ascending" ? "↑" : "↓"}
+                </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer text-right" onClick={() => requestSort('price')}>
+
+            <TableHead
+              className="cursor-pointer text-right"
+              onClick={() => requestSort("price")}
+            >
               Price
-              {sortConfig?.key === 'price' && (
-                <span className="ml-1">{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+              {sortConfig?.key === "price" && (
+                <span className="ml-1">
+                  {sortConfig.direction === "ascending" ? "↑" : "↓"}
+                </span>
               )}
             </TableHead>
-            <TableHead className="cursor-pointer text-right" onClick={() => requestSort('stock')}>
+
+            <TableHead
+              className="cursor-pointer text-right"
+              onClick={() => requestSort("stock")}
+            >
               Stock
-              {sortConfig?.key === 'stock' && (
-                <span className="ml-1">{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+              {sortConfig?.key === "stock" && (
+                <span className="ml-1">
+                  {sortConfig.direction === "ascending" ? "↑" : "↓"}
+                </span>
               )}
             </TableHead>
+
+            {/* ✅ optional headers */}
+            {cols.uom && <TableHead>UoM</TableHead>}
+            {cols.conversion && <TableHead>Conversion</TableHead>}
+            {cols.moq && (
+              <TableHead className="text-right">Pre-order MOQ</TableHead>
+            )}
+
             <TableHead>Status</TableHead>
-            <TableHead>Description</TableHead> {/* Add this line */}
+            <TableHead>Description</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {sortedProducts.map((product) => (
             <TableRow key={product.id}>
               <TableCell className="font-medium">
                 <div>{product.name}</div>
-                <div className="text-xs text-muted-foreground">SKU: {product.sku}</div>
+                <div className="text-xs text-muted-foreground">
+                  SKU: {product.sku}
+                </div>
               </TableCell>
+
               <TableCell>{product.category}</TableCell>
-              <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+
               <TableCell className="text-right">
-                <div className={product.stock <= 10 ? 'text-destructive' : ''}>{product.stock}</div>
+                {formatPrice(product.price)}
+              </TableCell>
+
+              <TableCell className="text-right">
+                <div className={product.stock <= 10 ? "text-destructive" : ""}>
+                  {product.stock}
+                </div>
                 {product.stock <= 10 && (
                   <div className="text-xs text-destructive">Low stock</div>
                 )}
               </TableCell>
+
+              {/* ✅ optional cells */}
+              {cols.uom && <TableCell>{product.uom ?? "-"}</TableCell>}
+
+              {cols.conversion && (
+                <TableCell
+                  className="max-w-[260px] truncate"
+                  title={product.conversion ?? ""}
+                >
+                  {product.conversion ?? "-"}
+                </TableCell>
+              )}
+
+              {cols.moq && (
+                <TableCell className="text-right">
+                  {product.preOrderMoq ?? "-"}
+                </TableCell>
+              )}
+
               <TableCell>
                 <StatusBadge status={product.status} />
               </TableCell>
-              <TableCell>{product.description || "-"}</TableCell>
+
+              <TableCell>{product.description ?? "-"}</TableCell>
+
               <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -122,6 +233,7 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
                       <span className="sr-only">Open menu</span>
                     </Button>
                   </DropdownMenuTrigger>
+
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -136,10 +248,13 @@ const ProductTable = ({ products, onEdit, onDelete }: ProductTableProps) => {
               </TableCell>
             </TableRow>
           ))}
-          
+
           {products.length === 0 && (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+              <TableCell
+                colSpan={colCount}
+                className="text-center py-10 text-muted-foreground"
+              >
                 No products found
               </TableCell>
             </TableRow>

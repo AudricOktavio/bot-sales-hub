@@ -1,10 +1,10 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -13,7 +13,8 @@
 }
 
 @keyframes float-tilt {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) rotate(-5deg);
   }
   50% {
@@ -129,7 +130,7 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 252 82% 58%;
-    
+
     --sidebar-background: 252 82% 10%;
     --sidebar-foreground: 0 0% 100%;
     --sidebar-primary: 252 82% 58%;
@@ -156,19 +157,19 @@
   .crm-card {
     @apply rounded-lg border bg-card p-4 md:p-5 shadow-sm transition-all hover:shadow-md;
   }
-  
+
   .crm-container {
     @apply container mx-auto px-4 py-4 md:px-6 md:py-6 max-w-7xl;
   }
-  
+
   .crm-header {
     @apply text-xl md:text-2xl font-bold text-foreground mb-4 md:mb-6;
   }
-  
+
   .crm-subheader {
     @apply text-base md:text-lg font-medium text-foreground mb-3 md:mb-4;
   }
-  
+
   .crm-input {
     @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
@@ -196,11 +197,11 @@
   .text-responsive-xl {
     @apply text-2xl;
   }
-  
+
   .text-responsive-lg {
     @apply text-lg;
   }
-  
+
   .text-responsive-base {
     @apply text-sm;
   }
@@ -210,11 +211,11 @@
   .text-responsive-xl {
     @apply text-3xl;
   }
-  
+
   .text-responsive-lg {
     @apply text-xl;
   }
-  
+
   .text-responsive-base {
     @apply text-base;
   }

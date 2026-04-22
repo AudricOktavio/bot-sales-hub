@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import axios from 'axios';
 import { getApiUrl } from '@/config/api';
+import { getTenantIdFromJwt } from '@/utils/auth';
 
 const Login = () => {
   const [tenantName, setTenantName] = useState('');
@@ -36,6 +37,10 @@ const Login = () => {
       // Store the token (you might want to use localStorage or a proper auth context)
       localStorage.setItem('access_token', access_token);
       localStorage.setItem('token_type', token_type);
+      const tenantId = getTenantIdFromJwt(access_token);
+      if (tenantId !== null) {
+        localStorage.setItem('tenant_id', String(tenantId));
+      }
       
       toast({
         title: "Login successful",

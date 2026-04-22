@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export const AnimatedGridBackground = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -7,7 +7,7 @@ export const AnimatedGridBackground = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
     // Set canvas size
@@ -17,7 +17,7 @@ export const AnimatedGridBackground = () => {
       ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     };
     setCanvasSize();
-    window.addEventListener('resize', setCanvasSize);
+    window.addEventListener("resize", setCanvasSize);
 
     // Grid configuration
     const gridSize = 60;
@@ -58,7 +58,7 @@ export const AnimatedGridBackground = () => {
       for (let x = 0; x <= width; x += gridSize) {
         const offset = Math.sin(time + x * 0.01) * 3;
         const glowIntensity = Math.sin(time * 2 + x * 0.02) * 0.3 + 0.4;
-        
+
         ctx.beginPath();
         ctx.moveTo(x + offset, 0);
         ctx.lineTo(x + offset, height);
@@ -77,7 +77,7 @@ export const AnimatedGridBackground = () => {
       for (let y = 0; y <= height; y += gridSize) {
         const offset = Math.sin(time + y * 0.01) * 3;
         const glowIntensity = Math.sin(time * 2 + y * 0.02) * 0.3 + 0.4;
-        
+
         ctx.beginPath();
         ctx.moveTo(0, y + offset);
         ctx.lineTo(width, y + offset);
@@ -117,7 +117,9 @@ export const AnimatedGridBackground = () => {
 
         // Add glow
         ctx.shadowBlur = 15;
-        ctx.shadowColor = `rgba(139, 92, 246, ${particle.opacity * pulse * 0.8})`;
+        ctx.shadowColor = `rgba(139, 92, 246, ${
+          particle.opacity * pulse * 0.8
+        })`;
         ctx.fill();
         ctx.shadowBlur = 0;
 
@@ -145,7 +147,7 @@ export const AnimatedGridBackground = () => {
     draw();
 
     return () => {
-      window.removeEventListener('resize', setCanvasSize);
+      window.removeEventListener("resize", setCanvasSize);
       cancelAnimationFrame(animationFrame);
     };
   }, []);
@@ -154,8 +156,7 @@ export const AnimatedGridBackground = () => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full pointer-events-none opacity-40"
-      style={{ mixBlendMode: 'screen', minWidth: '100%' }}
+      style={{ mixBlendMode: "screen", minWidth: "100%" }}
     />
   );
 };
-

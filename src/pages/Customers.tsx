@@ -13,40 +13,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import CustomerPipeline from "@/components/CustomerPipeline";
 import StatusBadge from "@/components/common/StatusBadge";
-import { API_CONFIG } from "@/config/api";
+import { API_CONFIG, getApiUrl } from "@/config/api";
 import { hasToken } from "@/utils/auth";
 import CustomerCreateDialog from "@/components/CustomerCreateDialog";
+import { EditCustomerForm } from "@/components/EditCustomerForm";
 import { Trash2 } from "lucide-react";
 
-// --- Client-side status persistence (no backend edits) ---
-type CustomerStatus = "new" | "contacted" | "interested" | "closed";
-type StatusMap = Record<number, CustomerStatus>;
-const STATUS_STORE_KEY = "crm_customer_status";
-
-const readStatusMap = (): StatusMap => {
-  try {
-    const raw = localStorage.getItem(STATUS_STORE_KEY);
-    return raw ? (JSON.parse(raw) as StatusMap) : {};
-  } catch {
-    return {};
-  }
-};
-
-const writeStatusMap = (map: StatusMap) => {
-  localStorage.setItem(STATUS_STORE_KEY, JSON.stringify(map));
-};
 
 // ----- Mock chat -----
 const chatHistory = [
   // (keep your existing mock chat objects here if you want them)
 ];
 
+type CustomerStatus = "new" | "contacted" | "interested" | "closed";
 // API response interface (backend unchanged)
 interface ApiContact {
   customer_id: number;
   customer_name: string;
   phone_number: string;
   address: string;
+  lead_status: CustomerStatus;
   // backend has no status column yet
 }
 
@@ -88,6 +74,14 @@ const Customers = () => {
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
+  const handleEditCustomer = (customer: Customer) => {
+    setEditingCustomer(customer);
+    setIsEditOpen(true);
+  };
+
   // Load customers from API + merge with client-side statuses
   const loadCustomers = async (search?: string) => {
     if (!hasToken()) {
@@ -108,8 +102,6 @@ const Customers = () => {
         { params }
       );
 
-      const statusMap = readStatusMap();
-
       const formatted: Customer[] = data.map((c) => ({
         id: c.customer_id,
         name: c.customer_name,
@@ -117,7 +109,7 @@ const Customers = () => {
         email: c.phone_number || "",
         phone: c.phone_number,
         address: c.address,
-        status: statusMap[c.customer_id] ?? "new",
+        status: c.lead_status ?? "new",
         lastActivity: "",
         value: undefined,
         assignedAgent: "Unassigned",
@@ -161,22 +153,37 @@ const Customers = () => {
     customerId: number,
     newStatus: Customer["status"]
   ) => {
-    // Update UI
+    // optimistic update
+    const prevCustomers = customers;
+
     setCustomers((prev) =>
-      prev.map((c) => (c.id === customerId ? { ...c, status: newStatus } : c))
+      prev.map((c) =>
+        c.id === customerId ? { ...c, status: newStatus } : c
+      )
     );
 
-    // Persist locally
-    const map = readStatusMap();
-    map[customerId] = newStatus;
-    writeStatusMap(map);
+    try {
+      await api.patch(
+        getApiUrl("CONTACT_STATUS", customerId),
+        { lead_status: newStatus }
+      );
 
-    toast({
-      title: "Customer Status Updated",
-      description: `Customer moved to ${
-        newStatus.charAt(0).toUpperCase() + newStatus.slice(1)
-      } stage (local only)`,
-    });
+      toast({
+        title: "Customer Status Updated",
+        description: `Moved to ${newStatus}`,
+      });
+    } catch (error) {
+      console.error(error);
+
+      // rollback if failed
+      setCustomers(prevCustomers);
+
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSelectCustomer = (customer: Customer) => {
@@ -197,9 +204,6 @@ const Customers = () => {
       );
 
       // Initialize local status for the new contact
-      const map = readStatusMap();
-      map[created.customer_id] = "new";
-      writeStatusMap(map);
 
       toast({
         title: "Customer Created",
@@ -225,11 +229,6 @@ const Customers = () => {
       await api.delete(`${API_CONFIG.ENDPOINTS.CONTACT_BY_ID(customerId)}`);
 
       // Remove local status too
-      const map = readStatusMap();
-      if (map[customerId]) {
-        delete map[customerId];
-        writeStatusMap(map);
-      }
 
       toast({
         title: "Customer Deleted",
@@ -242,6 +241,38 @@ const Customers = () => {
       toast({
         title: "Error",
         description: "Failed to delete customer",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateCustomer = async (updatedData: {
+    customer_name: string;
+    phone_number: string;
+    address: string;
+    lead_status: CustomerStatus;
+  }) => {
+    if (!editingCustomer) return;
+
+    try {
+      await api.put(
+        API_CONFIG.ENDPOINTS.CONTACT_BY_ID(editingCustomer.id),
+        updatedData
+      );
+
+      toast({
+        title: "Customer Updated",
+        description: "Customer updated successfully",
+      });
+
+      setIsEditOpen(false);
+      setEditingCustomer(null);
+      loadCustomers();
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
         variant: "destructive",
       });
     }
@@ -357,9 +388,9 @@ const Customers = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleSelectCustomer(customer)}
+                          onClick={() => handleEditCustomer(customer)}
                         >
-                          View
+                          Edit
                         </Button>
                         <Button
                           variant="ghost"
@@ -389,6 +420,24 @@ const Customers = () => {
           </DialogHeader>
 
           {/* keep your details UI here */}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+            <DialogDescription>
+              Update customer information
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingCustomer && (
+            <EditCustomerForm
+              customer={editingCustomer}
+              onSubmit={updateCustomer}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

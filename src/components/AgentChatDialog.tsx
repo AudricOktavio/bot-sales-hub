@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,14 +9,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, MessageCircle } from "lucide-react";
+import { Send, MessageCircle, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import { API_CONFIG } from "@/config/api";
+import { useCrmWebsocket } from "@/hooks/useCrmWebsocket";
 
 interface Message {
   content: string;
-  isUser: boolean;
+  // ✅ add agent
+  sender: "customer" | "ai" | "agent";
   timestamp: Date;
 }
 
@@ -25,11 +27,9 @@ interface AgentChatDialogProps {
   onClose: () => void;
   agentId: number;
   agentName: string;
-  /** Not used in Test Chat. We always use a single fixed demo number. */
-  phoneNumber?: string;
 }
 
-const DEMO_PHONE = "123456789"; // one fixed demo identity
+const DEMO_PHONE = "123456789";
 
 const AgentChatDialog = ({
   isOpen,
@@ -43,10 +43,143 @@ const AgentChatDialog = ({
   const { toast } = useToast();
 
   const endRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // ✅ now supports "agent" too
+  const appendIfNotDuplicate = useCallback(
+    (sender: "customer" | "ai" | "agent", text: string, ts?: Date) => {
+      const t = text.trim();
+      if (!t) return;
+
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last && last.sender === sender && last.content === t) return prev;
+        return [...prev, { sender, content: t, timestamp: ts ?? new Date() }];
+      });
+    },
+    []
+  );
+
+  const { connected: wsConnected, subscribeChat } = useCrmWebsocket({
+    debug: false,
+    onMessage: (payload) => {
+      const type = payload?.type;
+
+      if (type === "error") {
+        toast({
+          title: "WebSocket error",
+          description: String(payload?.message ?? "Unknown error"),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // direct message push (if your backend ever uses it)
+      if (type === "chat_message") {
+        const phone = String(payload?.phone_number ?? "");
+        if (phone !== DEMO_PHONE) return;
+
+        const role = String(payload?.role ?? "").toLowerCase();
+        const text = String(payload?.message ?? payload?.content ?? "");
+        const createdAt = payload?.created_at
+          ? new Date(payload.created_at)
+          : new Date();
+
+        if (!text.trim()) return;
+
+        // ✅ correct POV mapping
+        if (role === "human") {
+          appendIfNotDuplicate("customer", text, createdAt);
+        } else if (role === "agent") {
+          appendIfNotDuplicate("agent", text, createdAt);
+          setIsLoading(false);
+        } else if (role === "ai" || role === "interrupt") {
+          appendIfNotDuplicate("ai", text, createdAt);
+          setIsLoading(false);
+        } else {
+          // default safest: treat unknown as customer inbound
+          appendIfNotDuplicate("customer", text, createdAt);
+        }
+        return;
+      }
+
+      // snapshot update (this is what your backend is sending now)
+      if (type === "chat_update") {
+        const phone = String(
+          payload?.phone_number ?? payload?.data?.phone_number ?? ""
+        );
+        if (phone !== DEMO_PHONE) return;
+
+        const data = payload?.data ?? {};
+        const log = Array.isArray(data.log)
+          ? data.log
+          : data.log
+          ? [data.log]
+          : [];
+
+        if (!log.length) return;
+
+        const rebuilt: Message[] = [];
+        for (const it of log) {
+          const role = String(it?.role ?? "").toLowerCase();
+          const text = String(it?.message ?? "");
+          const createdAt = it?.created_at
+            ? new Date(it.created_at)
+            : new Date();
+
+          if (!text.trim()) continue;
+
+          // ✅ correct POV mapping
+          if (role === "human") {
+            rebuilt.push({
+              sender: "customer",
+              content: text,
+              timestamp: createdAt,
+            });
+          } else if (role === "agent") {
+            rebuilt.push({
+              sender: "agent",
+              content: text,
+              timestamp: createdAt,
+            });
+          } else if (role === "ai" || role === "interrupt") {
+            rebuilt.push({ sender: "ai", content: text, timestamp: createdAt });
+          } else {
+            rebuilt.push({
+              sender: "customer",
+              content: text,
+              timestamp: createdAt,
+            });
+          }
+        }
+
+        setMessages(rebuilt);
+        setIsLoading(false);
+        return;
+      }
+    },
+  });
+
+  // focus input when opens
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 0);
+  }, [isOpen]);
+
+  // autoscroll
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, isLoading]);
 
+  // subscribe demo phone when open
+  useEffect(() => {
+    if (!isOpen) return;
+    subscribeChat(DEMO_PHONE);
+    return () => {
+      subscribeChat(null);
+    };
+  }, [isOpen, subscribeChat]);
+
+  // reset on close
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       setMessages([]);
@@ -56,49 +189,50 @@ const AgentChatDialog = ({
     }
   };
 
+  const sendViaRest = async (text: string) => {
+    const token = localStorage.getItem("access_token");
+
+    const payload = {
+      messages: [{ content: text }],
+      phone_number: DEMO_PHONE,
+    };
+
+    const { data } = await axios.post(
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENT_CHAT(agentId)}`,
+      payload,
+      { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
+    );
+
+    return (data?.response ?? "").toString();
+  };
+
   const handleSendMessage = async () => {
     const text = currentMessage.trim();
     if (!text || isLoading) return;
 
-    const userMessage: Message = {
-      content: text,
-      isUser: true,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
+    // ✅ CUSTOMER = "ME" -> PURPLE RIGHT
+    appendIfNotDuplicate("customer", text, new Date());
     setCurrentMessage("");
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("access_token");
-      const payload = {
-        messages: [{ content: text }],
-        phone_number: DEMO_PHONE, // 👈 always the same
-      };
+      const reply = await sendViaRest(text);
 
-      const { data } = await axios.post(
-        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENT_CHAT(agentId)}`,
-        payload,
-        { headers: token ? { Authorization: `Bearer ${token}` } : undefined }
-      );
-
-      const reply: string = (data?.response ?? "").toString();
-      if (!reply.trim()) {
-        // handoff active or intentionally silent ⇒ don't append agent bubble
-        toast({
-          title: "Human handoff active",
-          description:
-            "AI is paused for this conversation until you press Resolve.",
-        });
-        return;
+      // If WS disconnected, render reply from REST
+      if (!wsConnected) {
+        if (!reply.trim()) {
+          toast({
+            title: "No response",
+            description:
+              "Agent returned empty response (handoff might be active).",
+          });
+        } else {
+          // REST response is AI string; if handoff suppresses AI it returns empty
+          appendIfNotDuplicate("ai", reply, new Date());
+        }
+        setIsLoading(false);
       }
-
-      const agentMessage: Message = {
-        content: reply,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, agentMessage]);
+      // If WS connected, chat_update will render reply
     } catch (error: any) {
       console.error("Chat error:", error);
       const status = error?.response?.status;
@@ -110,7 +244,6 @@ const AgentChatDialog = ({
             : "Failed to send message. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -131,8 +264,9 @@ const AgentChatDialog = ({
             Chat with {agentName}
           </DialogTitle>
           <DialogDescription>
-            Test this agent. When human handoff is active, the AI will pause
-            automatically. You’re chatting as <code>{DEMO_PHONE}</code>.
+            Test this agent as a <b>customer</b>. You’re chatting as{" "}
+            <code>{DEMO_PHONE}</code>. (WS:{" "}
+            {wsConnected ? "connected" : "disconnected"})
           </DialogDescription>
         </DialogHeader>
 
@@ -146,29 +280,51 @@ const AgentChatDialog = ({
                 </div>
               )}
 
-              {messages.map((m, i) => (
-                <div
-                  key={i}
-                  className={`flex ${
-                    m.isUser ? "justify-end" : "justify-start"
-                  }`}
-                >
+              {messages.map((m, i) => {
+                const isCustomer = m.sender === "customer";
+
+                // ✅ Customer (ME): right + purple
+                // ✅ AI or Human CS: left + white/gray
+                const isRight = isCustomer;
+                const bubbleClass = isCustomer
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground";
+
+                // icon: customer=user, ai=bot, agent=user
+                const Icon = isCustomer ? User : m.sender === "ai" ? Bot : User;
+
+                return (
                   <div
-                    className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                      m.isUser ? "bg-primary text-white" : "bg-muted"
+                    key={i}
+                    className={`flex ${
+                      isRight ? "justify-end" : "justify-start"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{m.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {m.timestamp.toLocaleTimeString()}
-                    </p>
+                    <div
+                      className={`flex items-start gap-2 max-w-[80%] ${
+                        isRight ? "flex-row-reverse" : ""
+                      }`}
+                    >
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                        <Icon className="h-4 w-4" />
+                      </div>
+
+                      <div className={`rounded-lg px-4 py-2 ${bubbleClass}`}>
+                        <p className="text-sm whitespace-pre-wrap">
+                          {m.content}
+                        </p>
+                        <p className="text-xs opacity-70 mt-1">
+                          {m.timestamp.toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {isLoading && (
                 <div className="flex justify-start">
-                  <div className="bg-muted rounded-lg px-4 py-2 animate-pulse">
+                  <div className="bg-muted text-foreground rounded-lg px-4 py-2 animate-pulse">
                     <span className="text-sm text-muted-foreground">
                       Agent is typing…
                     </span>
@@ -182,7 +338,8 @@ const AgentChatDialog = ({
 
           <div className="flex gap-2">
             <Input
-              placeholder="Type your message..."
+              ref={inputRef}
+              placeholder="Type your message as customer..."
               value={currentMessage}
               onChange={(e) => setCurrentMessage(e.target.value)}
               onKeyDown={onKeyDown}

@@ -21,6 +21,8 @@ import {
   Plus,
   Trash2,
   Edit,
+  ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { API_CONFIG } from "@/config/api";
 import {
@@ -48,10 +50,36 @@ import {
 
 interface WhatsAppAccount {
   whatsapp_id: number;
+  phone_number: string;
   phone_number_id: string;
   access_token: string;
   verify_token: string;
   agent_id: number;
+}
+
+interface AccurateProvider {
+  provider_id: number;
+  access_token: string;
+  refresh_token?: string;
+  token_type?: string;
+  scope?: string;
+  expires_at?: string;
+  accurate_user_name?: string;
+  accurate_user_email?: string;
+  db_id?: number;
+  db_alias?: string;
+  host?: string;
+  session_id?: string;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+interface AccurateDatabase {
+  id: number;
+  alias?: string | null;
+  name?: string | null;
+  host?: string | null;
 }
 
 const Integrations = () => {
@@ -67,8 +95,10 @@ const Integrations = () => {
   // WhatsApp settings - Multiple accounts
   const [whatsappAccounts, setWhatsappAccounts] = useState<WhatsAppAccount[]>([]);
   const [isWhatsappDialogOpen, setIsWhatsappDialogOpen] = useState(false);
+  const [isWhatsappMethodDialogOpen, setIsWhatsappMethodDialogOpen] = useState(false);
   const [editingWhatsapp, setEditingWhatsapp] = useState<WhatsAppAccount | null>(null);
   const [whatsappForm, setWhatsappForm] = useState({
+    phone_number: "",
     phone_number_id: "",
     access_token: "",
     verify_token: "",
@@ -79,7 +109,15 @@ const Integrations = () => {
   const [agents, setAgents] = useState<Array<{ agent_id: number; agent_name: string }>>([]);
 
   // ERP Selection
-  const [erpChoice, setErpChoice] = useState<"none" | "sap" | "odoo">("none");
+  const [erpChoice, setErpChoice] = useState<"none" | "sap" | "odoo" | "accurate">("none");
+
+  // Accurate ERP/WMS
+  const [accurateProvider, setAccurateProvider] = useState<AccurateProvider | null>(null);
+  const [accurateLoading, setAccurateLoading] = useState(false);
+  const [accurateError, setAccurateError] = useState<string | null>(null);
+  const [accurateDatabases, setAccurateDatabases] = useState<AccurateDatabase[]>([]);
+  const [accurateDbLoading, setAccurateDbLoading] = useState(false);
+  const [selectedAccurateDbId, setSelectedAccurateDbId] = useState<string>("");
 
   // SAP B1 settings
   const [sapEnabled, setSapEnabled] = useState(false);
@@ -111,13 +149,16 @@ const Integrations = () => {
     const fetchAll = async () => {
       const headers = getAuthHeaders();
       try {
-        const [agentsRes, paymentRes, whatsRes, sapRes, odooRes] = await Promise.allSettled([
+        const [agentsRes, paymentRes, whatsRes, sapRes, odooRes, accurateRes] = await Promise.allSettled([
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AGENTS}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PAYMENT_PROVIDER}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPPS}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.SAP_PROVIDER}`, { headers }),
           axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ODOO_PROVIDER}`, { headers }),
+          axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ACCURATE_PROVIDER}`, { headers }),
         ]);
+
+        let detectedErpChoice: typeof erpChoice = "none";
 
         if (agentsRes.status === "fulfilled") {
           setAgents(agentsRes.value.data || []);
@@ -148,7 +189,7 @@ const Integrations = () => {
           setSapUsername(s?.username || "");
           setSapPassword(s?.password || "");
           setSapPort(s?.port || "");
-          if (s?.is_active) setErpChoice("sap");
+          if (s?.is_active) detectedErpChoice = "sap";
         } else {
           setSapEnabled(false);
           setSapExists(false);
@@ -163,11 +204,25 @@ const Integrations = () => {
           setOdooDatabase(o?.company_db || "");
           setOdooUsername(o?.username || "");
           setOdooPassword(o?.password || "");
-          if (o?.is_active) setErpChoice("odoo");
+          if (o?.is_active) detectedErpChoice = "odoo";
         } else {
           setOdooEnabled(false);
           setOdooExists(false);
         }
+
+        // Accurate status
+        if (accurateRes.status === "fulfilled") {
+          const a = accurateRes.value.data;
+          setAccurateProvider(a);
+          setAccurateError(null);
+          if (a?.db_id) setSelectedAccurateDbId(String(a.db_id));
+          if (a?.is_active) detectedErpChoice = "accurate";
+        } else {
+          setAccurateProvider(null);
+          setAccurateError(null);
+        }
+
+        setErpChoice(detectedErpChoice);
       } catch (error) {
         console.error("Integrations init error:", error);
       }
@@ -386,8 +441,14 @@ const Integrations = () => {
 
   // WhatsApp Management
   const handleAddWhatsapp = () => {
+    setIsWhatsappMethodDialogOpen(true);
+  };
+
+  const handleManualWhatsappInput = () => {
+    setIsWhatsappMethodDialogOpen(false);
     setEditingWhatsapp(null);
     setWhatsappForm({
+      phone_number: "",
       phone_number_id: "",
       access_token: "",
       verify_token: "",
@@ -396,9 +457,41 @@ const Integrations = () => {
     setIsWhatsappDialogOpen(true);
   };
 
+  const handleWhatsappOAuthLogin = async () => {
+    try {
+      const headers = getAuthHeaders();
+      const res = await axios.get(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.WHATSAPP_OAUTH_LOGIN}`,
+        { headers }
+      );
+
+      const authorizeUrl = res.data?.authorize_url;
+
+      if (authorizeUrl && authorizeUrl.startsWith("http")) {
+        window.location.href = authorizeUrl;
+      } else {
+        toast({
+          title: "OAuth Error",
+          description: "Backend did not return a valid authorize_url.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("WhatsApp OAuth error:", error);
+      toast({
+        title: "Failed to initiate WhatsApp OAuth",
+        description: error?.response?.data?.detail || error?.response?.data?.message || "An error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsWhatsappMethodDialogOpen(false);
+    }
+  };
+
   const handleEditWhatsapp = (account: WhatsAppAccount) => {
     setEditingWhatsapp(account);
     setWhatsappForm({
+      phone_number: account.phone_number,
       phone_number_id: account.phone_number_id,
       access_token: account.access_token,
       verify_token: account.verify_token,
@@ -409,6 +502,7 @@ const Integrations = () => {
 
   const handleSaveWhatsapp = async () => {
     if (
+      !whatsappForm.phone_number ||
       !whatsappForm.phone_number_id ||
       !whatsappForm.access_token ||
       !whatsappForm.verify_token ||
@@ -425,6 +519,7 @@ const Integrations = () => {
     try {
       const headers = getAuthHeaders();
       const payload = {
+        phone_number: whatsappForm.phone_number,
         phone_number_id: whatsappForm.phone_number_id,
         access_token: whatsappForm.access_token,
         verify_token: whatsappForm.verify_token,
@@ -473,19 +568,143 @@ const Integrations = () => {
     }
   };
 
-  const handleErpChoice = async (choice: "sap" | "odoo") => {
-    // If switching from one ERP to another, disable the current one
-    if (choice === "sap" && odooEnabled) {
-      setOdooEnabled(false);
-    } else if (choice === "odoo" && sapEnabled) {
-      setSapEnabled(false);
-    }
-    setErpChoice(choice);
+  const handleAccurateConnect = async () => {
+    const headers = getAuthHeaders();
+    setAccurateError(null);
 
+    try {
+      const res = await axios.get(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ACCURATE_CONNECT}`,
+        { headers }
+      );
+
+      console.log("Accurate connect response:", res.data);
+
+      const redirectUrl = res.data?.authorize_url;
+
+      if (redirectUrl && redirectUrl.startsWith("http")) {
+        // Full page navigation → no CORS issues
+        window.location.href = redirectUrl;
+      } else {
+        setAccurateError("Backend did not return a valid authorize_url.");
+      }
+    } catch (error: any) {
+      console.error("Accurate connect error:", error);
+      setAccurateError(
+        error?.response?.data?.detail ||
+          error?.response?.data?.message ||
+          "Failed to initiate Accurate connection."
+      );
+    }
+  };
+
+  const handleAccurateRefresh = async () => {
+    const headers = getAuthHeaders();
+    setAccurateLoading(true);
+    try {
+      const res = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ACCURATE_PROVIDER}`, { headers });
+      setAccurateProvider(res.data);
+      if (res.data?.db_id) setSelectedAccurateDbId(String(res.data.db_id));
+      setAccurateError(null);
+      if (res.data?.is_active) {
+        setErpChoice("accurate");
+      }
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        setAccurateProvider(null);
+        setAccurateError("Not connected to Accurate yet.");
+      } else {
+        console.error("Accurate status error:", error);
+        setAccurateError(
+          error?.response?.data?.detail ||
+            error?.response?.data?.message ||
+            "Unable to fetch Accurate status."
+        );
+      }
+    } finally {
+      setAccurateLoading(false);
+    }
+  };
+
+  const handleAccurateListDatabases = async () => {
+    const headers = getAuthHeaders();
+    setAccurateDbLoading(true);
+    setAccurateError(null);
+    try {
+      const res = await axios.get(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ACCURATE_DATABASES}`, { headers });
+      setAccurateDatabases(res.data || []);
+      if ((res.data || []).length === 1) {
+        setSelectedAccurateDbId(String(res.data[0].id));
+      }
+    } catch (error: any) {
+      console.error("Accurate list databases error:", error);
+      setAccurateError(
+        error?.response?.data?.detail ||
+          error?.response?.data?.message ||
+          "Unable to load Accurate databases."
+      );
+    } finally {
+      setAccurateDbLoading(false);
+    }
+  };
+
+  const handleAccurateOpenDatabase = async () => {
+    if (!selectedAccurateDbId) {
+      setAccurateError("Please select a database to open.");
+      return;
+    }
+    const headers = getAuthHeaders();
+    setAccurateLoading(true);
+    try {
+      const payload = {
+        db_id: Number(selectedAccurateDbId),
+        alias:
+          accurateDatabases.find((db) => String(db.id) === selectedAccurateDbId)?.alias ||
+          accurateDatabases.find((db) => String(db.id) === selectedAccurateDbId)?.name,
+        host: accurateDatabases.find((db) => String(db.id) === selectedAccurateDbId)?.host,
+      };
+      const res = await axios.post(
+        `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.ACCURATE_OPEN_DB}`,
+        payload,
+        { headers }
+      );
+      setAccurateProvider(res.data);
+      if (res.data?.db_id) setSelectedAccurateDbId(String(res.data.db_id));
+      setAccurateError(null);
+      toast({ title: "Accurate database opened", description: payload.alias || `DB #${payload.db_id}` });
+    } catch (error: any) {
+      console.error("Accurate open database error:", error);
+      setAccurateError(
+        error?.response?.data?.detail ||
+          error?.response?.data?.message ||
+          "Failed to open Accurate database."
+      );
+    } finally {
+      setAccurateLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (accurateProvider?.is_active && accurateDatabases.length === 0) {
+      handleAccurateListDatabases();
+    }
+  }, [accurateProvider?.is_active]);
+
+  const handleErpChoice = async (choice: "sap" | "odoo" | "accurate") => {
+    // If switching from one ERP to another, disable the current one
     if (choice === "sap") {
+      if (odooEnabled) setOdooEnabled(false);
+      setErpChoice("sap");
       setSapEnabled(true);
     } else if (choice === "odoo") {
+      if (sapEnabled) setSapEnabled(false);
+      setErpChoice("odoo");
       setOdooEnabled(true);
+    } else {
+      if (sapEnabled) setSapEnabled(false);
+      if (odooEnabled) setOdooEnabled(false);
+      setErpChoice("accurate");
+      setAccurateError(null);
     }
   };
 
@@ -590,7 +809,7 @@ const Integrations = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Phone Number ID</TableHead>
+                        <TableHead>Phone Number</TableHead>
                         <TableHead>Linked Agent</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
@@ -598,7 +817,7 @@ const Integrations = () => {
                     <TableBody>
                       {whatsappAccounts.map((account) => (
                         <TableRow key={account.whatsapp_id}>
-                          <TableCell className="font-medium">{account.phone_number_id}</TableCell>
+                          <TableCell className="font-medium">{account.phone_number}</TableCell>
                           <TableCell>
                             {agents.find((a) => a.agent_id === account.agent_id)?.agent_name || `Agent #${account.agent_id}`}
                           </TableCell>
@@ -634,9 +853,9 @@ const Integrations = () => {
           </h2>
 
           <div className="mb-4">
-            <Label className="text-base font-medium">Choose Your ERP System</Label>
-            <p className="text-sm text-muted-foreground mb-3">Select one ERP system to integrate with</p>
-            <div className="flex gap-3">
+            <Label className="text-base font-medium">Choose Your ERP / WMS</Label>
+            <p className="text-sm text-muted-foreground mb-3">Select one platform to integrate with</p>
+            <div className="flex gap-3 flex-col sm:flex-row">
               <Button
                 variant={erpChoice === "sap" ? "default" : "outline"}
                 onClick={() => handleErpChoice("sap")}
@@ -651,8 +870,112 @@ const Integrations = () => {
               >
                 Odoo ERP
               </Button>
+              <Button
+                variant={erpChoice === "accurate" ? "default" : "outline"}
+                onClick={() => handleErpChoice("accurate")}
+                className="flex-1"
+              >
+                Accurate (ERP & WMS)
+              </Button>
             </div>
           </div>
+
+          {/* Accurate ERP/WMS */}
+          {erpChoice === "accurate" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Accurate</CardTitle>
+                <CardDescription>Connect via Accurate redirect to sync ERP and warehouse data.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="rounded-md border bg-muted/50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Connection Status</p>
+                    <span
+                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                        accurateProvider?.is_active ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {accurateProvider?.is_active ? "Connected" : "Not connected"}
+                    </span>
+                  </div>
+
+                  {accurateProvider && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <div className="text-muted-foreground">User</div>
+                      <div>
+                        {accurateProvider.accurate_user_name || "Accurate user"}
+                        {accurateProvider.accurate_user_email ? ` (${accurateProvider.accurate_user_email})` : ""}
+                      </div>
+                      <div className="text-muted-foreground">Database</div>
+                      <div>{accurateProvider.db_alias || accurateProvider.db_id || "Not selected"}</div>
+                      <div className="text-muted-foreground">Session</div>
+                      <div>{accurateProvider.session_id || "-"}</div>
+                      <div className="text-muted-foreground">Token Expires</div>
+                      <div>{accurateProvider.expires_at ? new Date(accurateProvider.expires_at).toLocaleString() : "Unknown"}</div>
+                    </div>
+                  )}
+
+                  {accurateError && <p className="text-sm text-destructive">{accurateError}</p>}
+
+                  {accurateProvider?.is_active && (
+                    <div className="space-y-3 pt-2 border-t border-muted">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Choose Database</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleAccurateListDatabases}
+                          disabled={accurateDbLoading}
+                        >
+                          <RefreshCw className={`h-4 w-4 mr-2 ${accurateDbLoading ? "animate-spin" : ""}`} />
+                          Refresh list
+                        </Button>
+                      </div>
+                      <Select value={selectedAccurateDbId} onValueChange={(v) => setSelectedAccurateDbId(v)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Accurate database" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {accurateDatabases.map((db) => (
+                            <SelectItem key={db.id} value={String(db.id)}>
+                              {db.alias || db.name || `DB #${db.id}`} {db.host ? `(${db.host})` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button
+                        onClick={handleAccurateOpenDatabase}
+                        disabled={accurateLoading || !selectedAccurateDbId}
+                      >
+                        Open Database
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button onClick={handleAccurateConnect} className="flex-1">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    {accurateProvider ? "Reconnect to Accurate" : "Connect to Accurate"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleAccurateRefresh}
+                    disabled={accurateLoading}
+                    className="flex-1"
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-2 ${accurateLoading ? "animate-spin" : ""}`} />
+                    Refresh status
+                  </Button>
+                </div>
+
+                <p className="text-sm text-muted-foreground">
+                  You will be redirected to Accurate to grant access. Return here and refresh to confirm the connection.
+                </p>
+              </CardContent>
+            </Card>
+          )}
 
           {/* SAP Business One */}
           {erpChoice === "sap" && (
@@ -834,7 +1157,54 @@ const Integrations = () => {
         </div>
       </div>
 
-      {/* WhatsApp Dialog */}
+      {/* WhatsApp Method Selection Dialog */}
+      <Dialog open={isWhatsappMethodDialogOpen} onOpenChange={setIsWhatsappMethodDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add WhatsApp Account</DialogTitle>
+            <DialogDescription>Choose how you want to connect your WhatsApp Business account</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <Button
+              onClick={handleWhatsappOAuthLogin}
+              className="w-full h-auto py-4 flex flex-col items-center gap-2"
+              variant="default"
+            >
+              <ExternalLink className="h-5 w-5" />
+              <span className="font-medium">Connect with Meta</span>
+              <span className="text-xs opacity-80">Authenticate via Meta OAuth (recommended)</span>
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">or</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleManualWhatsappInput}
+              className="w-full h-auto py-4 flex flex-col items-center gap-2"
+              variant="outline"
+            >
+              <Edit className="h-5 w-5" />
+              <span className="font-medium">Input Access Token</span>
+              <span className="text-xs text-muted-foreground">Manually enter your API credentials</span>
+            </Button>
+          </div>
+
+          <div className="flex justify-end">
+            <Button variant="ghost" onClick={() => setIsWhatsappMethodDialogOpen(false)}>
+              Cancel
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* WhatsApp Manual Input Dialog */}
       <Dialog open={isWhatsappDialogOpen} onOpenChange={setIsWhatsappDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -843,6 +1213,16 @@ const Integrations = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp-phone">Phone Number</Label>
+              <Input
+                id="whatsapp-phone"
+                value={whatsappForm.phone_number}
+                onChange={(e) => setWhatsappForm({ ...whatsappForm, phone_number: e.target.value })}
+                placeholder="e.g. +1234567890"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="whatsapp-phone-id">Phone Number ID</Label>
               <Input
@@ -930,3 +1310,5 @@ const Integrations = () => {
 };
 
 export default Integrations;
+
+

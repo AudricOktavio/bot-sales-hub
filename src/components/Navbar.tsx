@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { Bell, Search, Settings, User } from 'lucide-react';
+import { useState } from "react";
+import { Bell, Search, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,19 +7,19 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useNavigate } from 'react-router-dom';
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     // Implement search functionality
-    console.log('Search for:', searchTerm);
+    console.log("Search for:", searchTerm);
   };
 
   const handleLogout = async () => {
@@ -44,10 +43,15 @@ const Navbar = () => {
           <div className="text-lg md:text-xl font-bold bg-gradient-to-r from-crm-primary to-crm-secondary text-transparent bg-clip-text">
             Valvia
           </div>
-          <h1 className="text-lg md:text-xl font-bold hidden sm:block">AI Sales CRM</h1>
+          <h1 className="text-lg md:text-xl font-bold hidden sm:block">
+            AI Sales CRM
+          </h1>
         </div>
 
-        <form onSubmit={handleSearch} className="flex-1 max-w-md mx-4 hidden sm:block">
+        <form
+          onSubmit={handleSearch}
+          className="flex-1 max-w-md mx-4 hidden sm:block"
+        >
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -78,11 +82,15 @@ const Navbar = () => {
               <div className="max-h-[300px] overflow-auto">
                 <div className="p-3 text-sm border-b">
                   <div className="font-medium">New Lead Generated</div>
-                  <div className="text-muted-foreground text-xs mt-1">Agent Alpha converted a website visitor to a lead</div>
+                  <div className="text-muted-foreground text-xs mt-1">
+                    Agent Alpha converted a website visitor to a lead
+                  </div>
                 </div>
                 <div className="p-3 text-sm border-b">
                   <div className="font-medium">Sale Closed!</div>
-                  <div className="text-muted-foreground text-xs mt-1">Agent Beta closed a $4,200 deal with Acme Corp</div>
+                  <div className="text-muted-foreground text-xs mt-1">
+                    Agent Beta closed a $4,200 deal with Acme Corp
+                  </div>
                 </div>
               </div>
             </DropdownMenuContent>
@@ -95,10 +103,10 @@ const Navbar = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
+              <DropdownMenuItem onClick={() => navigate("/settings")}>
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/help')}>
+              <DropdownMenuItem onClick={() => navigate("/help")}>
                 Help & Support
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -115,16 +123,14 @@ const Navbar = () => {
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/billing')}>
+              <DropdownMenuItem onClick={() => navigate("/billing")}>
                 Billing
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                Logout
-              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
