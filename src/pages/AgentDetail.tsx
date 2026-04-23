@@ -172,7 +172,7 @@ const AgentDetail = () => {
       if (assignedCategory !== "all") params.categories = [assignedCategory];
       const { data } = await axios.get<ProductAgentRelationship[]>(
         getApiUrl("PRODUCTS_BY_AGENT", agentId),
-        { headers: authHeaders(), params }
+        { headers: authHeaders(), params, paramsSerializer: { indexes: null } }
       );
       const ids = data.map((r) => r.product_id);
       const lookup = await ensureNamesFor(ids);
@@ -203,7 +203,7 @@ const AgentDetail = () => {
       if (unassignedCategory !== "all") params.categories = [unassignedCategory];
       const { data } = await axios.get<ProductIdName[]>(
         getApiUrl("UNASSIGNED_PRODUCTS_BY_AGENT", agentId),
-        { headers: authHeaders(), params }
+        { headers: authHeaders(), params, paramsSerializer: { indexes: null } }
       );
       setUnassigned((prev) => (reset ? data : [...prev, ...data]));
       setUnassignedHasMore(data.length === PAGE_SIZE);
