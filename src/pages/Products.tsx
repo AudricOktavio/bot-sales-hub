@@ -303,7 +303,7 @@ const Products = () => {
         title: "SAP Sync Complete",
         description: "Products have been synced from SAP B1",
       });
-      await fetchProducts();
+      await fetchProducts(true);
     } catch (error) {
       console.error("Error syncing from SAP:", error);
       toast({
@@ -329,7 +329,7 @@ const Products = () => {
         title: "Odoo Sync Complete",
         description: "Products have been synced from Odoo",
       });
-      await fetchProducts();
+      await fetchProducts(true);
     } catch (error) {
       console.error("Error syncing from Odoo:", error);
       toast({
@@ -355,7 +355,7 @@ const Products = () => {
         title: "Accurate Sync Complete",
         description: "Products have been synced from Accurate",
       });
-      await fetchProducts();
+      await fetchProducts(true);
     } catch (error) {
       console.error("Error syncing from Accurate:", error);
       toast({
@@ -529,7 +529,7 @@ const Products = () => {
         });
       }
 
-      await fetchProducts();
+      await fetchProducts(true);
       setIsDialogOpen(false);
     } catch (error) {
       console.error("Error saving product:", error);
@@ -616,7 +616,7 @@ const Products = () => {
         description: res?.data?.message ?? "Products imported successfully",
       });
 
-      await fetchProducts();
+      await fetchProducts(true);
       setIsImportDialogOpen(false);
       setImportFile(null);
       setImportText("");
