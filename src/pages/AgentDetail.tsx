@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save, CheckCheck, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,22 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from "@/config/api";
 import AgentChatPanel from "@/components/AgentChatPanel";
@@ -39,7 +55,16 @@ interface AssignedItem {
   relationship_id: number;
   product_id: number;
   product_name: string;
+  category?: string;
 }
+
+interface ApiProductFull {
+  product_id: number;
+  product_name: string;
+  category: string;
+}
+
+const PAGE_SIZE = 100;
 
 const authHeaders = () => {
   const token = localStorage.getItem("access_token");
@@ -74,6 +99,17 @@ const AgentDetail = () => {
   const [searchAssigned, setSearchAssigned] = useState("");
   const [searchUnassigned, setSearchUnassigned] = useState("");
 
+  // Infinite scroll + category filter state
+  const [categories, setCategories] = useState<string[]>([]);
+  const [assignedCategory, setAssignedCategory] = useState<string>("all");
+  const [unassignedCategory, setUnassignedCategory] = useState<string>("all");
+  const [assignedHasMore, setAssignedHasMore] = useState(true);
+  const [unassignedHasMore, setUnassignedHasMore] = useState(true);
+  const [assignedLoadingMore, setAssignedLoadingMore] = useState(false);
+  const [unassignedLoadingMore, setUnassignedLoadingMore] = useState(false);
+  const [assignByCategoryOpen, setAssignByCategoryOpen] = useState(false);
+  const [assignByCategorySelected, setAssignByCategorySelected] = useState<string>("");
+
   const fetchAgent = async () => {
     try {
       const { data } = await axios.get<ApiAgent>(getApiUrl("AGENT_BY_ID", agentId), {
@@ -94,49 +130,132 @@ const AgentDetail = () => {
     }
   };
 
-  const fetchProducts = async () => {
-    setProductsLoading(true);
-    try {
-      const [assignedRes, unassignedRes, allProductsRes] = await Promise.all([
-        axios.get<ProductAgentRelationship[]>(getApiUrl("PRODUCTS_BY_AGENT", agentId), {
-          headers: authHeaders(),
-        }),
-        axios.get<ProductIdName[]>(getApiUrl("UNASSIGNED_PRODUCTS_BY_AGENT", agentId), {
-          headers: authHeaders(),
-        }),
-        // For names of assigned products
-        axios.get<any[]>(getApiUrl("PRODUCTS"), { headers: authHeaders() }).catch(() => ({ data: [] as any[] })),
-      ]);
+  // Fetch the global product name lookup once (limited) — used to render assigned items
+  const [nameLookup, setNameLookup] = useState<Map<number, { name: string; category: string }>>(
+    new Map()
+  );
 
-      const nameById = new Map<number, string>();
-      for (const p of allProductsRes.data || []) {
-        if (p?.product_id != null) nameById.set(p.product_id, p.product_name ?? `#${p.product_id}`);
+  const ensureNamesFor = async (ids: number[]) => {
+    const missing = ids.filter((id) => !nameLookup.has(id));
+    if (missing.length === 0) return nameLookup;
+    // Fetch all products in pages; cheaper alternative would be a by-ids endpoint.
+    const next = new Map(nameLookup);
+    let lastId = 0;
+    let keepGoing = true;
+    const needed = new Set(missing);
+    while (keepGoing && needed.size > 0) {
+      const { data } = await axios.get<ApiProductFull[]>(getApiUrl("PRODUCTS"), {
+        headers: authHeaders(),
+        params: { limit: PAGE_SIZE, last_product_id: lastId },
+      });
+      if (!data || data.length === 0) break;
+      for (const p of data) {
+        next.set(p.product_id, { name: p.product_name, category: p.category });
+        needed.delete(p.product_id);
       }
+      lastId = data[data.length - 1].product_id;
+      if (data.length < PAGE_SIZE) keepGoing = false;
+    }
+    setNameLookup(next);
+    return next;
+  };
 
-      const merged: AssignedItem[] = assignedRes.data.map((r) => ({
+  const fetchAssignedPage = async (reset: boolean) => {
+    if (reset) {
+      setProductsLoading(true);
+    } else {
+      setAssignedLoadingMore(true);
+    }
+    try {
+      const lastId = reset ? 0 : assigned[assigned.length - 1]?.product_id ?? 0;
+      const params: Record<string, any> = { limit: PAGE_SIZE, last_product_id: lastId };
+      if (assignedCategory !== "all") params.categories = [assignedCategory];
+      const { data } = await axios.get<ProductAgentRelationship[]>(
+        getApiUrl("PRODUCTS_BY_AGENT", agentId),
+        { headers: authHeaders(), params, paramsSerializer: { indexes: null } }
+      );
+      const ids = data.map((r) => r.product_id);
+      const lookup = await ensureNamesFor(ids);
+      const items: AssignedItem[] = data.map((r) => ({
         relationship_id: r.relationship_id,
         product_id: r.product_id,
-        product_name: nameById.get(r.product_id) ?? `Product #${r.product_id}`,
+        product_name: lookup.get(r.product_id)?.name ?? `Product #${r.product_id}`,
+        category: lookup.get(r.product_id)?.category,
       }));
-
-      setAssigned(merged);
-      setUnassigned(unassignedRes.data);
-      setSelectedAssigned(new Set());
-      setSelectedUnassigned(new Set());
+      setAssigned((prev) => (reset ? items : [...prev, ...items]));
+      setAssignedHasMore(data.length === PAGE_SIZE);
+      if (reset) setSelectedAssigned(new Set());
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Failed to load products.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to load assigned.", variant: "destructive" });
     } finally {
       setProductsLoading(false);
+      setAssignedLoadingMore(false);
     }
+  };
+
+  const fetchUnassignedPage = async (reset: boolean) => {
+    if (reset) setProductsLoading(true);
+    else setUnassignedLoadingMore(true);
+    try {
+      const lastId = reset ? 0 : unassigned[unassigned.length - 1]?.product_id ?? 0;
+      const params: Record<string, any> = { limit: PAGE_SIZE, last_product_id: lastId };
+      if (unassignedCategory !== "all") params.categories = [unassignedCategory];
+      const { data } = await axios.get<ProductIdName[]>(
+        getApiUrl("UNASSIGNED_PRODUCTS_BY_AGENT", agentId),
+        { headers: authHeaders(), params, paramsSerializer: { indexes: null } }
+      );
+      setUnassigned((prev) => (reset ? data : [...prev, ...data]));
+      setUnassignedHasMore(data.length === PAGE_SIZE);
+      if (reset) setSelectedUnassigned(new Set());
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to load unassigned.", variant: "destructive" });
+    } finally {
+      setProductsLoading(false);
+      setUnassignedLoadingMore(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      // Pull a page of products to derive the category list (best-effort).
+      const { data } = await axios.get<ApiProductFull[]>(getApiUrl("PRODUCTS"), {
+        headers: authHeaders(),
+        params: { limit: 500, last_product_id: 0 },
+      });
+      const set = new Set<string>();
+      for (const p of data) if (p.category) set.add(p.category);
+      setCategories(Array.from(set).sort());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const refreshAll = async () => {
+    await Promise.all([fetchAssignedPage(true), fetchUnassignedPage(true)]);
   };
 
   useEffect(() => {
     if (!Number.isFinite(agentId)) return;
     fetchAgent();
-    fetchProducts();
+    fetchCategories();
+    refreshAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
+
+  // Re-fetch when category filter changes
+  useEffect(() => {
+    if (!Number.isFinite(agentId)) return;
+    fetchAssignedPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignedCategory]);
+
+  useEffect(() => {
+    if (!Number.isFinite(agentId)) return;
+    fetchUnassignedPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unassignedCategory]);
 
   const handleSaveConfig = async () => {
     if (!form.agent_name || !form.category) {
@@ -183,7 +302,7 @@ const AgentDetail = () => {
         headers: authHeaders(),
       });
       toast({ title: "Assigned", description: `${payload.length} product(s) assigned.` });
-      await fetchProducts();
+      await refreshAll();
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to assign products.", variant: "destructive" });
@@ -202,10 +321,54 @@ const AgentDetail = () => {
         data: ids,
       });
       toast({ title: "Removed", description: `${ids.length} product(s) removed.` });
-      await fetchProducts();
+      await refreshAll();
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to remove products.", variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleAssignAll = async () => {
+    setBulkBusy(true);
+    try {
+      // Treat currently-selected unassigned items as exceptions (skip them).
+      const exception_product_ids = Array.from(selectedUnassigned);
+      await axios.post(
+        getApiUrl("AGENT_ASSIGN_ALL_PRODUCTS", agentId),
+        { exception_product_ids: exception_product_ids.length ? exception_product_ids : null },
+        { headers: authHeaders() }
+      );
+      toast({ title: "Assigned", description: "All unassigned products were assigned." });
+      await refreshAll();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to assign all products.", variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleAssignByCategory = async () => {
+    if (!assignByCategorySelected) return;
+    setBulkBusy(true);
+    try {
+      await axios.post(
+        getApiUrl("AGENT_ASSIGN_BY_CATEGORY", agentId),
+        { category_name: assignByCategorySelected },
+        { headers: authHeaders() }
+      );
+      toast({
+        title: "Assigned",
+        description: `Assigned all "${assignByCategorySelected}" products.`,
+      });
+      setAssignByCategoryOpen(false);
+      setAssignByCategorySelected("");
+      await refreshAll();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to assign by category.", variant: "destructive" });
     } finally {
       setBulkBusy(false);
     }
@@ -356,26 +519,115 @@ const AgentDetail = () => {
             </TabsContent>
 
             <TabsContent value="products" className="flex-1 min-h-0 mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 h-full">
+              <div className="flex flex-col h-full gap-3">
+                {/* Bulk assign toolbar */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleAssignAll}
+                    disabled={bulkBusy}
+                  >
+                    <CheckCheck className="h-4 w-4 mr-1" />
+                    Assign All Unassigned
+                    {selectedUnassigned.size > 0 ? ` (skip ${selectedUnassigned.size})` : ""}
+                  </Button>
+
+                  <Dialog open={assignByCategoryOpen} onOpenChange={setAssignByCategoryOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" disabled={bulkBusy}>
+                        <FolderPlus className="h-4 w-4 mr-1" />
+                        Assign By Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Assign products by category</DialogTitle>
+                        <DialogDescription>
+                          All products in the selected category will be assigned to this agent.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Select
+                        value={assignByCategorySelected}
+                        onValueChange={setAssignByCategorySelected}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <DialogFooter>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setAssignByCategoryOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleAssignByCategory}
+                          disabled={!assignByCategorySelected || bulkBusy}
+                        >
+                          {bulkBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+                          Assign
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 flex-1 min-h-0">
                 {/* Unassigned */}
                 <div className="flex flex-col border rounded-lg overflow-hidden bg-card min-h-0">
                   <div className="p-3 border-b">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-sm">
-                        Unassigned ({unassigned.length})
+                        Unassigned ({unassigned.length}{unassignedHasMore ? "+" : ""})
                       </h3>
                       <span className="text-xs text-muted-foreground">
                         {selectedUnassigned.size} selected
                       </span>
                     </div>
-                    <Input
-                      placeholder="Search…"
-                      value={searchUnassigned}
-                      onChange={(e) => setSearchUnassigned(e.target.value)}
-                      className="h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Search…"
+                        value={searchUnassigned}
+                        onChange={(e) => setSearchUnassigned(e.target.value)}
+                        className="h-8 flex-1"
+                      />
+                      <Select value={unassignedCategory} onValueChange={setUnassignedCategory}>
+                        <SelectTrigger className="h-8 w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All categories</SelectItem>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <ScrollArea className="flex-1">
+                  <div
+                    className="flex-1 overflow-auto"
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      if (
+                        unassignedHasMore &&
+                        !unassignedLoadingMore &&
+                        el.scrollTop + el.clientHeight >= el.scrollHeight - 80
+                      ) {
+                        fetchUnassignedPage(false);
+                      }
+                    }}
+                  >
                     <div className="p-2 space-y-1">
                       {productsLoading ? (
                         <p className="text-sm text-muted-foreground p-2">Loading…</p>
@@ -398,8 +650,18 @@ const AgentDetail = () => {
                           </label>
                         ))
                       )}
+                      {unassignedLoadingMore && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          Loading more…
+                        </p>
+                      )}
+                      {!unassignedHasMore && unassigned.length > 0 && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          End of list
+                        </p>
+                      )}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </div>
 
                 {/* Actions */}
@@ -426,20 +688,47 @@ const AgentDetail = () => {
                   <div className="p-3 border-b">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-sm">
-                        Assigned ({assigned.length})
+                        Assigned ({assigned.length}{assignedHasMore ? "+" : ""})
                       </h3>
                       <span className="text-xs text-muted-foreground">
                         {selectedAssigned.size} selected
                       </span>
                     </div>
-                    <Input
-                      placeholder="Search…"
-                      value={searchAssigned}
-                      onChange={(e) => setSearchAssigned(e.target.value)}
-                      className="h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Search…"
+                        value={searchAssigned}
+                        onChange={(e) => setSearchAssigned(e.target.value)}
+                        className="h-8 flex-1"
+                      />
+                      <Select value={assignedCategory} onValueChange={setAssignedCategory}>
+                        <SelectTrigger className="h-8 w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All categories</SelectItem>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <ScrollArea className="flex-1">
+                  <div
+                    className="flex-1 overflow-auto"
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      if (
+                        assignedHasMore &&
+                        !assignedLoadingMore &&
+                        el.scrollTop + el.clientHeight >= el.scrollHeight - 80
+                      ) {
+                        fetchAssignedPage(false);
+                      }
+                    }}
+                  >
                     <div className="p-2 space-y-1">
                       {productsLoading ? (
                         <p className="text-sm text-muted-foreground p-2">Loading…</p>
@@ -462,8 +751,19 @@ const AgentDetail = () => {
                           </label>
                         ))
                       )}
+                      {assignedLoadingMore && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          Loading more…
+                        </p>
+                      )}
+                      {!assignedHasMore && assigned.length > 0 && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          End of list
+                        </p>
+                      )}
                     </div>
-                  </ScrollArea>
+                  </div>
+                </div>
                 </div>
               </div>
             </TabsContent>
