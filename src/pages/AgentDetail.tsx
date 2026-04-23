@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save, CheckCheck, FolderPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,22 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { getApiUrl } from "@/config/api";
 import AgentChatPanel from "@/components/AgentChatPanel";
@@ -39,7 +55,16 @@ interface AssignedItem {
   relationship_id: number;
   product_id: number;
   product_name: string;
+  category?: string;
 }
+
+interface ApiProductFull {
+  product_id: number;
+  product_name: string;
+  category: string;
+}
+
+const PAGE_SIZE = 100;
 
 const authHeaders = () => {
   const token = localStorage.getItem("access_token");
