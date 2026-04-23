@@ -519,26 +519,115 @@ const AgentDetail = () => {
             </TabsContent>
 
             <TabsContent value="products" className="flex-1 min-h-0 mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 h-full">
+              <div className="flex flex-col h-full gap-3">
+                {/* Bulk assign toolbar */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={handleAssignAll}
+                    disabled={bulkBusy}
+                  >
+                    <CheckCheck className="h-4 w-4 mr-1" />
+                    Assign All Unassigned
+                    {selectedUnassigned.size > 0 ? ` (skip ${selectedUnassigned.size})` : ""}
+                  </Button>
+
+                  <Dialog open={assignByCategoryOpen} onOpenChange={setAssignByCategoryOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="outline" disabled={bulkBusy}>
+                        <FolderPlus className="h-4 w-4 mr-1" />
+                        Assign By Category
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Assign products by category</DialogTitle>
+                        <DialogDescription>
+                          All products in the selected category will be assigned to this agent.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Select
+                        value={assignByCategorySelected}
+                        onValueChange={setAssignByCategorySelected}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <DialogFooter>
+                        <Button
+                          variant="ghost"
+                          onClick={() => setAssignByCategoryOpen(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          onClick={handleAssignByCategory}
+                          disabled={!assignByCategorySelected || bulkBusy}
+                        >
+                          {bulkBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : null}
+                          Assign
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 flex-1 min-h-0">
                 {/* Unassigned */}
                 <div className="flex flex-col border rounded-lg overflow-hidden bg-card min-h-0">
                   <div className="p-3 border-b">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-sm">
-                        Unassigned ({unassigned.length})
+                        Unassigned ({unassigned.length}{unassignedHasMore ? "+" : ""})
                       </h3>
                       <span className="text-xs text-muted-foreground">
                         {selectedUnassigned.size} selected
                       </span>
                     </div>
-                    <Input
-                      placeholder="Search…"
-                      value={searchUnassigned}
-                      onChange={(e) => setSearchUnassigned(e.target.value)}
-                      className="h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Search…"
+                        value={searchUnassigned}
+                        onChange={(e) => setSearchUnassigned(e.target.value)}
+                        className="h-8 flex-1"
+                      />
+                      <Select value={unassignedCategory} onValueChange={setUnassignedCategory}>
+                        <SelectTrigger className="h-8 w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All categories</SelectItem>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <ScrollArea className="flex-1">
+                  <div
+                    className="flex-1 overflow-auto"
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      if (
+                        unassignedHasMore &&
+                        !unassignedLoadingMore &&
+                        el.scrollTop + el.clientHeight >= el.scrollHeight - 80
+                      ) {
+                        fetchUnassignedPage(false);
+                      }
+                    }}
+                  >
                     <div className="p-2 space-y-1">
                       {productsLoading ? (
                         <p className="text-sm text-muted-foreground p-2">Loading…</p>
@@ -561,8 +650,18 @@ const AgentDetail = () => {
                           </label>
                         ))
                       )}
+                      {unassignedLoadingMore && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          Loading more…
+                        </p>
+                      )}
+                      {!unassignedHasMore && unassigned.length > 0 && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          End of list
+                        </p>
+                      )}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </div>
 
                 {/* Actions */}
@@ -589,20 +688,47 @@ const AgentDetail = () => {
                   <div className="p-3 border-b">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium text-sm">
-                        Assigned ({assigned.length})
+                        Assigned ({assigned.length}{assignedHasMore ? "+" : ""})
                       </h3>
                       <span className="text-xs text-muted-foreground">
                         {selectedAssigned.size} selected
                       </span>
                     </div>
-                    <Input
-                      placeholder="Search…"
-                      value={searchAssigned}
-                      onChange={(e) => setSearchAssigned(e.target.value)}
-                      className="h-8"
-                    />
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Search…"
+                        value={searchAssigned}
+                        onChange={(e) => setSearchAssigned(e.target.value)}
+                        className="h-8 flex-1"
+                      />
+                      <Select value={assignedCategory} onValueChange={setAssignedCategory}>
+                        <SelectTrigger className="h-8 w-[140px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All categories</SelectItem>
+                          {categories.map((c) => (
+                            <SelectItem key={c} value={c}>
+                              {c}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <ScrollArea className="flex-1">
+                  <div
+                    className="flex-1 overflow-auto"
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      if (
+                        assignedHasMore &&
+                        !assignedLoadingMore &&
+                        el.scrollTop + el.clientHeight >= el.scrollHeight - 80
+                      ) {
+                        fetchAssignedPage(false);
+                      }
+                    }}
+                  >
                     <div className="p-2 space-y-1">
                       {productsLoading ? (
                         <p className="text-sm text-muted-foreground p-2">Loading…</p>
@@ -625,8 +751,19 @@ const AgentDetail = () => {
                           </label>
                         ))
                       )}
+                      {assignedLoadingMore && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          Loading more…
+                        </p>
+                      )}
+                      {!assignedHasMore && assigned.length > 0 && (
+                        <p className="text-xs text-muted-foreground p-2 text-center">
+                          End of list
+                        </p>
+                      )}
                     </div>
-                  </ScrollArea>
+                  </div>
+                </div>
                 </div>
               </div>
             </TabsContent>
