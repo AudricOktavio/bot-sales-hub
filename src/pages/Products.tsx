@@ -184,7 +184,11 @@ const Products = () => {
 
       const response = await axios.get(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`,
-        { headers: { Authorization: `Bearer ${token}` }, params }
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params,
+          paramsSerializer: { indexes: null },
+        }
       );
 
       const apiProducts: ApiProduct[] = response.data ?? [];
