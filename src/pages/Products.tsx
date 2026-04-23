@@ -139,20 +139,55 @@ const Products = () => {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts(true);
     fetchProviders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchProducts = async () => {
+  // Re-fetch when category filter changes (server-side)
+  useEffect(() => {
+    fetchProducts(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryFilter]);
+
+  // Window-level infinite scroll
+  useEffect(() => {
+    const onScroll = () => {
+      if (!hasMore || isLoadingMore) return;
+      const scrollPos = window.innerHeight + window.scrollY;
+      const threshold = document.body.offsetHeight - 400;
+      if (scrollPos >= threshold) {
+        fetchProducts(false);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, isLoadingMore, categoryFilter]);
+
+  const fetchProducts = async (reset: boolean) => {
     try {
+      if (reset) {
+        lastIdRef.current = 0;
+        setHasMore(true);
+      } else {
+        if (!hasMore || isLoadingMore) return;
+        setIsLoadingMore(true);
+      }
+
       const token = localStorage.getItem("access_token");
+      const params: Record<string, any> = {
+        limit: PAGE_SIZE,
+        last_product_id: lastIdRef.current,
+      };
+      if (categoryFilter !== "all") params.categories = [categoryFilter];
+
       const response = await axios.get(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${token}` }, params }
       );
 
-      const apiProducts: ApiProduct[] = response.data;
+      const apiProducts: ApiProduct[] = response.data ?? [];
 
       const formattedProducts: Product[] = apiProducts.map((product) => {
         let source: "sap" | "odoo" | "accurate" | "manual" = "manual";
@@ -189,7 +224,11 @@ const Products = () => {
         };
       });
 
-      setProducts(formattedProducts);
+      if (apiProducts.length > 0) {
+        lastIdRef.current = apiProducts[apiProducts.length - 1].product_id;
+      }
+      setHasMore(apiProducts.length === PAGE_SIZE);
+      setProducts((prev) => (reset ? formattedProducts : [...prev, ...formattedProducts]));
     } catch (error) {
       console.error("Error fetching products:", error);
       toast({
@@ -197,6 +236,8 @@ const Products = () => {
         description: "Failed to fetch products",
         variant: "destructive",
       });
+    } finally {
+      setIsLoadingMore(false);
     }
   };
 
