@@ -130,41 +130,110 @@ const AgentDetail = () => {
     }
   };
 
-  const fetchProducts = async () => {
-    setProductsLoading(true);
-    try {
-      const [assignedRes, unassignedRes, allProductsRes] = await Promise.all([
-        axios.get<ProductAgentRelationship[]>(getApiUrl("PRODUCTS_BY_AGENT", agentId), {
-          headers: authHeaders(),
-        }),
-        axios.get<ProductIdName[]>(getApiUrl("UNASSIGNED_PRODUCTS_BY_AGENT", agentId), {
-          headers: authHeaders(),
-        }),
-        // For names of assigned products
-        axios.get<any[]>(getApiUrl("PRODUCTS"), { headers: authHeaders() }).catch(() => ({ data: [] as any[] })),
-      ]);
+  // Fetch the global product name lookup once (limited) — used to render assigned items
+  const [nameLookup, setNameLookup] = useState<Map<number, { name: string; category: string }>>(
+    new Map()
+  );
 
-      const nameById = new Map<number, string>();
-      for (const p of allProductsRes.data || []) {
-        if (p?.product_id != null) nameById.set(p.product_id, p.product_name ?? `#${p.product_id}`);
+  const ensureNamesFor = async (ids: number[]) => {
+    const missing = ids.filter((id) => !nameLookup.has(id));
+    if (missing.length === 0) return nameLookup;
+    // Fetch all products in pages; cheaper alternative would be a by-ids endpoint.
+    const next = new Map(nameLookup);
+    let lastId = 0;
+    let keepGoing = true;
+    const needed = new Set(missing);
+    while (keepGoing && needed.size > 0) {
+      const { data } = await axios.get<ApiProductFull[]>(getApiUrl("PRODUCTS"), {
+        headers: authHeaders(),
+        params: { limit: PAGE_SIZE, last_product_id: lastId },
+      });
+      if (!data || data.length === 0) break;
+      for (const p of data) {
+        next.set(p.product_id, { name: p.product_name, category: p.category });
+        needed.delete(p.product_id);
       }
+      lastId = data[data.length - 1].product_id;
+      if (data.length < PAGE_SIZE) keepGoing = false;
+    }
+    setNameLookup(next);
+    return next;
+  };
 
-      const merged: AssignedItem[] = assignedRes.data.map((r) => ({
+  const fetchAssignedPage = async (reset: boolean) => {
+    if (reset) {
+      setProductsLoading(true);
+    } else {
+      setAssignedLoadingMore(true);
+    }
+    try {
+      const lastId = reset ? 0 : assigned[assigned.length - 1]?.product_id ?? 0;
+      const params: Record<string, any> = { limit: PAGE_SIZE, last_product_id: lastId };
+      if (assignedCategory !== "all") params.categories = [assignedCategory];
+      const { data } = await axios.get<ProductAgentRelationship[]>(
+        getApiUrl("PRODUCTS_BY_AGENT", agentId),
+        { headers: authHeaders(), params }
+      );
+      const ids = data.map((r) => r.product_id);
+      const lookup = await ensureNamesFor(ids);
+      const items: AssignedItem[] = data.map((r) => ({
         relationship_id: r.relationship_id,
         product_id: r.product_id,
-        product_name: nameById.get(r.product_id) ?? `Product #${r.product_id}`,
+        product_name: lookup.get(r.product_id)?.name ?? `Product #${r.product_id}`,
+        category: lookup.get(r.product_id)?.category,
       }));
-
-      setAssigned(merged);
-      setUnassigned(unassignedRes.data);
-      setSelectedAssigned(new Set());
-      setSelectedUnassigned(new Set());
+      setAssigned((prev) => (reset ? items : [...prev, ...items]));
+      setAssignedHasMore(data.length === PAGE_SIZE);
+      if (reset) setSelectedAssigned(new Set());
     } catch (err) {
       console.error(err);
-      toast({ title: "Error", description: "Failed to load products.", variant: "destructive" });
+      toast({ title: "Error", description: "Failed to load assigned.", variant: "destructive" });
     } finally {
       setProductsLoading(false);
+      setAssignedLoadingMore(false);
     }
+  };
+
+  const fetchUnassignedPage = async (reset: boolean) => {
+    if (reset) setProductsLoading(true);
+    else setUnassignedLoadingMore(true);
+    try {
+      const lastId = reset ? 0 : unassigned[unassigned.length - 1]?.product_id ?? 0;
+      const params: Record<string, any> = { limit: PAGE_SIZE, last_product_id: lastId };
+      if (unassignedCategory !== "all") params.categories = [unassignedCategory];
+      const { data } = await axios.get<ProductIdName[]>(
+        getApiUrl("UNASSIGNED_PRODUCTS_BY_AGENT", agentId),
+        { headers: authHeaders(), params }
+      );
+      setUnassigned((prev) => (reset ? data : [...prev, ...data]));
+      setUnassignedHasMore(data.length === PAGE_SIZE);
+      if (reset) setSelectedUnassigned(new Set());
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to load unassigned.", variant: "destructive" });
+    } finally {
+      setProductsLoading(false);
+      setUnassignedLoadingMore(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      // Pull a page of products to derive the category list (best-effort).
+      const { data } = await axios.get<ApiProductFull[]>(getApiUrl("PRODUCTS"), {
+        headers: authHeaders(),
+        params: { limit: 500, last_product_id: 0 },
+      });
+      const set = new Set<string>();
+      for (const p of data) if (p.category) set.add(p.category);
+      setCategories(Array.from(set).sort());
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const refreshAll = async () => {
+    await Promise.all([fetchAssignedPage(true), fetchUnassignedPage(true)]);
   };
 
   useEffect(() => {
