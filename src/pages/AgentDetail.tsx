@@ -239,9 +239,23 @@ const AgentDetail = () => {
   useEffect(() => {
     if (!Number.isFinite(agentId)) return;
     fetchAgent();
-    fetchProducts();
+    fetchCategories();
+    refreshAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
+
+  // Re-fetch when category filter changes
+  useEffect(() => {
+    if (!Number.isFinite(agentId)) return;
+    fetchAssignedPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignedCategory]);
+
+  useEffect(() => {
+    if (!Number.isFinite(agentId)) return;
+    fetchUnassignedPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unassignedCategory]);
 
   const handleSaveConfig = async () => {
     if (!form.agent_name || !form.category) {
@@ -288,7 +302,7 @@ const AgentDetail = () => {
         headers: authHeaders(),
       });
       toast({ title: "Assigned", description: `${payload.length} product(s) assigned.` });
-      await fetchProducts();
+      await refreshAll();
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to assign products.", variant: "destructive" });
@@ -307,7 +321,7 @@ const AgentDetail = () => {
         data: ids,
       });
       toast({ title: "Removed", description: `${ids.length} product(s) removed.` });
-      await fetchProducts();
+      await refreshAll();
     } catch (err) {
       console.error(err);
       toast({ title: "Error", description: "Failed to remove products.", variant: "destructive" });
