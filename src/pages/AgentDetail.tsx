@@ -330,6 +330,50 @@ const AgentDetail = () => {
     }
   };
 
+  const handleAssignAll = async () => {
+    setBulkBusy(true);
+    try {
+      // Treat currently-selected unassigned items as exceptions (skip them).
+      const exception_product_ids = Array.from(selectedUnassigned);
+      await axios.post(
+        getApiUrl("AGENT_ASSIGN_ALL_PRODUCTS", agentId),
+        { exception_product_ids: exception_product_ids.length ? exception_product_ids : null },
+        { headers: authHeaders() }
+      );
+      toast({ title: "Assigned", description: "All unassigned products were assigned." });
+      await refreshAll();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to assign all products.", variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleAssignByCategory = async () => {
+    if (!assignByCategorySelected) return;
+    setBulkBusy(true);
+    try {
+      await axios.post(
+        getApiUrl("AGENT_ASSIGN_BY_CATEGORY", agentId),
+        { category_name: assignByCategorySelected },
+        { headers: authHeaders() }
+      );
+      toast({
+        title: "Assigned",
+        description: `Assigned all "${assignByCategorySelected}" products.`,
+      });
+      setAssignByCategoryOpen(false);
+      setAssignByCategorySelected("");
+      await refreshAll();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error", description: "Failed to assign by category.", variant: "destructive" });
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
   const filteredAssigned = useMemo(
     () =>
       assigned.filter((a) =>
