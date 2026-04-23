@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,6 +98,12 @@ const Products = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  // Infinite scroll state
+  const PAGE_SIZE = 100;
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const lastIdRef = useRef(0);
 
   // ✅ CLIENT-level optional columns (3 independent toggles)
   const [optionalCols, setOptionalCols] = useState<OptionalColumns>(() =>
