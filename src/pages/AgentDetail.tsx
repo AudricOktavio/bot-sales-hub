@@ -99,6 +99,17 @@ const AgentDetail = () => {
   const [searchAssigned, setSearchAssigned] = useState("");
   const [searchUnassigned, setSearchUnassigned] = useState("");
 
+  // Infinite scroll + category filter state
+  const [categories, setCategories] = useState<string[]>([]);
+  const [assignedCategory, setAssignedCategory] = useState<string>("all");
+  const [unassignedCategory, setUnassignedCategory] = useState<string>("all");
+  const [assignedHasMore, setAssignedHasMore] = useState(true);
+  const [unassignedHasMore, setUnassignedHasMore] = useState(true);
+  const [assignedLoadingMore, setAssignedLoadingMore] = useState(false);
+  const [unassignedLoadingMore, setUnassignedLoadingMore] = useState(false);
+  const [assignByCategoryOpen, setAssignByCategoryOpen] = useState(false);
+  const [assignByCategorySelected, setAssignByCategorySelected] = useState<string>("");
+
   const fetchAgent = async () => {
     try {
       const { data } = await axios.get<ApiAgent>(getApiUrl("AGENT_BY_ID", agentId), {
