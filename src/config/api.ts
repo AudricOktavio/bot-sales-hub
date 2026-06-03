@@ -98,6 +98,8 @@ export const API_CONFIG = {
       `/analytics/summary?start_date=${start_date}&end_date=${end_date}`,
     ANALYTICS_DAILY: "/analytics/daily",
 
+    CREDIT_BALANCE: "/credit/balance",
+
     WEBSOCKET: "/ws",
   },
 } as const;
