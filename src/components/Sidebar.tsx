@@ -14,6 +14,7 @@ import {
   Menu,
   Settings,
   Plug,
+  CreditCard,
 } from "lucide-react";
 
 interface NavItemProps {
@@ -78,6 +79,7 @@ const Sidebar = () => {
 
   const bottomNavItems = [
     { to: "/integrations", icon: <Plug size={20} />, label: "Integrations" },
+    { to: "/billing", icon: <CreditCard size={20} />, label: "Credits & Billing" },
     { to: "/settings", icon: <Settings size={20} />, label: "Settings" },
   ];
 
