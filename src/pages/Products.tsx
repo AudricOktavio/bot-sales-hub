@@ -104,6 +104,7 @@ const Products = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const lastIdRef = useRef(0);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   // ✅ CLIENT-level optional columns (3 independent toggles)
   const [optionalCols, setOptionalCols] = useState<OptionalColumns>(() =>
@@ -150,18 +151,29 @@ const Products = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryFilter]);
 
-  // Window-level infinite scroll
+  // Re-fetch when search term changes (server-side)
   useEffect(() => {
+    fetchProducts(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
+
+  // Container-level infinite scroll
+  useEffect(() => {
+    const el = tableContainerRef.current;
+    if (!el) return;
+
     const onScroll = () => {
       if (!hasMore || isLoadingMore) return;
-      const scrollPos = window.innerHeight + window.scrollY;
-      const threshold = document.body.offsetHeight - 400;
-      if (scrollPos >= threshold) {
+      const scrollTop = el.scrollTop;
+      const clientHeight = el.clientHeight;
+      const scrollHeight = el.scrollHeight;
+      if (scrollTop + clientHeight >= scrollHeight - 400) {
         fetchProducts(false);
       }
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, isLoadingMore, categoryFilter]);
 
@@ -181,6 +193,7 @@ const Products = () => {
         last_product_id: lastIdRef.current,
       };
       if (categoryFilter !== "all") params.categories = [categoryFilter];
+      if (searchTerm.trim()) params.search = searchTerm.trim();
 
       const response = await axios.get(
         `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PRODUCTS}`,
@@ -375,27 +388,10 @@ const Products = () => {
   const categories = ["all", ...new Set(products.map((p) => p.category))];
 
   const filteredProducts = products.filter((product) => {
-    const st = searchTerm.toLowerCase();
-
-    const baseMatch =
-      product.name.toLowerCase().includes(st) ||
-      product.sku.toLowerCase().includes(st) ||
-      (product.description ?? "").toLowerCase().includes(st);
-
-    const optMatch =
-      (optionalCols.uom && (product.uom ?? "").toLowerCase().includes(st)) ||
-      (optionalCols.conversion &&
-        (product.conversion ?? "").toLowerCase().includes(st)) ||
-      (optionalCols.moq &&
-        String(product.preOrderMoq ?? "").includes(searchTerm));
-
-    const matchesCategory =
-      categoryFilter === "all" || product.category === categoryFilter;
-
     const matchesSource =
       sourceFilter === "all" || product.source === sourceFilter;
 
-    return (baseMatch || optMatch) && matchesCategory && matchesSource;
+    return matchesSource;
   });
 
   const handleCreateProduct = () => {
@@ -872,12 +868,14 @@ const Products = () => {
         </Select>
       </div>
 
-      <ProductTable
-        products={filteredProducts}
-        onEdit={handleEditProduct}
-        onDelete={handleDeleteProduct}
-        showColumns={optionalCols}
-      />
+      <div ref={tableContainerRef} className="overflow-auto max-h-[calc(100vh-200px)]">
+        <ProductTable
+          products={filteredProducts}
+          onEdit={handleEditProduct}
+          onDelete={handleDeleteProduct}
+          showColumns={optionalCols}
+        />
+      </div>
 
       {/* Product Editor Dialog (unchanged from your version) */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

@@ -52,9 +52,9 @@ export const API_CONFIG = {
     PRODUCTS_AGENT_RELATIONSHIPS: "/products-agent-relationships",
 
     AGENT_ASSIGN_ALL_PRODUCTS: (agent_id: number) =>
-      `/agents/${agent_id}/assign-all-products`,
+      `/product-agents/${agent_id}/assign-all-products`,
     AGENT_ASSIGN_BY_CATEGORY: (agent_id: number) =>
-      `/agents/${agent_id}/assign-by-category`,
+      `/product-agents/${agent_id}/assign-by-category`,
 
     ACCURATE_CONNECT: "/accurate/connect",
     ACCURATE_PROVIDER: "/accurate/provider",
@@ -66,6 +66,7 @@ export const API_CONFIG = {
 
     WHATSAPPS: "/whatsapps",
     WHATSAPP_BY_ID: (id: number) => `/whatsapps/${id}`,
+    WHATSAPP_DISPLAY_NAME: (whatsapp_id: number) => `/whatsapps/${whatsapp_id}/display_name`,
     WHATSAPP_OAUTH_LOGIN: "/whatsapps/oauth/login",
 
     PAYMENT_PROVIDER: "/payment/provider",
@@ -87,8 +88,8 @@ export const API_CONFIG = {
     CONTACT_STATS_STATUS: "/contacts/stats/status",
 
     CHAT_LOGS: "/chat_logs",
-    CHAT_LOG_BY_PHONE: (phone_number: string, last_chat_id: number) =>
-      `/chat_logs/${encodeURIComponent(phone_number)}?last_chat_id=${last_chat_id}`,
+    CHAT_LOG_BY_PHONE: (phone_number: string, last_chat_id: number, recipient?: string) =>
+      `/chat_logs/${encodeURIComponent(phone_number)}?last_chat_id=${last_chat_id}${recipient ? `&recipient=${encodeURIComponent(recipient)}` : ''}`,
 
     HANDOFF_TOGGLE: (contact_id: number) => `/contacts/${contact_id}/handoff`,
     HANDOFF_RESOLVE: (contact_id: number) => `/contacts/${contact_id}/resolve`,

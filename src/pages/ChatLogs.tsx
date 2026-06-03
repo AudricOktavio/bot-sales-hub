@@ -41,6 +41,7 @@ type Status = "new-lead" | "interested" | "closed" | "no-interest";
 interface ListRow {
   id: number;
   phoneNumber: string;
+  recipient: string | null;
   customerName: string;
   date: string;
   status: Status;
@@ -122,35 +123,53 @@ const mapWireToMessage = (it: ChatItemWire): Message => {
       hour: "2-digit",
       minute: "2-digit",
     }),
-    recipient: it.recipient,
+    recipient: it.recipient != null ? String(it.recipient) : undefined,
   };
 };
 
-const transformChatLog = (apiChatLog: ApiChatLogWire): ListRow => {
+const transformChatLog = (apiChatLog: ApiChatLogWire): ListRow[] => {
   const logArray = Array.isArray(apiChatLog.log)
     ? apiChatLog.log
     : [apiChatLog.log];
   const messages: Message[] = logArray.filter(Boolean).map(mapWireToMessage);
 
-  return {
-    id:
-      parseInt(apiChatLog.phone_number.replace(/\D/g, "")) ||
-      Math.floor(Math.random() * 1e9),
-    phoneNumber: apiChatLog.phone_number,
-    customerName: apiChatLog.customer_name || apiChatLog.phone_number,
-    date: logArray.length
-      ? new Date(logArray[0].created_at).toLocaleDateString("en-US", {
+  // Group messages by recipient
+  const groups = new Map<string | null, Message[]>();
+  messages.forEach(msg => {
+    const rec = msg.recipient || null;
+    if (!groups.has(rec)) groups.set(rec, []);
+    groups.get(rec)!.push(msg);
+  });
+
+  const rows: ListRow[] = [];
+  let index = 0;
+  groups.forEach((groupMessages, recipient) => {
+    // Sort by timestamp descending for latest date
+    groupMessages.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const latestMessage = groupMessages[0];
+    const date = latestMessage
+      ? new Date(latestMessage.timestamp).toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
           year: "numeric",
         })
-      : "Unknown",
-    status: "new-lead",
-    agentName: "Agent",
-    handoffActive: apiChatLog.is_handoff_active ?? false,
-    customerId: apiChatLog.customer_id,
-    messages,
-  };
+      : "Unknown";
+
+    rows.push({
+      id: parseInt(apiChatLog.phone_number.replace(/\D/g, "")) + index++ || Math.floor(Math.random() * 1e9),
+      phoneNumber: apiChatLog.phone_number,
+      recipient,
+      customerName: apiChatLog.customer_name || apiChatLog.phone_number,
+      date,
+      status: "new-lead",
+      agentName: "Agent",
+      handoffActive: apiChatLog.is_handoff_active ?? false,
+      customerId: apiChatLog.customer_id,
+      messages: groupMessages.reverse(), // back to chronological
+    });
+  });
+
+  return rows;
 };
 
 /* ----------------------------- Component ----------------------------- */
@@ -173,13 +192,16 @@ const ChatDialog = () => {
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasMoreOlder, setHasMoreOlder] = useState<Record<string, boolean>>({});
 
+  const [displayNameMap, setDisplayNameMap] = useState<Record<string, string>>({});
+  const [fetchedIds, setFetchedIds] = useState<Set<string>>(new Set());
+
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  const selectedPhoneRef = useRef<string | null>(null);
+  const selectedChatKeyRef = useRef<string | null>(null);
   useEffect(() => {
-    selectedPhoneRef.current = selectedChat?.phoneNumber ?? null;
-  }, [selectedChat?.phoneNumber]);
+    selectedChatKeyRef.current = selectedChat ? `${selectedChat.phoneNumber}_${selectedChat.recipient || 'null'}` : null;
+  }, [selectedChat?.phoneNumber, selectedChat?.recipient]);
 
   const scrollToBottom = (behavior: ScrollBehavior = "auto") => {
     endRef.current?.scrollIntoView({ behavior, block: "nearest" });
@@ -187,6 +209,7 @@ const ChatDialog = () => {
 
   const handleWsPayload = useCallback(
     (payload: any) => {
+      console.log("INCOMING WS PAYLOAD:", payload);
       const type = payload?.type;
 
       if (type === "ws_connected") return;
@@ -208,11 +231,13 @@ const ChatDialog = () => {
         return;
       }
 
-      // { type:'chat_update', phone_number, data:{...} }
+      // { type:'chat_update', phone_number, recipient?, data:{...} }
       if (type === "chat_update") {
         const phone = String(
           payload?.phone_number ?? payload?.data?.phone_number ?? ""
         );
+        const rawRecipient = payload?.recipient ?? payload?.data?.recipient ?? null;
+        const recipient = rawRecipient !== null ? String(rawRecipient) : null;
         if (!phone) return;
 
         const data = payload?.data ?? {};
@@ -225,7 +250,7 @@ const ChatDialog = () => {
 
         // update selected chat
         setSelectedChat((prev) => {
-          if (!prev || prev.phoneNumber !== phone) return prev;
+          if (!prev || prev.phoneNumber !== phone || prev.recipient !== recipient) return prev;
           return {
             ...prev,
             customerName: data.customer_name || prev.customerName,
@@ -237,40 +262,18 @@ const ChatDialog = () => {
 
         // update list row
         setChatLogs((prev) => {
-          const idx = prev.findIndex((r) => r.phoneNumber === phone);
-          const updatedRow: ListRow =
-            idx === -1
-              ? {
-                  id:
-                    parseInt(phone.replace(/\D/g, "")) ||
-                    Math.floor(Math.random() * 1e9),
-                  phoneNumber: phone,
-                  customerName: data.customer_name || phone,
-                  date: messages.length
-                    ? new Date(logArray[0].created_at).toLocaleDateString(
-                        "en-US",
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }
-                      )
-                    : "Unknown",
-                  status: "new-lead",
-                  agentName: "Agent",
-                  customerId: data.customer_id,
-                  handoffActive: Boolean(data.is_handoff_active),
-                  messages,
-                }
-              : {
-                  ...prev[idx],
-                  customerName: data.customer_name || prev[idx].customerName,
-                  customerId: data.customer_id ?? prev[idx].customerId,
-                  handoffActive: Boolean(data.is_handoff_active),
-                  messages,
-                };
-
-          if (idx === -1) return [updatedRow, ...prev];
+          const idx = prev.findIndex((r) => r.phoneNumber === phone && r.recipient === recipient);
+          if (idx === -1) {
+            // If not found, perhaps don't add, since list is fetched separately
+            return prev;
+          }
+          const updatedRow: ListRow = {
+            ...prev[idx],
+            customerName: data.customer_name || prev[idx].customerName,
+            customerId: data.customer_id ?? prev[idx].customerId,
+            handoffActive: Boolean(data.is_handoff_active),
+            messages,
+          };
 
           const copy = [...prev];
           copy[idx] = updatedRow;
@@ -283,7 +286,7 @@ const ChatDialog = () => {
         }));
 
         requestAnimationFrame(() => {
-          if (selectedPhoneRef.current === phone) scrollToBottom("auto");
+          if (selectedChatKeyRef.current === `${phone}_${recipient || 'null'}`) scrollToBottom("auto");
         });
 
         return;
@@ -294,7 +297,7 @@ const ChatDialog = () => {
         const list = payload?.data?.chat_list;
         if (!Array.isArray(list)) return;
 
-        const rows = list.map(transformChatLog);
+        const rows = list.flatMap(transformChatLog);
         setChatLogs(rows);
 
         const map: Record<string, boolean> = {};
@@ -302,6 +305,16 @@ const ChatDialog = () => {
           (c: any) => (map[c.phone_number] = Boolean(c.is_handoff_active))
         );
         setHandoffActive(map);
+
+        // Fetch display names for unique whatsapp_ids
+        const uniqueIds = new Set<string>();
+        rows.forEach(row => {
+          row.messages.forEach(msg => {
+            if (msg.recipient) uniqueIds.add(msg.recipient);
+          });
+        });
+        fetchDisplayNames(Array.from(uniqueIds));
+
         return;
       }
     },
@@ -317,6 +330,44 @@ const ChatDialog = () => {
     onMessage: handleWsPayload,
   });
 
+  const fetchDisplayNames = useCallback(async (ids: string[]) => {
+    const toFetch = ids.filter(id => !fetchedIds.has(id));
+    if (toFetch.length === 0) return;
+
+    const promises = toFetch.map(async (id) => {
+      try {
+        const res = await api.get<{ display_name?: string; displayName?: string }>(
+          API_CONFIG.ENDPOINTS.WHATSAPP_DISPLAY_NAME(parseInt(id))
+        );
+
+        const displayName =
+          res.data.display_name ?? res.data.displayName ?? id;
+
+        if (!res.data.display_name && !res.data.displayName) {
+          console.warn(
+            `WhatsApp display name response missing field for ${id}:`,
+            res.data
+          );
+        }
+
+        return { id, displayName };
+      } catch (e) {
+        console.error(`Failed to fetch display name for ${id}:`, e);
+        return { id, displayName: id }; // fallback to id
+      }
+    });
+
+    const results = await Promise.all(promises);
+    setDisplayNameMap(prev => {
+      const newMap = { ...prev };
+      results.forEach(({ id, displayName }) => {
+        newMap[id] = displayName;
+      });
+      return newMap;
+    });
+    setFetchedIds(prev => new Set([...prev, ...toFetch]));
+  }, [fetchedIds]);
+
   const fetchChatLogs = useCallback(async () => {
     setLoading(true);
     try {
@@ -328,7 +379,7 @@ const ChatDialog = () => {
         }
       );
 
-      const rows = res.data.chat_list.map(transformChatLog);
+      const rows = res.data.chat_list.flatMap(transformChatLog);
       setChatLogs(rows);
 
       const map: Record<string, boolean> = {};
@@ -337,10 +388,19 @@ const ChatDialog = () => {
       );
       setHandoffActive(map);
 
+      // Fetch display names for unique whatsapp_ids
+      const uniqueIds = new Set<string>();
+      rows.forEach(row => {
+        row.messages.forEach(msg => {
+          if (msg.recipient) uniqueIds.add(msg.recipient);
+        });
+      });
+      await fetchDisplayNames(Array.from(uniqueIds));
+
       // keep selection if exists
       setSelectedChat((prev) => {
         if (!prev) return null;
-        const found = rows.find((r) => r.phoneNumber === prev.phoneNumber);
+        const found = rows.find((r) => r.phoneNumber === prev.phoneNumber && r.recipient === prev.recipient);
         return found ? { ...found } : null;
       });
     } catch (e) {
@@ -357,8 +417,8 @@ const ChatDialog = () => {
 
   // subscribe to selected chat room (no reconnect)
   useEffect(() => {
-    subscribeChat(selectedChat?.phoneNumber ?? null);
-  }, [selectedChat?.phoneNumber, subscribeChat]);
+    subscribeChat(selectedChat?.phoneNumber ?? null, selectedChat?.recipient ?? null);
+  }, [selectedChat?.phoneNumber, selectedChat?.recipient, subscribeChat]);
 
   const fetchOlderMessages = useCallback(
     async (phoneNumber: string) => {
@@ -380,14 +440,14 @@ const ChatDialog = () => {
         const prevScrollHeight = container?.scrollHeight ?? 0;
 
         const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
-          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(phoneNumber, last_chat_id)
+          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(phoneNumber, last_chat_id, selectedChat.recipient)
         );
         const logArray = Array.isArray(res.data.log)
           ? res.data.log
           : [res.data.log];
 
         if (logArray.length === 0) {
-          setHasMoreOlder((p) => ({ ...p, [phoneNumber]: false }));
+          setHasMoreOlder((p) => ({ ...p, [`${phoneNumber}_${selectedChat.recipient || 'null'}`]: false }));
           return;
         }
 
@@ -405,7 +465,7 @@ const ChatDialog = () => {
         const pageSize = 50;
         setHasMoreOlder((p) => ({
           ...p,
-          [phoneNumber]: logArray.length >= pageSize,
+          [`${phoneNumber}_${selectedChat.recipient || 'null'}`]: logArray.length >= pageSize,
         }));
 
         requestAnimationFrame(() => {
@@ -433,10 +493,10 @@ const ChatDialog = () => {
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     if (target.scrollTop < 120 && selectedChat) {
-      const phone = selectedChat.phoneNumber;
-      const more = hasMoreOlder[phone];
+      const key = `${selectedChat.phoneNumber}_${selectedChat.recipient || 'null'}`;
+      const more = hasMoreOlder[key];
       if ((more === undefined || more === true) && !loadingOlder) {
-        fetchOlderMessages(phone);
+        fetchOlderMessages(selectedChat.phoneNumber);
       }
     }
   };
@@ -445,7 +505,7 @@ const ChatDialog = () => {
     setLoadingDetail(true);
     try {
       const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
-        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(chat.phoneNumber, 0)
+        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(chat.phoneNumber, 0, chat.recipient)
       );
       const logArray = Array.isArray(res.data.log)
         ? res.data.log
@@ -455,13 +515,13 @@ const ChatDialog = () => {
       const updated = { ...chat, messages };
       setSelectedChat(updated);
       setChatLogs((prev) =>
-        prev.map((r) => (r.phoneNumber === chat.phoneNumber ? updated : r))
+        prev.map((r) => (r.phoneNumber === chat.phoneNumber && r.recipient === chat.recipient ? updated : r))
       );
 
       const pageSize = 50;
       setHasMoreOlder((p) => ({
         ...p,
-        [chat.phoneNumber]: logArray.length >= pageSize,
+        [`${chat.phoneNumber}_${chat.recipient || 'null'}`]: logArray.length >= pageSize,
       }));
 
       requestAnimationFrame(() => scrollToBottom("auto"));
@@ -590,6 +650,7 @@ const ChatDialog = () => {
     const newChat: ListRow = {
       id: Math.max(0, ...chatLogs.map((c) => c.id)) + 1,
       phoneNumber: String(Math.floor(Math.random() * 1e11)),
+      recipient: null,
       customerName: "New Customer",
       date: new Date().toLocaleDateString("en-US", {
         month: "short",
@@ -642,7 +703,7 @@ const ChatDialog = () => {
     );
     setChatLogs((prev) =>
       prev.map((r) =>
-        r.phoneNumber === selectedChat.phoneNumber
+        r.phoneNumber === selectedChat.phoneNumber && r.recipient === selectedChat.recipient
           ? { ...r, messages: [...r.messages, optimistic] }
           : r
       )
@@ -734,10 +795,10 @@ const ChatDialog = () => {
                 <div className="divide-y">
                   {filteredLogs.map((row) => (
                     <div
-                      key={row.id}
+                      key={`${row.phoneNumber}-${row.recipient || 'unassigned'}`}
                       onClick={() => handleSelectChat(row)}
                       className={`p-4 cursor-pointer hover:bg-muted/50 transition-colors ${
-                        selectedChat?.phoneNumber === row.phoneNumber
+                        selectedChat?.phoneNumber === row.phoneNumber && selectedChat?.recipient === row.recipient
                           ? "bg-muted"
                           : ""
                       }`}
@@ -756,6 +817,11 @@ const ChatDialog = () => {
                           <div className="flex items-center justify-between">
                             <h3 className="font-medium truncate">
                               {row.customerName}
+                              {row.recipient && (
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  Whatsapp ({displayNameMap[row.recipient] || row.recipient})
+                                </span>
+                              )}
                             </h3>
                             <span className="text-xs text-muted-foreground">
                               {row.date}
@@ -822,6 +888,11 @@ const ChatDialog = () => {
                   <div className="flex-1">
                     <h2 className="font-semibold">
                       {selectedChat.customerName}
+                      {selectedChat.recipient && (
+                        <span className="text-sm text-muted-foreground ml-2">
+                          Whatsapp ({displayNameMap[selectedChat.recipient] || selectedChat.recipient})
+                        </span>
+                      )}
                     </h2>
                     <p className="text-sm text-muted-foreground">
                       Product not specified • {selectedChat.agentName}
@@ -910,7 +981,6 @@ const ChatDialog = () => {
 
                             <div
                               className={`rounded-lg p-3 ${bubbleClass}`}
-                              title={m.recipient ? `Recipient: ${m.recipient}` : undefined}
                             >
                               <p className="text-sm">{m.content}</p>
                               <span className="text-xs opacity-70 mt-1 block">
@@ -918,7 +988,7 @@ const ChatDialog = () => {
                                 {m.recipient && m.sender === "customer" && (
                                   <>
                                     <span className="mx-1">·</span>
-                                    <span className="text-[10px] text-purple-500">To: {m.recipient}</span>
+                                    <span className="text-[10px] text-purple-500">To: Whatsapp ({displayNameMap[m.recipient] || m.recipient})</span>
                                   </>
                                 )}
                               </span>

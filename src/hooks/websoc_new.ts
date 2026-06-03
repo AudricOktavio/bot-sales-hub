@@ -33,7 +33,6 @@ type SharedState = {
   refCount: number;
 
   lastSubscribedPhone: string | null;
-  lastSubscribedRecipient: string | null;
   debug: boolean;
 
   // ✅ stop infinite reconnect on auth reject
@@ -56,7 +55,6 @@ const shared: SharedState = {
   refCount: 0,
 
   lastSubscribedPhone: null,
-  lastSubscribedRecipient: null,
   debug: false,
 
   hardStopReconnect: false,
@@ -249,10 +247,9 @@ const ensureSocket = (opts?: { debug?: boolean }) => {
           JSON.stringify({
             type: "subscribe_chat",
             phone_number: shared.lastSubscribedPhone,
-            recipient: shared.lastSubscribedRecipient,
           }),
         );
-        log("re-subscribed:", shared.lastSubscribedPhone, shared.lastSubscribedRecipient);
+        log("re-subscribed:", shared.lastSubscribedPhone);
       } catch {
         // ignore
       }
@@ -334,7 +331,7 @@ const sendJson = (payload: any) => {
 export type UseCrmWebsocketReturn = {
   connected: boolean;
   send: (payload: any) => boolean;
-  subscribeChat: (phoneNumber: string | null, recipient?: string | null) => boolean;
+  subscribeChat: (phoneNumber: string | null) => boolean;
   sendAgentMessage: (phoneNumber: string, text: string, whatsappId?: string | null) => boolean;
 
   // ✅ allow manual restart after login
@@ -356,10 +353,9 @@ export function useCrmWebsocket(options?: {
 
       send: (payload: any) => sendJson(payload),
 
-      subscribeChat: (phoneNumber: string | null, recipient?: string | null) => {
+      subscribeChat: (phoneNumber: string | null) => {
         shared.lastSubscribedPhone = phoneNumber;
-        shared.lastSubscribedRecipient = recipient ?? null;
-        return sendJson({ type: "subscribe_chat", phone_number: phoneNumber, recipient: recipient ?? null });
+        return sendJson({ type: "subscribe_chat", phone_number: phoneNumber });
       },
 
       sendAgentMessage: (phoneNumber: string, text: string, whatsappId?: string | null) => {

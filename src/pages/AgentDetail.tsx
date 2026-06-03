@@ -170,6 +170,7 @@ const AgentDetail = () => {
       const lastId = reset ? 0 : assigned[assigned.length - 1]?.product_id ?? 0;
       const params: Record<string, any> = { limit: PAGE_SIZE, last_product_id: lastId };
       if (assignedCategory !== "all") params.categories = [assignedCategory];
+      if (searchAssigned.trim()) params.search = searchAssigned.trim();
       const { data } = await axios.get<ProductAgentRelationship[]>(
         getApiUrl("PRODUCTS_BY_AGENT", agentId),
         { headers: authHeaders(), params, paramsSerializer: { indexes: null } }
@@ -201,6 +202,7 @@ const AgentDetail = () => {
       const lastId = reset ? 0 : unassigned[unassigned.length - 1]?.product_id ?? 0;
       const params: Record<string, any> = { limit: PAGE_SIZE, last_product_id: lastId };
       if (unassignedCategory !== "all") params.categories = [unassignedCategory];
+      if (searchUnassigned.trim()) params.search = searchUnassigned.trim();
       const { data } = await axios.get<ProductIdName[]>(
         getApiUrl("UNASSIGNED_PRODUCTS_BY_AGENT", agentId),
         { headers: authHeaders(), params, paramsSerializer: { indexes: null } }
@@ -256,6 +258,19 @@ const AgentDetail = () => {
     fetchUnassignedPage(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unassignedCategory]);
+
+  // Re-fetch when search changes
+  useEffect(() => {
+    if (!Number.isFinite(agentId)) return;
+    fetchAssignedPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchAssigned]);
+
+  useEffect(() => {
+    if (!Number.isFinite(agentId)) return;
+    fetchUnassignedPage(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchUnassigned]);
 
   const handleSaveConfig = async () => {
     if (!form.agent_name || !form.category) {
@@ -374,20 +389,8 @@ const AgentDetail = () => {
     }
   };
 
-  const filteredAssigned = useMemo(
-    () =>
-      assigned.filter((a) =>
-        a.product_name.toLowerCase().includes(searchAssigned.toLowerCase())
-      ),
-    [assigned, searchAssigned]
-  );
-  const filteredUnassigned = useMemo(
-    () =>
-      unassigned.filter((p) =>
-        p.product_name.toLowerCase().includes(searchUnassigned.toLowerCase())
-      ),
-    [unassigned, searchUnassigned]
-  );
+  const filteredAssigned = assigned;
+  const filteredUnassigned = unassigned;
 
   const toggle = (set: Set<number>, id: number, setter: (s: Set<number>) => void) => {
     const next = new Set(set);
@@ -476,19 +479,21 @@ const AgentDetail = () => {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="handover_prompt">Handover Prompt</Label>
-                    <Textarea
-                      id="handover_prompt"
-                      rows={5}
-                      className="min-h-[140px]"
-                      placeholder="Rules for when to hand over to a human or switch agents..."
-                      value={form.handover_prompt}
-                      onChange={(e) =>
-                        setForm((f) => ({ ...f, handover_prompt: e.target.value }))
-                      }
-                    />
-                  </div>
+                  {!form.allow_default_handover && (
+                    <div className="space-y-2">
+                      <Label htmlFor="handover_prompt">Handover Prompt</Label>
+                      <Textarea
+                        id="handover_prompt"
+                        rows={5}
+                        className="min-h-[140px]"
+                        placeholder="Rules for when to hand over to a human or switch agents..."
+                        value={form.handover_prompt}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, handover_prompt: e.target.value }))
+                        }
+                      />
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="prompt">Sales Prompt</Label>
