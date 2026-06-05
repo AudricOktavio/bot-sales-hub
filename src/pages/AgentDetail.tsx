@@ -515,6 +515,7 @@ const AgentDetail = () => {
             <TabsList className="w-full justify-start">
               <TabsTrigger value="configuration">Configuration</TabsTrigger>
               <TabsTrigger value="products">Product Management</TabsTrigger>
+              <TabsTrigger value="tools">AI Tools</TabsTrigger>
             </TabsList>
 
             <TabsContent
