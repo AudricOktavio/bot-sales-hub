@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save, CheckCheck, FolderPlus } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save, CheckCheck, FolderPlus, Wrench, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,20 @@ interface ApiProductFull {
   category: string;
 }
 
+interface ApiToolItem {
+  api_id: number;
+  name: string;
+  description?: string | null;
+  method: string;
+  webhook_address: string;
+}
+
+interface AgentApiRelationship {
+  relationship_id: number;
+  api_id: number;
+  agent_id: number;
+}
+
 const PAGE_SIZE = 100;
 
 const authHeaders = () => {
@@ -109,6 +123,12 @@ const AgentDetail = () => {
   const [unassignedLoadingMore, setUnassignedLoadingMore] = useState(false);
   const [assignByCategoryOpen, setAssignByCategoryOpen] = useState(false);
   const [assignByCategorySelected, setAssignByCategorySelected] = useState<string>("");
+
+  // AI Tools state
+  const [allTools, setAllTools] = useState<ApiToolItem[]>([]);
+  const [toolRelationships, setToolRelationships] = useState<AgentApiRelationship[]>([]);
+  const [toolsLoading, setToolsLoading] = useState(false);
+  const [toolBusy, setToolBusy] = useState<Set<number>>(new Set());
 
   const fetchAgent = async () => {
     try {
