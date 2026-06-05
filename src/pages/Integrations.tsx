@@ -23,8 +23,11 @@ import {
   Edit,
   ExternalLink,
   RefreshCw,
+  Wrench,
+  ArrowRight,
 } from "lucide-react";
 import { API_CONFIG } from "@/config/api";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -84,6 +87,7 @@ interface AccurateDatabase {
 
 const Integrations = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Midtrans settings
   const [midtransEnabled, setMidtransEnabled] = useState(false);
