@@ -100,6 +100,16 @@ export const API_CONFIG = {
 
     CREDIT_BALANCE: "/credit/balance",
 
+    API_TOOLS: "/api-tools",
+    API_TOOL_BY_ID: (id: number) => `/api-tools/${id}`,
+    AGENT_API_RELATIONSHIPS: "/agent-api-relationships",
+    AGENT_API_RELATIONSHIP_BY_ID: (id: number) =>
+      `/agent-api-relationships/${id}`,
+    API_TOOLS_BY_AGENT: (agent_id: number) =>
+      `/agents/${agent_id}/api-tools`,
+    AGENT_API_RELATIONSHIPS_BY_AGENT: (agent_id: number) =>
+      `/agents/${agent_id}/api-relationships`,
+
     WEBSOCKET: "/ws",
   },
 } as const;
