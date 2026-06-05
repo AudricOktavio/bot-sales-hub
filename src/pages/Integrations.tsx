@@ -23,8 +23,11 @@ import {
   Edit,
   ExternalLink,
   RefreshCw,
+  Wrench,
+  ArrowRight,
 } from "lucide-react";
 import { API_CONFIG } from "@/config/api";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -84,6 +87,7 @@ interface AccurateDatabase {
 
 const Integrations = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Midtrans settings
   const [midtransEnabled, setMidtransEnabled] = useState(false);
@@ -716,6 +720,32 @@ const Integrations = () => {
       </div>
 
       <div className="space-y-8">
+        {/* AI Tools Section */}
+        <div>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Wrench className="h-5 w-5" />
+            AI Tools
+          </h2>
+          <Card
+            className="cursor-pointer hover:border-primary/60 transition-colors"
+            onClick={() => navigate("/api-tools")}
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Custom AI Tools</CardTitle>
+                  <CardDescription>
+                    Register webhook-based tools your agents can invoke. Manage and add new tools here.
+                  </CardDescription>
+                </div>
+                <Button variant="outline" size="sm">
+                  Manage <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
+        </div>
+
         {/* Payment Section */}
         <div>
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">

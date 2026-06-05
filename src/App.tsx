@@ -19,6 +19,7 @@ import ChatLogs from "./pages/ChatLogs";
 import Settings from "./pages/Settings";
 import Integrations from "./pages/Integrations";
 import Billing from "./pages/Billing";
+import ApiTools from "./pages/ApiTools";
 import NotFound from "./pages/NotFound";
 
 // Components
@@ -80,6 +81,7 @@ const App = () => (
           <Route path="/settings" element={<AuthenticatedRoute><Settings /></AuthenticatedRoute>} />
           <Route path="/integrations" element={<AuthenticatedRoute><Integrations /></AuthenticatedRoute>} />
           <Route path="/billing" element={<AuthenticatedRoute><Billing /></AuthenticatedRoute>} />
+          <Route path="/api-tools" element={<AuthenticatedRoute><ApiTools /></AuthenticatedRoute>} />
           
           {/* 404 Page */}
           <Route path="*" element={<NotFound />} />

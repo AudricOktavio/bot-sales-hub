@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save, CheckCheck, FolderPlus } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, Loader2, Save, CheckCheck, FolderPlus, Wrench, Plus, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,20 @@ interface ApiProductFull {
   category: string;
 }
 
+interface ApiToolItem {
+  api_id: number;
+  name: string;
+  description?: string | null;
+  method: string;
+  webhook_address: string;
+}
+
+interface AgentApiRelationship {
+  relationship_id: number;
+  api_id: number;
+  agent_id: number;
+}
+
 const PAGE_SIZE = 100;
 
 const authHeaders = () => {
@@ -109,6 +123,12 @@ const AgentDetail = () => {
   const [unassignedLoadingMore, setUnassignedLoadingMore] = useState(false);
   const [assignByCategoryOpen, setAssignByCategoryOpen] = useState(false);
   const [assignByCategorySelected, setAssignByCategorySelected] = useState<string>("");
+
+  // AI Tools state
+  const [allTools, setAllTools] = useState<ApiToolItem[]>([]);
+  const [toolRelationships, setToolRelationships] = useState<AgentApiRelationship[]>([]);
+  const [toolsLoading, setToolsLoading] = useState(false);
+  const [toolBusy, setToolBusy] = useState<Set<number>>(new Set());
 
   const fetchAgent = async () => {
     try {
@@ -238,11 +258,74 @@ const AgentDetail = () => {
     await Promise.all([fetchAssignedPage(true), fetchUnassignedPage(true)]);
   };
 
+  const fetchTools = async () => {
+    setToolsLoading(true);
+    try {
+      const [allRes, relRes] = await Promise.all([
+        axios.get<ApiToolItem[]>(getApiUrl("API_TOOLS"), { headers: authHeaders() }),
+        axios.get<AgentApiRelationship[]>(
+          getApiUrl("AGENT_API_RELATIONSHIPS_BY_AGENT", agentId),
+          { headers: authHeaders() }
+        ),
+      ]);
+      setAllTools(allRes.data || []);
+      setToolRelationships(relRes.data || []);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to load AI tools.",
+        variant: "destructive",
+      });
+    } finally {
+      setToolsLoading(false);
+    }
+  };
+
+  const toggleTool = async (apiId: number, enabled: boolean) => {
+    setToolBusy((prev) => new Set(prev).add(apiId));
+    try {
+      if (enabled) {
+        const { data } = await axios.post<AgentApiRelationship>(
+          getApiUrl("AGENT_API_RELATIONSHIPS"),
+          { api_id: apiId, agent_id: agentId },
+          { headers: authHeaders() }
+        );
+        setToolRelationships((prev) => [...prev, data]);
+      } else {
+        const rel = toolRelationships.find((r) => r.api_id === apiId);
+        if (!rel) return;
+        await axios.delete(
+          getApiUrl("AGENT_API_RELATIONSHIP_BY_ID", rel.relationship_id),
+          { headers: authHeaders() }
+        );
+        setToolRelationships((prev) =>
+          prev.filter((r) => r.relationship_id !== rel.relationship_id)
+        );
+      }
+      setChatResetKey((k) => k + 1);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to update tool assignment.",
+        variant: "destructive",
+      });
+    } finally {
+      setToolBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(apiId);
+        return next;
+      });
+    }
+  };
+
   useEffect(() => {
     if (!Number.isFinite(agentId)) return;
     fetchAgent();
     fetchCategories();
     refreshAll();
+    fetchTools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
 
@@ -432,6 +515,7 @@ const AgentDetail = () => {
             <TabsList className="w-full justify-start">
               <TabsTrigger value="configuration">Configuration</TabsTrigger>
               <TabsTrigger value="products">Product Management</TabsTrigger>
+              <TabsTrigger value="tools">AI Tools</TabsTrigger>
             </TabsList>
 
             <TabsContent
@@ -769,6 +853,92 @@ const AgentDetail = () => {
                     </div>
                   </div>
                 </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tools" className="flex-1 min-h-0 mt-4">
+              <div className="flex flex-col h-full gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-sm">Available Tools</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle which tools this agent can use. Changes take effect immediately.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate("/api-tools")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add New Tool
+                    <ExternalLink className="h-3.5 w-3.5 ml-1.5 opacity-60" />
+                  </Button>
+                </div>
+
+                <div className="flex-1 min-h-0 border rounded-lg overflow-hidden bg-card">
+                  <div className="h-full overflow-auto">
+                    {toolsLoading ? (
+                      <p className="text-sm text-muted-foreground p-4">Loading…</p>
+                    ) : allTools.length === 0 ? (
+                      <div className="text-center p-8 text-muted-foreground text-sm">
+                        <Wrench className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="mb-3">No AI tools registered yet.</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate("/api-tools")}
+                        >
+                          <Plus className="h-4 w-4 mr-1" /> Create one
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {allTools.map((t) => {
+                          const enabled = toolRelationships.some(
+                            (r) => r.api_id === t.api_id
+                          );
+                          const busy = toolBusy.has(t.api_id);
+                          return (
+                            <div
+                              key={t.api_id}
+                              className="flex items-start justify-between gap-3 p-3"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm truncate">
+                                    {t.name}
+                                  </span>
+                                  <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                    {t.method}
+                                  </span>
+                                </div>
+                                {t.description && (
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                    {t.description}
+                                  </p>
+                                )}
+                                <p className="text-[11px] text-muted-foreground/80 mt-1 truncate font-mono">
+                                  {t.webhook_address}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                {busy && (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                )}
+                                <Switch
+                                  checked={enabled}
+                                  disabled={busy}
+                                  onCheckedChange={(v) => toggleTool(t.api_id, v)}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </TabsContent>
