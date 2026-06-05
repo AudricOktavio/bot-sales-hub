@@ -258,11 +258,74 @@ const AgentDetail = () => {
     await Promise.all([fetchAssignedPage(true), fetchUnassignedPage(true)]);
   };
 
+  const fetchTools = async () => {
+    setToolsLoading(true);
+    try {
+      const [allRes, relRes] = await Promise.all([
+        axios.get<ApiToolItem[]>(getApiUrl("API_TOOLS"), { headers: authHeaders() }),
+        axios.get<AgentApiRelationship[]>(
+          getApiUrl("AGENT_API_RELATIONSHIPS_BY_AGENT", agentId),
+          { headers: authHeaders() }
+        ),
+      ]);
+      setAllTools(allRes.data || []);
+      setToolRelationships(relRes.data || []);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to load AI tools.",
+        variant: "destructive",
+      });
+    } finally {
+      setToolsLoading(false);
+    }
+  };
+
+  const toggleTool = async (apiId: number, enabled: boolean) => {
+    setToolBusy((prev) => new Set(prev).add(apiId));
+    try {
+      if (enabled) {
+        const { data } = await axios.post<AgentApiRelationship>(
+          getApiUrl("AGENT_API_RELATIONSHIPS"),
+          { api_id: apiId, agent_id: agentId },
+          { headers: authHeaders() }
+        );
+        setToolRelationships((prev) => [...prev, data]);
+      } else {
+        const rel = toolRelationships.find((r) => r.api_id === apiId);
+        if (!rel) return;
+        await axios.delete(
+          getApiUrl("AGENT_API_RELATIONSHIP_BY_ID", rel.relationship_id),
+          { headers: authHeaders() }
+        );
+        setToolRelationships((prev) =>
+          prev.filter((r) => r.relationship_id !== rel.relationship_id)
+        );
+      }
+      setChatResetKey((k) => k + 1);
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Error",
+        description: "Failed to update tool assignment.",
+        variant: "destructive",
+      });
+    } finally {
+      setToolBusy((prev) => {
+        const next = new Set(prev);
+        next.delete(apiId);
+        return next;
+      });
+    }
+  };
+
   useEffect(() => {
     if (!Number.isFinite(agentId)) return;
     fetchAgent();
     fetchCategories();
     refreshAll();
+    fetchTools();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agentId]);
 
