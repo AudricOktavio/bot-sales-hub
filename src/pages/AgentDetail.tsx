@@ -856,6 +856,92 @@ const AgentDetail = () => {
                 </div>
               </div>
             </TabsContent>
+
+            <TabsContent value="tools" className="flex-1 min-h-0 mt-4">
+              <div className="flex flex-col h-full gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-medium text-sm">Available Tools</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Toggle which tools this agent can use. Changes take effect immediately.
+                    </p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate("/api-tools")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add New Tool
+                    <ExternalLink className="h-3.5 w-3.5 ml-1.5 opacity-60" />
+                  </Button>
+                </div>
+
+                <div className="flex-1 min-h-0 border rounded-lg overflow-hidden bg-card">
+                  <div className="h-full overflow-auto">
+                    {toolsLoading ? (
+                      <p className="text-sm text-muted-foreground p-4">Loading…</p>
+                    ) : allTools.length === 0 ? (
+                      <div className="text-center p-8 text-muted-foreground text-sm">
+                        <Wrench className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="mb-3">No AI tools registered yet.</p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate("/api-tools")}
+                        >
+                          <Plus className="h-4 w-4 mr-1" /> Create one
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="divide-y">
+                        {allTools.map((t) => {
+                          const enabled = toolRelationships.some(
+                            (r) => r.api_id === t.api_id
+                          );
+                          const busy = toolBusy.has(t.api_id);
+                          return (
+                            <div
+                              key={t.api_id}
+                              className="flex items-start justify-between gap-3 p-3"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium text-sm truncate">
+                                    {t.name}
+                                  </span>
+                                  <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                    {t.method}
+                                  </span>
+                                </div>
+                                {t.description && (
+                                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                    {t.description}
+                                  </p>
+                                )}
+                                <p className="text-[11px] text-muted-foreground/80 mt-1 truncate font-mono">
+                                  {t.webhook_address}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 pt-1">
+                                {busy && (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+                                )}
+                                <Switch
+                                  checked={enabled}
+                                  disabled={busy}
+                                  onCheckedChange={(v) => toggleTool(t.api_id, v)}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
 
