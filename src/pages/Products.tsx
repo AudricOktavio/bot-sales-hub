@@ -37,6 +37,7 @@ interface ApiProduct {
   uom?: string | null;
   conversion?: string | null;
   pre_order_moq?: number | null;
+  uom_prices?: Record<string, number> | null;
 }
 
 interface Product {
@@ -53,6 +54,7 @@ interface Product {
   uom?: string | null;
   conversion?: string | null;
   preOrderMoq?: number | null;
+  uomPrices?: Record<string, number> | null;
 }
 
 type OptionalColumns = {
@@ -66,6 +68,31 @@ const OPT_COLS_KEY = "products_optional_columns";
 const normalizeOptionalString = (value: string | null | undefined) => {
   const v = (value ?? "").trim();
   return v === "" ? null : v;
+};
+
+/**
+ * Extract unit names from a conversion string like:
+ *   "20 Colt, 5 Engkel"  -> ["Colt", "Engkel"]
+ *   "60 yard, 55 meter"  -> ["yard", "meter"]
+ * Each comma-separated token: strip the leading numeric quantity, keep the rest.
+ */
+const parseConversionUnits = (conversion: string | null | undefined): string[] => {
+  if (!conversion) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of conversion.split(",")) {
+    const token = raw.trim();
+    if (!token) continue;
+    // Match optional leading number (int/decimal) then the unit name
+    const m = token.match(/^\s*[\d]+(?:[.,]\d+)?\s*(.+?)\s*$/);
+    const unit = (m ? m[1] : token).trim();
+    if (!unit) continue;
+    const key = unit.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(unit);
+  }
+  return out;
 };
 
 const readOptionalCols = (): OptionalColumns => {
