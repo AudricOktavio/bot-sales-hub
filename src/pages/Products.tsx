@@ -150,6 +150,7 @@ const Products = () => {
     uom: null,
     conversion: null,
     preOrderMoq: null,
+    uomPrices: null,
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -265,6 +266,7 @@ const Products = () => {
           uom: product.uom ?? null,
           conversion: product.conversion ?? null,
           preOrderMoq: product.pre_order_moq ?? null,
+          uomPrices: product.uom_prices ?? null,
         };
       });
 
@@ -435,6 +437,7 @@ const Products = () => {
       uom: null,
       conversion: null,
       preOrderMoq: null,
+      uomPrices: null,
     });
     setIsDialogOpen(true);
   };
@@ -462,6 +465,7 @@ const Products = () => {
         uom: apiProduct.uom ?? null,
         conversion: apiProduct.conversion ?? null,
         preOrderMoq: apiProduct.pre_order_moq ?? null,
+        uomPrices: apiProduct.uom_prices ?? null,
       });
 
       setIsDialogOpen(true);
