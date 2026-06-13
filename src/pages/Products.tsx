@@ -536,6 +536,22 @@ const Products = () => {
         pre_order_moq: optionalCols.moq
           ? editingProduct.preOrderMoq ?? null
           : null,
+        // ✅ Build uom_prices dict from conversion units + per-unit price inputs.
+        // Only include units present in current conversion AND with a numeric price.
+        uom_prices: (() => {
+          if (!optionalCols.conversion) return null;
+          const units = parseConversionUnits(editingProduct.conversion);
+          if (units.length === 0) return null;
+          const draft = editingProduct.uomPrices ?? {};
+          const out: Record<string, number> = {};
+          for (const u of units) {
+            const v = draft[u];
+            if (typeof v === "number" && !Number.isNaN(v)) {
+              out[u] = v;
+            }
+          }
+          return Object.keys(out).length > 0 ? out : null;
+        })(),
       };
 
       if (isEditing) {
