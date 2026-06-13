@@ -37,6 +37,7 @@ interface ApiProduct {
   uom?: string | null;
   conversion?: string | null;
   pre_order_moq?: number | null;
+  uom_prices?: Record<string, number> | null;
 }
 
 interface Product {
@@ -53,6 +54,7 @@ interface Product {
   uom?: string | null;
   conversion?: string | null;
   preOrderMoq?: number | null;
+  uomPrices?: Record<string, number> | null;
 }
 
 type OptionalColumns = {
@@ -66,6 +68,31 @@ const OPT_COLS_KEY = "products_optional_columns";
 const normalizeOptionalString = (value: string | null | undefined) => {
   const v = (value ?? "").trim();
   return v === "" ? null : v;
+};
+
+/**
+ * Extract unit names from a conversion string like:
+ *   "20 Colt, 5 Engkel"  -> ["Colt", "Engkel"]
+ *   "60 yard, 55 meter"  -> ["yard", "meter"]
+ * Each comma-separated token: strip the leading numeric quantity, keep the rest.
+ */
+const parseConversionUnits = (conversion: string | null | undefined): string[] => {
+  if (!conversion) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of conversion.split(",")) {
+    const token = raw.trim();
+    if (!token) continue;
+    // Match optional leading number (int/decimal) then the unit name
+    const m = token.match(/^\s*[\d]+(?:[.,]\d+)?\s*(.+?)\s*$/);
+    const unit = (m ? m[1] : token).trim();
+    if (!unit) continue;
+    const key = unit.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(unit);
+  }
+  return out;
 };
 
 const readOptionalCols = (): OptionalColumns => {
@@ -123,6 +150,7 @@ const Products = () => {
     uom: null,
     conversion: null,
     preOrderMoq: null,
+    uomPrices: null,
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -238,6 +266,7 @@ const Products = () => {
           uom: product.uom ?? null,
           conversion: product.conversion ?? null,
           preOrderMoq: product.pre_order_moq ?? null,
+          uomPrices: product.uom_prices ?? null,
         };
       });
 
@@ -408,6 +437,7 @@ const Products = () => {
       uom: null,
       conversion: null,
       preOrderMoq: null,
+      uomPrices: null,
     });
     setIsDialogOpen(true);
   };
@@ -435,6 +465,7 @@ const Products = () => {
         uom: apiProduct.uom ?? null,
         conversion: apiProduct.conversion ?? null,
         preOrderMoq: apiProduct.pre_order_moq ?? null,
+        uomPrices: apiProduct.uom_prices ?? null,
       });
 
       setIsDialogOpen(true);
@@ -505,6 +536,22 @@ const Products = () => {
         pre_order_moq: optionalCols.moq
           ? editingProduct.preOrderMoq ?? null
           : null,
+        // ✅ Build uom_prices dict from conversion units + per-unit price inputs.
+        // Only include units present in current conversion AND with a numeric price.
+        uom_prices: (() => {
+          if (!optionalCols.conversion) return null;
+          const units = parseConversionUnits(editingProduct.conversion);
+          if (units.length === 0) return null;
+          const draft = editingProduct.uomPrices ?? {};
+          const out: Record<string, number> = {};
+          for (const u of units) {
+            const v = draft[u];
+            if (typeof v === "number" && !Number.isNaN(v)) {
+              out[u] = v;
+            }
+          }
+          return Object.keys(out).length > 0 ? out : null;
+        })(),
       };
 
       if (isEditing) {
@@ -1082,6 +1129,77 @@ const Products = () => {
                 }
               />
             </div>
+
+            {/* ✅ Per-UoM prices, derived from the Conversion units */}
+            {optionalCols.conversion &&
+              (() => {
+                const units = parseConversionUnits(editingProduct.conversion);
+                if (units.length === 0) {
+                  return (
+                    <div className="md:col-span-2 text-xs text-muted-foreground">
+                      Add units to <span className="font-mono">Conversion</span>{" "}
+                      (e.g. <span className="font-mono">"20 Colt, 5 Engkel"</span>)
+                      to set a price per unit.
+                    </div>
+                  );
+                }
+                const draft = editingProduct.uomPrices ?? {};
+                return (
+                  <div className="md:col-span-2 space-y-2">
+                    <Label>Price per Unit</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 rounded-md border p-3">
+                      {units.map((unit) => (
+                        <div key={unit} className="space-y-1">
+                          <Label
+                            htmlFor={`uom-price-${unit}`}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {unit}
+                          </Label>
+                          <Input
+                            id={`uom-price-${unit}`}
+                            type="number"
+                            min={0}
+                            step="any"
+                            value={
+                              draft[unit] === undefined || draft[unit] === null
+                                ? ""
+                                : draft[unit]
+                            }
+                            onChange={(e) => {
+                              const raw = e.target.value;
+                              setEditingProduct((p) => {
+                                const next = { ...(p.uomPrices ?? {}) };
+                                if (raw === "") {
+                                  delete next[unit];
+                                } else {
+                                  const n = parseFloat(raw);
+                                  if (!Number.isNaN(n)) next[unit] = n;
+                                }
+                                return { ...p, uomPrices: next };
+                              });
+                            }}
+                            placeholder={`Price for 1 ${unit}`}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Saved as JSON, e.g.{" "}
+                      <span className="font-mono">
+                        {JSON.stringify(
+                          units.reduce<Record<string, number>>((acc, u) => {
+                            const v = draft[u];
+                            if (typeof v === "number" && !Number.isNaN(v))
+                              acc[u] = v;
+                            return acc;
+                          }, {})
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })()}
 
             <div className="md:col-span-2 space-y-2">
               <Label htmlFor="description">Description</Label>
