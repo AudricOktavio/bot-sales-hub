@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bell, Search, Settings, User } from "lucide-react";
+import { Bell, Building2, Check, ChevronDown, Search, Settings, User } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import { useOrganization } from "@/context/OrganizationContext";
+import OrganizationPickerDialog from "@/components/OrganizationPickerDialog";
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const {
+    organizations,
+    selectedOrg,
+    selectOrganization,
+    clearSelection,
+  } = useOrganization();
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,6 +39,7 @@ const Navbar = () => {
       // Always clear localStorage
       localStorage.removeItem("access_token");
       localStorage.removeItem("token_type");
+      clearSelection();
 
       // Redirect to login
       navigate("/login", { replace: true });
@@ -46,6 +56,50 @@ const Navbar = () => {
           <h1 className="text-lg md:text-xl font-bold hidden sm:block">
             AI Sales CRM
           </h1>
+
+          {organizations.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-2 gap-2 max-w-[220px]"
+                >
+                  <Building2 className="h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {selectedOrg?.name ?? "Select organization"}
+                  </span>
+                  <ChevronDown className="h-4 w-4 shrink-0 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64">
+                <DropdownMenuLabel>Switch organization</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {organizations.map((org) => {
+                  const active = selectedOrg?.id === org.id;
+                  return (
+                    <DropdownMenuItem
+                      key={org.id}
+                      onClick={() => selectOrganization(org)}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <span className="truncate">{org.name}</span>
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {org.permission}
+                        </span>
+                      </div>
+                      {active && <Check className="h-4 w-4 text-primary" />}
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => setPickerOpen(true)}>
+                  Open picker…
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         <form
@@ -135,6 +189,11 @@ const Navbar = () => {
           </DropdownMenu>
         </div>
       </div>
+      <OrganizationPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        dismissible
+      />
     </header>
   );
 };

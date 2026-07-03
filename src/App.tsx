@@ -25,11 +25,17 @@ import NotFound from "./pages/NotFound";
 // Components
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
+import OrganizationPickerDialog from "./components/OrganizationPickerDialog";
+import {
+  OrganizationProvider,
+  useOrganization,
+} from "./context/OrganizationContext";
 
 const queryClient = new QueryClient();
 
 // Layout component for authenticated routes
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+  const { needsSelection } = useOrganization();
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
@@ -39,6 +45,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
       </div>
+      <OrganizationPickerDialog open={needsSelection} dismissible={false} />
     </div>
   );
 };
@@ -64,7 +71,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
+        <OrganizationProvider>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
@@ -85,7 +93,8 @@ const App = () => (
           
           {/* 404 Page */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </OrganizationProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
