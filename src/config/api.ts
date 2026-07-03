@@ -100,6 +100,8 @@ export const API_CONFIG = {
 
     CREDIT_BALANCE: "/credit/balance",
 
+    ORGANIZATIONS_ME: "/organizations/me",
+
     API_TOOLS: "/api-tools",
     API_TOOL_BY_ID: (id: number) => `/api-tools/${id}`,
     AGENT_API_RELATIONSHIPS: "/agent-api-relationships",
