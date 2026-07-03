@@ -3,6 +3,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useOrganization } from "@/context/OrganizationContext";
 import {
   ChevronLeft,
   ChevronRight,
@@ -55,6 +56,8 @@ const NavItem = ({ to, icon, label, collapsed, onClick }: NavItemProps) => {
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { permission } = useOrganization();
+  const isMember = permission === "member";
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -64,7 +67,7 @@ const Sidebar = () => {
     setMobileOpen(false);
   };
 
-  const navItems = [
+  const allNavItems = [
     {
       to: "/dashboard",
       icon: <LayoutDashboard size={20} />,
@@ -77,11 +80,22 @@ const Sidebar = () => {
     { to: "/chat-logs", icon: <MessageSquare size={20} />, label: "Chat Logs" },
   ];
 
-  const bottomNavItems = [
+  const allBottomNavItems = [
     { to: "/integrations", icon: <Plug size={20} />, label: "Integrations" },
     { to: "/billing", icon: <CreditCard size={20} />, label: "Credits & Billing" },
     { to: "/settings", icon: <Settings size={20} />, label: "Settings" },
   ];
+
+  // Members only see Orders, Chat Logs (top) and Settings (bottom).
+  const memberAllowedTop = new Set(["/orders", "/chat-logs"]);
+  const memberAllowedBottom = new Set(["/settings"]);
+
+  const navItems = isMember
+    ? allNavItems.filter((i) => memberAllowedTop.has(i.to))
+    : allNavItems;
+  const bottomNavItems = isMember
+    ? allBottomNavItems.filter((i) => memberAllowedBottom.has(i.to))
+    : allBottomNavItems;
 
   // Mobile sidebar
   const MobileSidebar = () => (
