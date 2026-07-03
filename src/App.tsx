@@ -30,7 +30,6 @@ import {
   OrganizationProvider,
   useOrganization,
 } from "./context/OrganizationContext";
-import { useEffect, useMemo } from "react";
 
 const queryClient = new QueryClient();
 
