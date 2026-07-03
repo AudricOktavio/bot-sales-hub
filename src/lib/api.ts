@@ -5,6 +5,7 @@ import axios, {
 } from "axios";
 import { API_CONFIG } from "@/config/api";
 import { authHeader, clearToken } from "@/utils/auth";
+import { getSelectedOrganizationId } from "@/context/OrganizationContext";
 
 const api = axios.create({ baseURL: API_CONFIG.BASE_URL });
 
@@ -16,6 +17,9 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
   const auth = authHeader();
   if (auth.Authorization) headers.set("Authorization", auth.Authorization);
+
+  const orgId = getSelectedOrganizationId();
+  if (orgId != null) headers.set("X-Organization-Id", String(orgId));
 
   config.headers = headers;
   return config;
