@@ -47,6 +47,7 @@ interface ProductTableProps {
 
   // ✅ make optional so other call sites won't break
   showColumns?: OptionalColumns;
+  readOnly?: boolean;
 }
 
 const formatPrice = (value: number) =>
@@ -61,6 +62,7 @@ const ProductTable = ({
   onEdit,
   onDelete,
   showColumns,
+  readOnly = false,
 }: ProductTableProps) => {
   // ✅ default if not provided
   const cols: OptionalColumns = showColumns ?? {
