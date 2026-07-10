@@ -25,6 +25,7 @@ import sapLogo from "@/assets/sap-logo.svg";
 import odooLogo from "@/assets/odoo-logo.svg";
 import { API_CONFIG } from "@/config/api";
 import axios from "axios";
+import { useOrganization } from "@/context/OrganizationContext";
 
 interface ApiProduct {
   product_id: number;
