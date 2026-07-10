@@ -423,8 +423,12 @@ const ChatDialog = () => {
 
   // subscribe to selected chat room (no reconnect)
   useEffect(() => {
-    subscribeChat(selectedChat?.phoneNumber ?? null, selectedChat?.recipient ?? null);
-  }, [selectedChat?.phoneNumber, selectedChat?.recipient, subscribeChat]);
+    subscribeChat(
+      selectedChat?.phoneNumber ?? null,
+      selectedChat?.recipient ?? null,
+      organizationId,
+    );
+  }, [selectedChat?.phoneNumber, selectedChat?.recipient, organizationId, subscribeChat]);
 
   const fetchOlderMessages = useCallback(
     async (phoneNumber: string) => {
