@@ -182,6 +182,8 @@ const ChatDialog = () => {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const { toast } = useToast();
+  const { selectedOrg } = useOrganization();
+  const organizationId = selectedOrg?.id ?? null;
 
   const [handoffActive, setHandoffActive] = useState<Record<string, boolean>>(
     {}
