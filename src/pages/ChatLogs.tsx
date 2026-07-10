@@ -24,6 +24,7 @@ import api from "@/lib/api";
 import { API_CONFIG } from "@/config/api";
 import { useToast } from "@/hooks/use-toast";
 import { useCrmWebsocket } from "@/hooks/useCrmWebsocket";
+import { useOrganization } from "@/context/OrganizationContext";
 
 /* ----------------------------- Types ----------------------------- */
 type Sender = "customer" | "ai" | "agent";
