@@ -88,8 +88,18 @@ export const API_CONFIG = {
     CONTACT_STATS_STATUS: "/contacts/stats/status",
 
     CHAT_LOGS: "/chat_logs",
-    CHAT_LOG_BY_PHONE: (phone_number: string, last_chat_id: number, recipient?: string) =>
-      `/chat_logs/${encodeURIComponent(phone_number)}?last_chat_id=${last_chat_id}${recipient ? `&recipient=${encodeURIComponent(recipient)}` : ''}`,
+    CHAT_LOG_BY_PHONE: (
+      phone_number: string,
+      last_chat_id: number,
+      recipient?: string | null,
+      organization_id?: number | null,
+    ) => {
+      const params = new URLSearchParams();
+      params.set("last_chat_id", String(last_chat_id));
+      if (recipient) params.set("recipient", String(recipient));
+      if (organization_id != null) params.set("organization_id", String(organization_id));
+      return `/chat_logs/${encodeURIComponent(phone_number)}?${params.toString()}`;
+    },
 
     HANDOFF_TOGGLE: (contact_id: number) => `/contacts/${contact_id}/handoff`,
     HANDOFF_RESOLVE: (contact_id: number) => `/contacts/${contact_id}/resolve`,
