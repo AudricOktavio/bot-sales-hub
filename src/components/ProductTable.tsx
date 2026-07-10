@@ -47,6 +47,7 @@ interface ProductTableProps {
 
   // ✅ make optional so other call sites won't break
   showColumns?: OptionalColumns;
+  readOnly?: boolean;
 }
 
 const formatPrice = (value: number) =>
@@ -61,6 +62,7 @@ const ProductTable = ({
   onEdit,
   onDelete,
   showColumns,
+  readOnly = false,
 }: ProductTableProps) => {
   // ✅ default if not provided
   const cols: OptionalColumns = showColumns ?? {
@@ -226,6 +228,7 @@ const ProductTable = ({
               <TableCell>{product.description ?? "-"}</TableCell>
 
               <TableCell className="text-right">
+                {readOnly ? null : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -245,6 +248,7 @@ const ProductTable = ({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                )}
               </TableCell>
             </TableRow>
           ))}

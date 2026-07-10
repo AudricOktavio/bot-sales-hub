@@ -24,6 +24,7 @@ import api from "@/lib/api";
 import { API_CONFIG } from "@/config/api";
 import { useToast } from "@/hooks/use-toast";
 import { useCrmWebsocket } from "@/hooks/useCrmWebsocket";
+import { useOrganization } from "@/context/OrganizationContext";
 
 /* ----------------------------- Types ----------------------------- */
 type Sender = "customer" | "ai" | "agent";
@@ -181,6 +182,8 @@ const ChatDialog = () => {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const { toast } = useToast();
+  const { selectedOrg } = useOrganization();
+  const organizationId = selectedOrg?.id ?? null;
 
   const [handoffActive, setHandoffActive] = useState<Record<string, boolean>>(
     {}
@@ -375,7 +378,10 @@ const ChatDialog = () => {
       const res = await api.get<LastChatLogWire>(
         API_CONFIG.ENDPOINTS.CHAT_LOGS,
         {
-          params: { limit: 50 },
+          params: {
+            limit: 50,
+            ...(organizationId != null ? { organization_id: organizationId } : {}),
+          },
         }
       );
 
@@ -409,7 +415,7 @@ const ChatDialog = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [organizationId]);
 
   useEffect(() => {
     fetchChatLogs();
@@ -417,8 +423,12 @@ const ChatDialog = () => {
 
   // subscribe to selected chat room (no reconnect)
   useEffect(() => {
-    subscribeChat(selectedChat?.phoneNumber ?? null, selectedChat?.recipient ?? null);
-  }, [selectedChat?.phoneNumber, selectedChat?.recipient, subscribeChat]);
+    subscribeChat(
+      selectedChat?.phoneNumber ?? null,
+      selectedChat?.recipient ?? null,
+      organizationId,
+    );
+  }, [selectedChat?.phoneNumber, selectedChat?.recipient, organizationId, subscribeChat]);
 
   const fetchOlderMessages = useCallback(
     async (phoneNumber: string) => {
@@ -440,7 +450,12 @@ const ChatDialog = () => {
         const prevScrollHeight = container?.scrollHeight ?? 0;
 
         const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
-          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(phoneNumber, last_chat_id, selectedChat.recipient)
+          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(
+            phoneNumber,
+            last_chat_id,
+            selectedChat.recipient,
+            organizationId,
+          )
         );
         const logArray = Array.isArray(res.data.log)
           ? res.data.log
@@ -505,7 +520,12 @@ const ChatDialog = () => {
     setLoadingDetail(true);
     try {
       const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
-        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(chat.phoneNumber, 0, chat.recipient)
+        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(
+          chat.phoneNumber,
+          0,
+          chat.recipient,
+          organizationId,
+        )
       );
       const logArray = Array.isArray(res.data.log)
         ? res.data.log

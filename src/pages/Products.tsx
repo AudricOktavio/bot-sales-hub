@@ -25,6 +25,7 @@ import sapLogo from "@/assets/sap-logo.svg";
 import odooLogo from "@/assets/odoo-logo.svg";
 import { API_CONFIG } from "@/config/api";
 import axios from "axios";
+import { useOrganization } from "@/context/OrganizationContext";
 
 interface ApiProduct {
   product_id: number;
@@ -125,6 +126,8 @@ const Products = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { permission } = useOrganization();
+  const isReadOnly = permission === "member" || permission === "agent";
 
   // Infinite scroll state
   const PAGE_SIZE = 100;
@@ -803,20 +806,24 @@ const Products = () => {
             </div>
           </div>
 
-          <Button onClick={handleCreateProduct}>Add Product</Button>
+          {!isReadOnly && (
+            <>
+              <Button onClick={handleCreateProduct}>Add Product</Button>
 
-          <Button
-            variant="outline"
-            onClick={() => {
-              setIsImportDialogOpen(true);
-              setImportFile(null);
-              setImportText("");
-            }}
-          >
-            Import
-          </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsImportDialogOpen(true);
+                  setImportFile(null);
+                  setImportText("");
+                }}
+              >
+                Import
+              </Button>
+            </>
+          )}
 
-          {!isProvidersLoading && accurateProvider?.is_active && (
+          {!isReadOnly && !isProvidersLoading && accurateProvider?.is_active && (
             <Button
               variant="outline"
               onClick={syncProductsFromAccurate}
@@ -834,7 +841,7 @@ const Products = () => {
             </Button>
           )}
 
-          {!isProvidersLoading && sapProvider && (
+          {!isReadOnly && !isProvidersLoading && sapProvider && (
             <Button
               variant="outline"
               onClick={syncProductsFromSap}
@@ -855,7 +862,7 @@ const Products = () => {
             </Button>
           )}
 
-          {!isProvidersLoading && odooProvider && (
+          {!isReadOnly && !isProvidersLoading && odooProvider && (
             <Button
               variant="outline"
               onClick={syncProductsFromOdoo}
@@ -921,6 +928,7 @@ const Products = () => {
           onEdit={handleEditProduct}
           onDelete={handleDeleteProduct}
           showColumns={optionalCols}
+          readOnly={isReadOnly}
         />
       </div>
 

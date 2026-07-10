@@ -57,7 +57,8 @@ const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const { permission } = useOrganization();
-  const isMember = permission === "member";
+  const isMember = permission === "member" || permission === "agent";
+  const isSupervisor = permission === "supervisor";
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -86,16 +87,20 @@ const Sidebar = () => {
     { to: "/settings", icon: <Settings size={20} />, label: "Settings" },
   ];
 
-  // Members only see Orders, Chat Logs (top) and Settings (bottom).
-  const memberAllowedTop = new Set(["/orders", "/chat-logs"]);
+  // Members/agents only see Products (read-only), Orders, Chat Logs (top) and Settings (bottom).
+  const memberAllowedTop = new Set(["/products", "/orders", "/chat-logs"]);
   const memberAllowedBottom = new Set(["/settings"]);
 
-  const navItems = isMember
-    ? allNavItems.filter((i) => memberAllowedTop.has(i.to))
-    : allNavItems;
-  const bottomNavItems = isMember
-    ? allBottomNavItems.filter((i) => memberAllowedBottom.has(i.to))
-    : allBottomNavItems;
+  let navItems = allNavItems;
+  let bottomNavItems = allBottomNavItems;
+
+  if (isMember) {
+    navItems = allNavItems.filter((i) => memberAllowedTop.has(i.to));
+    bottomNavItems = allBottomNavItems.filter((i) => memberAllowedBottom.has(i.to));
+  } else if (isSupervisor) {
+    // Supervisors see everything except Credits & Billing.
+    bottomNavItems = allBottomNavItems.filter((i) => i.to !== "/billing");
+  }
 
   // Mobile sidebar
   const MobileSidebar = () => (
