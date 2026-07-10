@@ -126,6 +126,8 @@ const Products = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { permission } = useOrganization();
+  const isReadOnly = permission === "member" || permission === "agent";
 
   // Infinite scroll state
   const PAGE_SIZE = 100;
