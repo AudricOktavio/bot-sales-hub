@@ -188,9 +188,8 @@ const ChatDialog = () => {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const { toast } = useToast();
-  const { selectedOrg } = useOrganization();
+  const { selectedOrg, permission } = useOrganization();
   const organizationId = selectedOrg?.id ?? null;
-  const { permission } = useOrganization();
   const canManageAssignments =
     permission === "owner" || permission === "supervisor";
   const isRestrictedMember =
