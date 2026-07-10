@@ -112,6 +112,16 @@ export const API_CONFIG = {
 
     ORGANIZATIONS_ME: "/organizations/me",
 
+    ORGANIZATION_MEMBERS: (organization_id: number) =>
+      `/organizations/${organization_id}/members`,
+
+    CONTACT_ASSIGNMENTS: (organization_id: number) =>
+      `/organizations/${organization_id}/assignments`,
+    CONTACT_ASSIGNMENT_BY_ID: (organization_id: number, assignment_id: number) =>
+      `/organizations/${organization_id}/assignments/${assignment_id}`,
+    CONTACT_ASSIGNMENT_STATUS: (organization_id: number, assignment_id: number) =>
+      `/organizations/${organization_id}/assignments/${assignment_id}/status`,
+
     API_TOOLS: "/api-tools",
     API_TOOL_BY_ID: (id: number) => `/api-tools/${id}`,
     AGENT_API_RELATIONSHIPS: "/agent-api-relationships",

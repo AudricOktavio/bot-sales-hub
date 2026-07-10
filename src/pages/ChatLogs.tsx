@@ -25,6 +25,12 @@ import { API_CONFIG } from "@/config/api";
 import { useToast } from "@/hooks/use-toast";
 import { useCrmWebsocket } from "@/hooks/useCrmWebsocket";
 import { useOrganization } from "@/context/OrganizationContext";
+import AssignChatDialog, {
+  ContactAssignment,
+  OrganizationMember,
+} from "@/components/AssignChatDialog";
+import { getTenantIdFromJwt } from "@/utils/auth";
+import { UserPlus } from "lucide-react";
 
 /* ----------------------------- Types ----------------------------- */
 type Sender = "customer" | "ai" | "agent";
@@ -182,8 +188,21 @@ const ChatDialog = () => {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const { toast } = useToast();
-  const { selectedOrg } = useOrganization();
+  const { selectedOrg, permission } = useOrganization();
   const organizationId = selectedOrg?.id ?? null;
+  const canManageAssignments =
+    permission === "owner" || permission === "supervisor";
+  const isRestrictedMember =
+    permission === "member" || permission === "agent";
+  const currentTenantId = useMemo(
+    () => getTenantIdFromJwt(localStorage.getItem("access_token")),
+    []
+  );
+
+  const [members, setMembers] = useState<OrganizationMember[]>([]);
+  const [assignments, setAssignments] = useState<ContactAssignment[]>([]);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignTargetRow, setAssignTargetRow] = useState<ListRow | null>(null);
 
   const [handoffActive, setHandoffActive] = useState<Record<string, boolean>>(
     {}
@@ -332,6 +351,57 @@ const ChatDialog = () => {
     debug: false,
     onMessage: handleWsPayload,
   });
+
+  const fetchMembers = useCallback(async () => {
+    if (!organizationId || !canManageAssignments) {
+      setMembers([]);
+      return;
+    }
+    try {
+      const res = await api.get<OrganizationMember[]>(
+        API_CONFIG.ENDPOINTS.ORGANIZATION_MEMBERS(organizationId)
+      );
+      setMembers(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error("[fetchMembers] error:", e);
+      setMembers([]);
+    }
+  }, [organizationId, canManageAssignments]);
+
+  const fetchAssignments = useCallback(async () => {
+    if (!organizationId) {
+      setAssignments([]);
+      return;
+    }
+    try {
+      const res = await api.get<ContactAssignment[]>(
+        API_CONFIG.ENDPOINTS.CONTACT_ASSIGNMENTS(organizationId)
+      );
+      setAssignments(Array.isArray(res.data) ? res.data : []);
+    } catch (e) {
+      console.error("[fetchAssignments] error:", e);
+      setAssignments([]);
+    }
+  }, [organizationId]);
+
+  useEffect(() => {
+    fetchMembers();
+    fetchAssignments();
+  }, [fetchMembers, fetchAssignments]);
+
+  const assignmentByCustomer = useMemo(() => {
+    const map = new Map<number, ContactAssignment>();
+    assignments.forEach((a) => {
+      map.set(a.customer_id, a);
+    });
+    return map;
+  }, [assignments]);
+
+  const memberByTenantId = useMemo(() => {
+    const map = new Map<number, OrganizationMember>();
+    members.forEach((m) => map.set(m.tenant_id, m));
+    return map;
+  }, [members]);
 
   const fetchDisplayNames = useCallback(async (ids: string[]) => {
     const toFetch = ids.filter(id => !fetchedIds.has(id));
@@ -652,19 +722,37 @@ const ChatDialog = () => {
 
   // Tab filter (client-side)
   const filteredLogs = useMemo(() => {
-    if (filterTab === "all") return filteredBySearch;
+    let base = filteredBySearch;
+
+    // Members/agents can only see chats assigned to them.
+    if (isRestrictedMember && currentTenantId != null) {
+      base = base.filter((r) => {
+        if (!r.customerId) return false;
+        const a = assignmentByCustomer.get(r.customerId);
+        return !!a && a.assigned_to_user_id === currentTenantId;
+      });
+    }
+
+    if (filterTab === "all") return base;
 
     if (filterTab === "assigned") {
-      return filteredBySearch.filter((r) =>
+      return base.filter((r) =>
         Boolean(handoffActive[r.phoneNumber] ?? r.handoffActive)
       );
     }
 
     // unassigned
-    return filteredBySearch.filter(
+    return base.filter(
       (r) => !Boolean(handoffActive[r.phoneNumber] ?? r.handoffActive)
     );
-  }, [filteredBySearch, filterTab, handoffActive]);
+  }, [
+    filteredBySearch,
+    filterTab,
+    handoffActive,
+    isRestrictedMember,
+    currentTenantId,
+    assignmentByCustomer,
+  ]);
 
   const handleNewChat = () => {
     const newChat: ListRow = {
@@ -872,6 +960,20 @@ const ChatDialog = () => {
                                 : "AI Agent"}
                             </span>
                           </div>
+                          {row.customerId &&
+                            assignmentByCustomer.get(row.customerId) && (
+                              <div className="text-[11px] text-muted-foreground mt-1 truncate">
+                                Assignee:{" "}
+                                {memberByTenantId.get(
+                                  assignmentByCustomer.get(row.customerId)!
+                                    .assigned_to_user_id
+                                )?.email ??
+                                  `Tenant #${
+                                    assignmentByCustomer.get(row.customerId)!
+                                      .assigned_to_user_id
+                                  }`}
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -920,6 +1022,23 @@ const ChatDialog = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {canManageAssignments && organizationId && selectedChat.customerId && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setAssignTargetRow(selectedChat);
+                          setAssignDialogOpen(true);
+                        }}
+                        title="Assign to team member"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        {assignmentByCustomer.get(selectedChat.customerId)
+                          ? "Reassign"
+                          : "Assign"}
+                      </Button>
+                    )}
+
                     {!isHandoffOn && (
                       <Button
                         variant="secondary"
@@ -1068,6 +1187,24 @@ const ChatDialog = () => {
           )}
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {canManageAssignments && organizationId && (
+        <AssignChatDialog
+          open={assignDialogOpen}
+          onOpenChange={setAssignDialogOpen}
+          organizationId={organizationId}
+          currentTenantId={currentTenantId}
+          customerId={assignTargetRow?.customerId ?? null}
+          customerName={assignTargetRow?.customerName}
+          members={members}
+          existingAssignment={
+            assignTargetRow?.customerId
+              ? assignmentByCustomer.get(assignTargetRow.customerId) ?? null
+              : null
+          }
+          onSaved={fetchAssignments}
+        />
+      )}
     </div>
   );
 };
