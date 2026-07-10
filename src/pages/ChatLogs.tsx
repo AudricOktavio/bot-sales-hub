@@ -961,6 +961,20 @@ const ChatDialog = () => {
                                 : "AI Agent"}
                             </span>
                           </div>
+                          {row.customerId &&
+                            assignmentByCustomer.get(row.customerId) && (
+                              <div className="text-[11px] text-muted-foreground mt-1 truncate">
+                                Assignee:{" "}
+                                {memberByTenantId.get(
+                                  assignmentByCustomer.get(row.customerId)!
+                                    .assigned_to_user_id
+                                )?.email ??
+                                  `Tenant #${
+                                    assignmentByCustomer.get(row.customerId)!
+                                      .assigned_to_user_id
+                                  }`}
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -1009,6 +1023,23 @@ const ChatDialog = () => {
                   </div>
 
                   <div className="flex items-center gap-2">
+                    {canManageAssignments && organizationId && selectedChat.customerId && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setAssignTargetRow(selectedChat);
+                          setAssignDialogOpen(true);
+                        }}
+                        title="Assign to team member"
+                      >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        {assignmentByCustomer.get(selectedChat.customerId)
+                          ? "Reassign"
+                          : "Assign"}
+                      </Button>
+                    )}
+
                     {!isHandoffOn && (
                       <Button
                         variant="secondary"
