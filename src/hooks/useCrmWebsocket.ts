@@ -34,6 +34,7 @@ type SharedState = {
 
   lastSubscribedPhone: string | null;
   lastSubscribedRecipient: string | null;
+  lastSubscribedOrganizationId: number | null;
   debug: boolean;
 
   // ✅ stop infinite reconnect on auth reject
@@ -57,6 +58,7 @@ const shared: SharedState = {
 
   lastSubscribedPhone: null,
   lastSubscribedRecipient: null,
+  lastSubscribedOrganizationId: null,
   debug: false,
 
   hardStopReconnect: false,
@@ -250,6 +252,7 @@ const ensureSocket = (opts?: { debug?: boolean }) => {
             type: "subscribe_chat",
             phone_number: shared.lastSubscribedPhone,
             recipient: shared.lastSubscribedRecipient,
+            organization_id: shared.lastSubscribedOrganizationId,
           }),
         );
         log("re-subscribed:", shared.lastSubscribedPhone, shared.lastSubscribedRecipient);
@@ -334,7 +337,11 @@ const sendJson = (payload: any) => {
 export type UseCrmWebsocketReturn = {
   connected: boolean;
   send: (payload: any) => boolean;
-  subscribeChat: (phoneNumber: string | null, recipient?: string | null) => boolean;
+  subscribeChat: (
+    phoneNumber: string | null,
+    recipient?: string | null,
+    organizationId?: number | null,
+  ) => boolean;
   sendAgentMessage: (phoneNumber: string, text: string, whatsappId?: string | null) => boolean;
 
   // ✅ allow manual restart after login
@@ -356,10 +363,20 @@ export function useCrmWebsocket(options?: {
 
       send: (payload: any) => sendJson(payload),
 
-      subscribeChat: (phoneNumber: string | null, recipient?: string | null) => {
+      subscribeChat: (
+        phoneNumber: string | null,
+        recipient?: string | null,
+        organizationId?: number | null,
+      ) => {
         shared.lastSubscribedPhone = phoneNumber;
         shared.lastSubscribedRecipient = recipient ?? null;
-        return sendJson({ type: "subscribe_chat", phone_number: phoneNumber, recipient: recipient ?? null });
+        shared.lastSubscribedOrganizationId = organizationId ?? null;
+        return sendJson({
+          type: "subscribe_chat",
+          phone_number: phoneNumber,
+          recipient: recipient ?? null,
+          organization_id: organizationId ?? null,
+        });
       },
 
       sendAgentMessage: (phoneNumber: string, text: string, whatsappId?: string | null) => {
