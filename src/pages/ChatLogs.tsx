@@ -1188,6 +1188,24 @@ const ChatDialog = () => {
           )}
         </ResizablePanel>
       </ResizablePanelGroup>
+
+      {canManageAssignments && organizationId && (
+        <AssignChatDialog
+          open={assignDialogOpen}
+          onOpenChange={setAssignDialogOpen}
+          organizationId={organizationId}
+          currentTenantId={currentTenantId}
+          customerId={assignTargetRow?.customerId ?? null}
+          customerName={assignTargetRow?.customerName}
+          members={members}
+          existingAssignment={
+            assignTargetRow?.customerId
+              ? assignmentByCustomer.get(assignTargetRow.customerId) ?? null
+              : null
+          }
+          onSaved={fetchAssignments}
+        />
+      )}
     </div>
   );
 };
