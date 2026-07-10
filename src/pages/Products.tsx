@@ -806,20 +806,24 @@ const Products = () => {
             </div>
           </div>
 
-          <Button onClick={handleCreateProduct}>Add Product</Button>
+          {!isReadOnly && (
+            <>
+              <Button onClick={handleCreateProduct}>Add Product</Button>
 
-          <Button
-            variant="outline"
-            onClick={() => {
-              setIsImportDialogOpen(true);
-              setImportFile(null);
-              setImportText("");
-            }}
-          >
-            Import
-          </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsImportDialogOpen(true);
+                  setImportFile(null);
+                  setImportText("");
+                }}
+              >
+                Import
+              </Button>
+            </>
+          )}
 
-          {!isProvidersLoading && accurateProvider?.is_active && (
+          {!isReadOnly && !isProvidersLoading && accurateProvider?.is_active && (
             <Button
               variant="outline"
               onClick={syncProductsFromAccurate}
@@ -837,7 +841,7 @@ const Products = () => {
             </Button>
           )}
 
-          {!isProvidersLoading && sapProvider && (
+          {!isReadOnly && !isProvidersLoading && sapProvider && (
             <Button
               variant="outline"
               onClick={syncProductsFromSap}
@@ -858,7 +862,7 @@ const Products = () => {
             </Button>
           )}
 
-          {!isProvidersLoading && odooProvider && (
+          {!isReadOnly && !isProvidersLoading && odooProvider && (
             <Button
               variant="outline"
               onClick={syncProductsFromOdoo}
