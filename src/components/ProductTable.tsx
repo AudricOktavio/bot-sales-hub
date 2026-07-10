@@ -228,6 +228,7 @@ const ProductTable = ({
               <TableCell>{product.description ?? "-"}</TableCell>
 
               <TableCell className="text-right">
+                {readOnly ? null : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -247,6 +248,7 @@ const ProductTable = ({
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                )}
               </TableCell>
             </TableRow>
           ))}
