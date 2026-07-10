@@ -928,6 +928,7 @@ const Products = () => {
           onEdit={handleEditProduct}
           onDelete={handleDeleteProduct}
           showColumns={optionalCols}
+          readOnly={isReadOnly}
         />
       </div>
 
