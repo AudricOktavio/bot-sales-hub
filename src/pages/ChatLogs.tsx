@@ -378,7 +378,10 @@ const ChatDialog = () => {
       const res = await api.get<LastChatLogWire>(
         API_CONFIG.ENDPOINTS.CHAT_LOGS,
         {
-          params: { limit: 50 },
+          params: {
+            limit: 50,
+            ...(organizationId != null ? { organization_id: organizationId } : {}),
+          },
         }
       );
 
@@ -412,7 +415,7 @@ const ChatDialog = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [organizationId]);
 
   useEffect(() => {
     fetchChatLogs();
@@ -443,7 +446,12 @@ const ChatDialog = () => {
         const prevScrollHeight = container?.scrollHeight ?? 0;
 
         const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
-          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(phoneNumber, last_chat_id, selectedChat.recipient)
+          API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(
+            phoneNumber,
+            last_chat_id,
+            selectedChat.recipient,
+            organizationId,
+          )
         );
         const logArray = Array.isArray(res.data.log)
           ? res.data.log
@@ -508,7 +516,12 @@ const ChatDialog = () => {
     setLoadingDetail(true);
     try {
       const res = await api.get<{ log: ChatItemWire[] | ChatItemWire }>(
-        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(chat.phoneNumber, 0, chat.recipient)
+        API_CONFIG.ENDPOINTS.CHAT_LOG_BY_PHONE(
+          chat.phoneNumber,
+          0,
+          chat.recipient,
+          organizationId,
+        )
       );
       const logArray = Array.isArray(res.data.log)
         ? res.data.log
